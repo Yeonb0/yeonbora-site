@@ -1,0 +1,301 @@
+/* 컴퓨터 방 : 모니터 + 바탕화면 + 창 */
+.room {
+  position: relative;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 64px 16px 16px;
+  overflow: hidden;
+}
+
+/* 허브 → 컴퓨터 : 허브 칸 색에서 위부터 방 배경색으로 내려온다 */
+.room::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent 0%, var(--enter-from) 45%, var(--enter-from) 100%);
+  background-size: 100% 300%;
+  animation: pc-sky 1s var(--pc-ease) both;
+}
+@keyframes pc-sky {
+  from { background-position: 0% 100%; opacity: 1; }
+  70% { opacity: 1; }
+  to { background-position: 0% 0%; opacity: 0; }
+}
+
+.monitor {
+  --w: min(96vw, calc((100dvh - 112px) * 1.6));
+  width: var(--w);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* 얇고 각진 베젤 + 아래 턱 */
+.bezel {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: var(--bezel);
+  padding: 1.4% 1.4% 5.5%;
+  border-radius: 4px;
+  animation: pc-bezel 0.5s var(--pc-ease) 0.7s both;
+}
+@keyframes pc-bezel {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+.screen {
+  position: relative;
+  height: 100%;
+  background: var(--screen);
+  overflow: hidden;
+  animation: pc-on 0.8s var(--pc-ease) 1.2s both;
+}
+/* 받침 : 세로 기둥 + 모니터 폭의 40% 가로선 */
+.stand {
+  width: 1px;
+  height: 28px;
+  background: var(--bezel);
+  opacity: 0;
+  animation: pc-fade 0.4s ease 0.9s forwards;
+}
+.stand::after {
+  content: '';
+  display: block;
+  width: calc(var(--w) * 0.4);
+  height: 1px;
+  margin: 28px 0 0 calc(var(--w) * -0.2);
+  background: var(--bezel);
+}
+@keyframes pc-fade { to { opacity: 1; } }
+
+/* 화면 켜짐 : 가운데에서 원으로 퍼지며 하얀 빛이 검정으로 가라앉는다 */
+@keyframes pc-on {
+  0% { clip-path: circle(0% at 50% 50%); background: #cfc6f5; }
+  70% { clip-path: circle(100% at 50% 50%); background: #555; }
+  100% { clip-path: circle(100% at 50% 50%); background: #000; }
+}
+
+/* 아이콘 : 왼쪽 위부터 세로로 채우고 넘치면 다음 열 */
+.icons {
+  list-style: none;
+  margin: 0;
+  padding: 20px;
+  height: 100%;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(auto-fill, 96px);
+  grid-auto-columns: 96px;
+  gap: 4px 8px;
+  align-content: start;
+  justify-content: start;
+}
+.icons li {
+  animation: pc-icon 0.4s var(--pc-ease) calc(1.95s + var(--i) * 70ms) both;
+}
+@keyframes pc-icon {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.icon {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 6px;
+  width: 96px;
+  height: 92px;
+  padding: 8px 4px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--icon);
+  font-family: var(--font-base);
+  font-size: 12px;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s var(--pc-ease), border-color 0.2s var(--pc-ease);
+}
+.icon svg { width: 44px; height: 44px; }
+.icon img { width: 44px; height: 44px; }
+.icon svg text { font-family: var(--font-base-bold); }
+.icon:hover,
+.icon:focus-visible { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.28); outline: none; }
+
+/* 호버 설명 : 아이콘 오른쪽에 짧게 뜬다 (터치 기기에서는 숨긴다) */
+.icons li {
+  position: relative;
+  grid-column: var(--col);
+  grid-row: var(--row);
+}
+.icons li:hover,
+.icons li:focus-within { z-index: 5; }
+.tip {
+  position: absolute;
+  left: calc(100% - 6px);
+  top: 36px;
+  padding: 5px 10px;
+  border: 1px solid #4a4660;
+  border-radius: 4px;
+  background: #17151f;
+  color: var(--icon);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.15s var(--pc-ease), transform 0.15s var(--pc-ease);
+}
+@media (hover: hover) {
+  .icon:hover + .tip,
+  .icon:focus-visible + .tip {
+    opacity: 1;
+    transform: none;
+    transition-delay: 0.3s;
+  }
+}
+
+/* 방 나가기 : 아이콘 → 화면 → 모니터 → 받침 (들어올 때의 거꾸로) */
+.room[data-leaving='true'] .icons li {
+  animation: pc-icon-out 0.25s var(--pc-ease) calc(var(--r) * 20ms) both;
+}
+.room[data-leaving='true'] .screen {
+  animation: pc-off 0.4s var(--pc-ease) 0.4s both;
+}
+.room[data-leaving='true'] .bezel {
+  animation: pc-bezel-out 0.3s var(--pc-ease) 0.8s both;
+}
+.room[data-leaving='true'] .stand {
+  animation: pc-stand-out 0.3s ease 0.8s both;
+}
+@keyframes pc-icon-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px); } }
+@keyframes pc-off {
+  0% { clip-path: circle(100% at 50% 50%); background: #000; }
+  40% { clip-path: circle(100% at 50% 50%); background: #555; }
+  100% { clip-path: circle(0% at 50% 50%); background: #cfc6f5; }
+}
+@keyframes pc-bezel-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(0.96); } }
+@keyframes pc-stand-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* 창 : 1px 선 + 제목줄 */
+.win {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: #0d0d0f;
+  border: 1px solid #4a4660;
+  border-radius: 6px;
+  color: var(--icon);
+  outline: none;
+  overflow: hidden;
+}
+.win[data-closing='true'] { pointer-events: none; }
+.win:focus-within { border-color: var(--c); }
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 4px 0 12px;
+  border-bottom: 1px solid #2a2838;
+  background: #17151f;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.titlebar:active { cursor: grabbing; }
+.titlebar .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.titlebar h2 { flex: 1; margin: 0; font: 400 13px var(--font-point); letter-spacing: 0.02em; }
+.close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--icon);
+  cursor: pointer;
+}
+.close:hover,
+.close:focus-visible { background: rgba(255, 255, 255, 0.12); outline: none; }
+.body { flex: 1; min-height: 0; overflow: auto; padding: 12px; }
+
+.folder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 96px);
+  gap: 4px 8px;
+  justify-content: start;
+}
+.list ul { list-style: none; margin: 0; padding: 0; }
+.list a { color: var(--icon); text-decoration: none; }
+.list li a {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 12px;
+  padding: 9px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.list li a:hover,
+.list li a:focus-visible { background: rgba(255, 255, 255, 0.08); outline: none; }
+.list time { color: #8c87a8; font-size: 12px; line-height: 21px; }
+.course-links { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.course-links a {
+  padding: 3px 10px;
+  border: 1px solid var(--c);
+  border-radius: 999px;
+  color: var(--c);
+  font-size: 12px;
+}
+.course-links a:hover { background: rgba(255, 255, 255, 0.08); }
+.empty { margin: 8px; color: #8c87a8; font-size: 13px; }
+
+/* 모바일 : 베젤은 얇게, 화면은 세로 비율, 아이콘은 격자, 창은 화면을 덮는 시트 */
+@media (max-width: 640px) {
+  .room { padding: 72px 12px 24px; }
+  .monitor { --w: min(94vw, calc((100dvh - 150px) * 0.62)); }
+  .bezel { aspect-ratio: 9 / 15; padding: 2.4% 2.4% 4%; }
+  .icons {
+    padding: 14px 6px;
+    grid-auto-flow: row;
+    grid-template-rows: none;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-columns: auto;
+    gap: 6px 0;
+    justify-items: center;
+  }
+  .icons li { grid-column: auto; grid-row: auto; }
+  .win {
+    left: 8px !important;
+    top: 8px !important;
+    width: calc(100% - 16px) !important;
+    height: calc(100% - 16px) !important;
+  }
+  .titlebar { cursor: default; }
+  .close { width: 40px; height: 40px; }
+  .titlebar { height: 44px; }
+  .list li a { grid-template-columns: 1fr; gap: 2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room::before { animation: pc-fade-out 0.2s linear both; }
+  .bezel, .stand, .icons li { animation-duration: 0.15s; animation-delay: 0s; }
+  .screen { animation: pc-fade-in 0.15s linear both; }
+  .room[data-leaving='true'] .icons li,
+  .room[data-leaving='true'] .screen,
+  .room[data-leaving='true'] .bezel,
+  .room[data-leaving='true'] .stand { animation: pc-fade-out 0.15s linear both; }
+}
+@keyframes pc-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes pc-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+::view-transition-group(section-computer),
+::view-transition-old(section-computer),
+::view-transition-new(section-computer) {
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}

@@ -22,7 +22,8 @@ export const Sections: Section[] = [
     href: '/posts/',
     fill: '#3b2f8f',
     tint: '#9a9cf7',
-    icon: ['M4 20h4L19 9l-4-4L4 16z', 'M13 7l4 4'],
+    // 학사모 : 학교에서 배운 것을 쓰는 곳
+    icon: ['M2 9l10-5 10 5-10 5z', 'M6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5', 'M22 9v6'],
   },
   {
     id: 'computer',

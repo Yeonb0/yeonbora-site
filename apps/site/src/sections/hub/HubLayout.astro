@@ -4,6 +4,7 @@
 // grid 트랙 보간은 브라우저마다 지원이 달라 flex-grow 전환으로 구현한다
 import Base from '@/shared/Base.astro'
 import { Sections } from '@/sections/registry'
+import '@fontsource-variable/geist'
 import './tokens.css'
 
 const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
@@ -109,10 +110,10 @@ const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
     top: 100%;
     left: 50%;
     margin-top: clamp(12px, 2.4vmin, 24px);
-    font-family: system-ui, sans-serif;
-    font-size: clamp(18px, 3vmin, 28px);
+    font-family: var(--hub-label-font);
+    font-size: clamp(17px, 2.8vmin, 26px);
     font-weight: 500;
-    letter-spacing: 0.02em;
+    letter-spacing: -0.01em;
     white-space: nowrap;
     color: var(--hub-icon-active);
     opacity: 0;
@@ -124,6 +125,17 @@ const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
   .cell:is(:hover, :focus-visible) .en {
     opacity: 1;
     transform: translate(-50%, 0);
+  }
+  /* 호버가 없는 기기 (휴대폰) 에서는 이름을 항상 보여 준다 */
+  @media (hover: none) {
+    .en {
+      opacity: 1;
+      color: var(--tint);
+      transform: translate(-50%, 0);
+    }
+    .cell:is(:hover, :active, :focus-visible) .en {
+      color: var(--hub-icon-active);
+    }
   }
   .sr-only {
     position: absolute;

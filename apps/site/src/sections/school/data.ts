@@ -85,3 +85,6 @@ export const nameUnits = (name: string): number => {
   for (const ch of name) u += ch === ' ' ? 0.35 : ch.charCodeAt(0) < 128 ? 0.6 : 1
   return u
 }
+
+// 학교 밖 활동 (스터디 · 학회 · 동아리) : 계단 위 노란 원에서 연다. 학년 · 기간은 아직 정리 전
+export const Activities: string[] = ['멋쟁이사자처럼 14기', '멋사 중앙 해커톤, 팀 일당백', '프론트엔드 개발 동아리', '정보처리기사 스터디', '서버 엔지니어링 스터디']

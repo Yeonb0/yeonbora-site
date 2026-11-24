@@ -7,6 +7,63 @@
   color: var(--fg);
 }
 
+/* 허브 → 학교 : 허브 학교 칸 색에서 위부터 그라데이션으로 밤색이 내려오고, 그다음 계단이 차례로 올라온다 */
+.school::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent 0%, var(--enter-from) 45%, var(--enter-from) 100%);
+  background-size: 100% 300%;
+  background-position: 0% 0%;
+  animation: school-enter-sky 1s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes school-enter-sky {
+  from {
+    background-position: 0% 100%;
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    background-position: 0% 0%;
+    opacity: 0;
+  }
+}
+
+@keyframes school-rise {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.school .stairs .step {
+  transform-origin: bottom;
+  animation: school-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.school .stairs .step:nth-child(1) { animation-delay: 0.35s; }
+.school .stairs .step:nth-child(2) { animation-delay: 0.42s; }
+.school .stairs .step:nth-child(3) { animation-delay: 0.49s; }
+.school .stairs .step:nth-child(4) { animation-delay: 0.56s; }
+.school .stairs .step:nth-child(5) { animation-delay: 0.63s; }
+
+.school .stairs .sun {
+  animation: school-fade-in 0.5s ease 0.9s both;
+}
+
+::view-transition-group(section-school),
+::view-transition-old(section-school),
+::view-transition-new(section-school) {
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .school .sr-only {
   position: absolute;
   width: 1px;
@@ -50,13 +107,66 @@
   outline-offset: -6px;
 }
 
-/* 펼친 화면 : 누른 막대 모양에서 화면 전체로 번진다 */
+/* 5학년 계단 위 노란 원 : 활동 (스터디 · 학회 · 동아리) */
+.school .sun {
+  position: absolute;
+  left: 90%;
+  width: clamp(56px, 7vw, 96px);
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  cursor: pointer;
+  transition: filter 0.25s ease, transform 0.25s ease;
+}
+
+.school .sun:hover,
+.school .sun:focus-visible {
+  filter: brightness(1.1);
+  transform: translateX(-50%) scale(1.06);
+}
+
+.school .sun:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 4px;
+}
+
+/* 펼친 화면 : 누른 막대 (원) 모양에서 화면 전체로 번지고, 닫을 때 같은 모양으로 줄어든다 */
 @keyframes school-flood {
   from {
     clip-path: var(--from);
   }
   to {
-    clip-path: inset(0 0 0 0);
+    clip-path: var(--to);
+  }
+}
+
+@keyframes school-unflood {
+  from {
+    clip-path: var(--to);
+  }
+  to {
+    clip-path: var(--from);
+  }
+}
+
+@keyframes school-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes school-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 
@@ -68,16 +178,65 @@
   animation: school-flood 0.55s cubic-bezier(0.7, 0, 0.2, 1) both;
 }
 
+.school .flood.closing {
+  animation: school-unflood 0.45s cubic-bezier(0.7, 0, 0.2, 1) 0.15s both;
+}
+
+/* 내용은 다 번진 뒤에 나타나고, 닫을 때는 먼저 사라진다 (transform 은 쓰지 않는다 : 들고 있는 책의 fixed 기준이 바뀐다) */
+.school .flood-content {
+  animation: school-fade-in 0.3s ease 0.55s both;
+}
+
+.school .flood.closing .flood-content {
+  animation: school-fade-out 0.15s ease both;
+}
+
 .school .edge {
   position: fixed;
-  inset: 0 0 auto 0;
-  height: 40px;
   z-index: 60;
   margin: 0;
   padding: 0;
   border: 0;
   background: transparent;
+}
+
+.school .edge-top {
+  inset: 0 0 auto 0;
+  height: 32px;
   cursor: n-resize;
+}
+
+.school .edge-right {
+  inset: 0 0 0 auto;
+  width: 24px;
+}
+
+.school .edge-bottom {
+  inset: auto 0 0 0;
+  height: 24px;
+}
+
+.school .edge-left {
+  inset: 0 auto 0 0;
+  width: 24px;
+}
+
+.school .activities {
+  margin: 0;
+  padding: clamp(96px, 14vh, 140px) clamp(20px, 4.4vw, 56px) 40px;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.school .activities li {
+  padding: 14px 20px;
+  background: #000000;
+  color: #ffffff;
+  font-family: var(--font-base-bold);
+  font-size: 20px;
+  line-height: 1.3;
 }
 
 .school .year-number {
@@ -85,7 +244,7 @@
   left: clamp(20px, 4.4vw, 56px);
   top: clamp(64px, 6vh, 80px);
   font-family: var(--font-point);
-  font-size: clamp(120px, 16vw, 200px);
+  font-size: clamp(80px, 10vw, 130px);
   font-weight: 800;
   line-height: 0.8;
   letter-spacing: -0.05em;
@@ -179,7 +338,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .school .flood {
-    animation: none;
+  .school::before,
+  .school .stairs .step,
+  .school .stairs .sun,
+  .school .flood,
+  .school .flood.closing,
+  .school .flood-content,
+  .school .flood.closing .flood-content {
+    animation-duration: 0.01s;
+    animation-delay: 0s;
   }
 }

@@ -1,6 +1,6 @@
-/* school 섹션 임시 토큰 : 섹션 목업 승인 후 교체 */
+/* school 섹션 토큰 : 학년 색은 data.ts (Honey Lavender Dream) */
 :root:has(.section-school) {
-  --bg: #1a1a1a;
-  --fg: #e0e0e0;
-  --home-fg: #e0e0e0;
+  --bg: #0f0830;
+  --fg: #efe8ff;
+  --home-fg: #efe8ff;
 }

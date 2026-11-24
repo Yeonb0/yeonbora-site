@@ -3,4 +3,6 @@
   --bg: #0f0830;
   --fg: #efe8ff;
   --home-fg: #efe8ff;
+  /* 허브 학교 칸 색 : 들어올 때 이 색에서 밤색으로 바뀐다 */
+  --enter-from: #3b2f8f;
 }

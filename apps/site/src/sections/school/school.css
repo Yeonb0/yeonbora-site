@@ -7,6 +7,63 @@
   color: var(--fg);
 }
 
+/* 허브 → 학교 : 허브 학교 칸 색에서 위부터 그라데이션으로 밤색이 내려오고, 그다음 계단이 차례로 올라온다 */
+.school::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent 0%, var(--enter-from) 45%, var(--enter-from) 100%);
+  background-size: 100% 300%;
+  background-position: 0% 0%;
+  animation: school-enter-sky 1s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes school-enter-sky {
+  from {
+    background-position: 0% 100%;
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    background-position: 0% 0%;
+    opacity: 0;
+  }
+}
+
+@keyframes school-rise {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.school .stairs .step {
+  transform-origin: bottom;
+  animation: school-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.school .stairs .step:nth-child(1) { animation-delay: 0.35s; }
+.school .stairs .step:nth-child(2) { animation-delay: 0.42s; }
+.school .stairs .step:nth-child(3) { animation-delay: 0.49s; }
+.school .stairs .step:nth-child(4) { animation-delay: 0.56s; }
+.school .stairs .step:nth-child(5) { animation-delay: 0.63s; }
+
+.school .stairs .sun {
+  animation: school-fade-in 0.5s ease 0.9s both;
+}
+
+::view-transition-group(section-school),
+::view-transition-old(section-school),
+::view-transition-new(section-school) {
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .school .sr-only {
   position: absolute;
   width: 1px;
@@ -187,7 +244,7 @@
   left: clamp(20px, 4.4vw, 56px);
   top: clamp(64px, 6vh, 80px);
   font-family: var(--font-point);
-  font-size: clamp(120px, 16vw, 200px);
+  font-size: clamp(80px, 10vw, 130px);
   font-weight: 800;
   line-height: 0.8;
   letter-spacing: -0.05em;
@@ -281,6 +338,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .school::before,
+  .school .stairs .step,
+  .school .stairs .sun,
   .school .flood,
   .school .flood.closing,
   .school .flood-content,

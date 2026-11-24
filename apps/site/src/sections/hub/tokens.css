@@ -1,12 +1,9 @@
-/* 허브 토큰 : 옵시디언 + 깃블로그 다크, 보라 강조 (레이아웃은 목업 승인 후 교체) */
+/* 허브 토큰 : 옵시디언 + 깃블로그 다크, 보라 강조 */
 :root {
   --hub-bg: #1a1a1a;
-  --hub-panel: #232323;
   --hub-line: #333333;
-  --hub-fg: #e0e0e0;
-  --hub-muted: #a0a0a0;
-  --hub-accent: #8b6cf0;
-  --hub-accent-text: #a68cf5;
-  --hub-tile: #232323;
-  --hub-tile-hover: #2a2440;
+  --hub-icon: #8b6cf0;
+  --hub-icon-active: #f0eaff;
+  --hub-grow: 1.6fr;
+  --hub-speed: 0.35s;
 }

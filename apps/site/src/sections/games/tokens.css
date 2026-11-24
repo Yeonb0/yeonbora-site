@@ -1,0 +1,6 @@
+/* games 섹션 임시 토큰 : 섹션 목업 승인 후 교체 */
+:root:has(.section-games) {
+  --bg: #1b1430;
+  --fg: #f0e6ff;
+  --home-fg: #f0e6ff;
+}

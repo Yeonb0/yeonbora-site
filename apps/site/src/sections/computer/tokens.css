@@ -1,0 +1,6 @@
+/* computer 섹션 임시 토큰 : 섹션 목업 승인 후 교체 */
+:root:has(.section-computer) {
+  --bg: #0b0f0b;
+  --fg: #7cfc7c;
+  --home-fg: #7cfc7c;
+}

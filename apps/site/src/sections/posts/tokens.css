@@ -1,0 +1,6 @@
+/* posts 섹션 임시 토큰 : 섹션 목업 승인 후 교체 */
+:root:has(.section-posts) {
+  --bg: #f4efe6;
+  --fg: #2b2723;
+  --home-fg: #2b2723;
+}

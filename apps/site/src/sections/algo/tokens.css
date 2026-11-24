@@ -1,0 +1,6 @@
+/* algo 섹션 임시 토큰 : 섹션 목업 승인 후 교체 */
+:root:has(.section-algo) {
+  --bg: #191919;
+  --fg: #e6e6e6;
+  --home-fg: #e6e6e6;
+}

@@ -1,0 +1,48 @@
+project: yeonbora-site
+# Phase 2 완료 전까지 게시 대상은 기존 Jekyll 깃블로그
+publish_target: jekyll
+current_phase: 1
+phases:
+  - id: 1
+    title: 도메인 + 허브 화면
+    goal: 내 도메인에서 아이콘 허브가 뜬다
+    done:
+      - 도메인 HTTPS 접속
+      - main push 시 Cloudflare Pages 자동 배포
+      - 아이콘 4개 허브
+      - 아이콘 클릭 시 섹션 빈 페이지로 전환
+  - id: 2
+    title: 블로그 이전
+    goal: 기존 깃블로그 글이 새 사이트에서 읽힌다
+    done:
+      - Jekyll 글을 content collection으로 이전
+      - 태그 · RSS · sitemap
+      - devlog 스킬 게시 경로를 Astro로 변경
+  - id: 3
+    title: 애드센스 준비
+    goal: 승인 신청이 가능한 상태가 된다
+    done:
+      - ads.txt
+      - 소개 · 개인정보처리방침 페이지
+      - 애드센스 신청 완료
+  - id: 4
+    title: 첫 인터랙티브 글
+    goal: 글 안에서 시각화가 동작한다
+    done:
+      - MDX 글 1편에 React 시각화 삽입
+      - 모바일에서 조작 가능
+      - Lighthouse 성능 90 이상
+  - id: 5
+    title: 컴퓨터 화면 레이아웃
+    goal: 글을 컴퓨터 화면처럼 보여준다
+    done:
+      - 터미널 / 창 레이아웃 컴포넌트 1종
+      - 그 레이아웃으로 쓴 글 1편
+      - 모바일 대응
+  - id: 6
+    title: Algoristro workspace 통합
+    goal: 시각화 백과사전이 사이트 안에서 열린다
+    done:
+      - Algoristro를 packages/로 이전
+      - /algo 경로로 함께 배포
+      - 블로그 글과 상호 링크

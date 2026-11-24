@@ -1,0 +1,70 @@
+---
+// 모든 섹션이 공유하는 최소 골격 : 라우터 + 메타 + 홈 버튼
+import { ClientRouter } from 'astro:transitions'
+
+interface Props {
+  title: string
+  description?: string
+  showHome?: boolean
+}
+
+const { title, description = '연보라의 실험장', showHome = true } = Astro.props
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    <ClientRouter />
+    <slot name="head" />
+  </head>
+  <body>
+    {
+      showHome && (
+        <a class="home-button" href="/" aria-label="홈으로" transition:persist>
+          ⌂
+        </a>
+      )
+    }
+    <slot />
+    <style is:global>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+      .home-button {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        font-size: 22px;
+        text-decoration: none;
+        color: var(--home-fg, #e0e0e0);
+        background: var(--home-bg, rgba(255, 255, 255, 0.08));
+        backdrop-filter: blur(8px);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        ::view-transition-group(*),
+        ::view-transition-old(*),
+        ::view-transition-new(*) {
+          animation: none !important;
+        }
+      }
+    </style>
+  </body>
+</html>

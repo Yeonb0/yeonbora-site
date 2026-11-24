@@ -4,7 +4,8 @@
 // grid 트랙 보간은 브라우저마다 지원이 달라 flex-grow 전환으로 구현한다
 import Base from '@/shared/Base.astro'
 import { Sections } from '@/sections/registry'
-import '@fontsource-variable/geist'
+import '@fontsource/instrument-serif/400.css'
+import '@fontsource/instrument-serif/400-italic.css'
 import './tokens.css'
 
 const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
@@ -80,12 +81,14 @@ const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
       background var(--hub-speed) var(--hub-ease),
       color var(--hub-speed) var(--hub-ease);
   }
-  /* 호버 · 포커스한 칸의 행과 열을 넓힌다 */
-  .hub:has(.cell[data-row='0']:is(:hover, :focus-visible)) .row[data-row='0'],
-  .hub:has(.cell[data-row='1']:is(:hover, :focus-visible)) .row[data-row='1'],
-  .hub:has(.cell[data-col='0']:is(:hover, :focus-visible)) .cell[data-col='0'],
-  .hub:has(.cell[data-col='1']:is(:hover, :focus-visible)) .cell[data-col='1'] {
-    flex-grow: var(--hub-grow);
+  /* 호버 · 포커스한 칸의 행과 열을 넓힌다 (호버가 되는 기기에서만) */
+  @media (hover: hover) {
+    .hub:has(.cell[data-row='0']:is(:hover, :focus-visible)) .row[data-row='0'],
+    .hub:has(.cell[data-row='1']:is(:hover, :focus-visible)) .row[data-row='1'],
+    .hub:has(.cell[data-col='0']:is(:hover, :focus-visible)) .cell[data-col='0'],
+    .hub:has(.cell[data-col='1']:is(:hover, :focus-visible)) .cell[data-col='1'] {
+      flex-grow: var(--hub-grow);
+    }
   }
   .cell:is(:hover, :focus-visible) {
     background: var(--fill);
@@ -111,9 +114,10 @@ const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
     left: 50%;
     margin-top: clamp(12px, 2.4vmin, 24px);
     font-family: var(--hub-label-font);
-    font-size: clamp(17px, 2.8vmin, 26px);
-    font-weight: 500;
-    letter-spacing: -0.01em;
+    font-size: clamp(24px, 4vmin, 38px);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: 0.005em;
     white-space: nowrap;
     color: var(--hub-icon-active);
     opacity: 0;
@@ -128,6 +132,13 @@ const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
   }
   /* 호버가 없는 기기 (휴대폰) 에서는 이름을 항상 보여 준다 */
   @media (hover: none) {
+    /* 터치 기기는 누른 뒤 돌아와도 :hover 가 남으므로 칸 색은 누르는 동안에만 바꾼다 */
+    .cell:not(:active, :focus-visible) {
+      background: var(--hub-bg);
+    }
+    .cell:not(:active, :focus-visible) svg {
+      transform: none;
+    }
     .en {
       opacity: 1;
       color: var(--tint);

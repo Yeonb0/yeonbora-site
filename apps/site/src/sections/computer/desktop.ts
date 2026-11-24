@@ -50,7 +50,7 @@ export interface DesktopItem {
 
 export const DesktopItems: DesktopItem[] = [
   // 이산구조 : 과목 코드 미정
-  { id: 'discrete', label: '이산구조', group: 1, src: graphLogo, color: '#ff8a3d', desc: '이산구조', kind: 'course', courses: [] },
+  { id: 'discrete', label: 'Discrete', group: 1, src: graphLogo, color: '#ff8a3d', desc: '이산구조', kind: 'course', courses: [] },
   { id: 'algo', label: 'Algorithm', group: 1, src: flowLogo, color: '#9d4edd', desc: '알고리즘 설계와 분석 · Algoristro 로 이동', kind: 'link', courses: ['CSE3081'], href: '/algo/' },
   { id: 'graphics', label: 'Graphics', group: 2, src: ytLogo, color: '#ff3b3b', desc: '기초 컴퓨터 그래픽스', kind: 'course', courses: ['CSE4170'] },
   // 컴퓨터 네트워크 : 과목 코드 미정
@@ -62,8 +62,8 @@ export const DesktopItems: DesktopItem[] = [
   { id: 'database', label: 'Database', group: 4, src: dbLogo, color: '#4aa3df', desc: '데이터베이스시스템', kind: 'course', courses: [] },
   // 자료구조 : 과목 코드 미정
   // 디지털회로개론 : 과목 코드 미정, 번개 아이콘은 직접 그린 것
-  { id: 'digital', label: '디지털회로', group: 4, src: circuitLogo, color: '#ffca28', desc: '디지털회로개론', kind: 'course', courses: [] },
-  { id: 'ds', label: '자료구조', group: 5, src: treeLogo, color: '#8bd450', desc: '자료구조', kind: 'course', courses: [] },
+  { id: 'digital', label: 'Digital', group: 4, src: circuitLogo, color: '#ffca28', desc: '디지털회로개론', kind: 'course', courses: [] },
+  { id: 'ds', label: 'Data Structures', group: 5, src: treeLogo, color: '#8bd450', desc: '자료구조', kind: 'course', courses: [] },
   { id: 'compiler', label: 'Compiler', group: 5, src: buildLogo, color: '#ff8a3d', desc: '기초 컴파일러 구성', kind: 'course', courses: ['CSE4120'] },
   // 운영체제 (Pintos) : 과목 코드 미정
   { id: 'os', label: 'OS', group: 6, src: consoleLogo, color: '#4ade80', desc: '운영체제 (Pintos)', kind: 'course', courses: [] },
@@ -85,7 +85,7 @@ export interface LangItem {
 
 export const PlCourse: DesktopItem = {
   id: 'pl-course',
-  label: '언어론',
+  label: 'PL Theory',
   group: 0,
   desc: '프로그래밍 언어론',
   src: libLogo,

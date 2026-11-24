@@ -5,6 +5,8 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import type { TransitionBeforePreparationEvent } from 'astro:transitions/client'
 import { navigate } from 'astro:transitions/client'
+import Clock from './Clock'
+import { useClockSaver, useTilt } from './fx'
 import { DesktopItems, Langs, PlCourse } from './desktop'
 import type { DesktopItem, LangItem } from './desktop'
 import { Icons } from './icons'
@@ -57,6 +59,13 @@ export default function Desktop() {
   const [wins, setWins] = useState<Win[]>([])
   const [leaving, setLeaving] = useState(false)
   const ScreenRef = useRef<HTMLDivElement | null>(null)
+  const RoomRef = useRef<HTMLDivElement | null>(null)
+  const MoverRef = useRef<HTMLDivElement | null>(null)
+  const MarqueeRef = useRef<HTMLDivElement | null>(null)
+  const [Selected, setSelected] = useState<string[]>([])
+  const KickTilt = useRef<() => void>(() => {})
+  const { Phase, Locked } = useClockSaver(ScreenRef, MoverRef, () => KickTilt.current())
+  KickTilt.current = useTilt(RoomRef, Locked)
   const WinRefs = useRef(new Map<string, HTMLElement>())
   const Opened = useRef(0)
 
@@ -78,8 +87,8 @@ export default function Desktop() {
       const Box = ScreenRef.current?.getBoundingClientRect()
       const sw = Box?.width ?? 800
       const sh = Box?.height ?? 500
-      const ww = Math.min(440, sw - 24)
-      const wh = Math.min(380, sh - 24)
+      const ww = Math.min(sw - 24, Math.max(320, sw * 0.45))
+      const wh = Math.min(sh - 24, Math.max(280, sh * 0.6))
       const n = Opened.current++ % 6
       return [
         ...cur.filter((c) => c.key !== w.key),
@@ -141,7 +150,7 @@ export default function Desktop() {
       const Orig = Ev.loader
       Ev.loader = async () => {
         setLeaving(true)
-        await new Promise((r) => setTimeout(r, Reduced() ? 150 : 1100))
+        await new Promise((r) => setTimeout(r, Reduced() ? 150 : 1400))
         await Orig()
       }
     }
@@ -149,29 +158,93 @@ export default function Desktop() {
     return () => document.removeEventListener('astro:before-preparation', onPrep)
   }, [])
 
+  // 빈 곳 드래그 : 반투명 선택 사각형, 중심이 안에 든 아이콘이 선택된다
+  const onScreenDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const Screen = ScreenRef.current
+    if (e.button !== 0 || !Screen || (e.target as HTMLElement).closest('.icon, .win, .clock-mover')) return
+    const Box = Screen.getBoundingClientRect()
+    const x0 = e.clientX - Box.left
+    const y0 = e.clientY - Box.top
+    setSelected([])
+    const M = MarqueeRef.current
+    const onMove = (ev: PointerEvent) => {
+      if (!M) return
+      const x1 = ev.clientX - Box.left
+      const y1 = ev.clientY - Box.top
+      if (Math.hypot(x1 - x0, y1 - y0) < 4) return
+      const l = Math.min(x0, x1)
+      const t = Math.min(y0, y1)
+      const w = Math.abs(x1 - x0)
+      const h = Math.abs(y1 - y0)
+      M.style.cssText = `display:block;left:${l}px;top:${t}px;width:${w}px;height:${h}px`
+      const Hit: string[] = []
+      document.querySelectorAll<HTMLElement>('.icons .icon').forEach((el) => {
+        const R = el.getBoundingClientRect()
+        const cx = R.left + R.width / 2 - Box.left
+        const cy = R.top + R.height / 2 - Box.top
+        if (cx >= l && cx <= l + w && cy >= t && cy <= t + h) Hit.push(el.dataset.icon ?? '')
+      })
+      setSelected((cur) => (cur.join() === Hit.join() ? cur : Hit))
+    }
+    const onUp = () => {
+      if (M) M.style.display = 'none'
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('pointercancel', onUp)
+    }
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+    window.addEventListener('pointercancel', onUp)
+  }
+
   return (
-    <div className="room" data-leaving={leaving} style={{ '--n': DesktopItems.length } as CSSProperties}>
+    <div ref={RoomRef} className="room" data-leaving={leaving} data-saver={Phase} style={{ '--n': DesktopItems.length } as CSSProperties}>
       <div className="monitor">
-        <div className="bezel">
-          <div className="screen" ref={ScreenRef}>
-            <ul className="icons">
-              {DesktopItems.map((it, i) => (
-                <li
-                  key={it.id}
-                  style={{ '--i': i, '--r': DesktopItems.length - 1 - i, '--col': it.group, '--row': DesktopItems.slice(0, i).filter((o) => o.group === it.group).length + 1 } as CSSProperties}
-                >
-                  <button type="button" className="icon" data-icon={it.id} style={{ '--c': it.color } as CSSProperties} onClick={() => openItem(it, [it.id])}>
-                    <img src={it.src} alt="" draggable={false} />
-                    <span>{it.label}</span>
-                  </button>
-                  {it.desc && (
-                    <span className="tip" role="tooltip">
-                      {it.desc}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
+        <div className="bezel-wrap">
+          <div className="glow" aria-hidden="true" />
+          <div className="bezel">
+            <div className="screen" ref={ScreenRef} onPointerDown={onScreenDown}>
+              <div className="clock-mover" ref={MoverRef}>
+                <div className="clock-tilt">
+                  <Clock />
+                </div>
+                {['tl', 'tr', 'bl', 'br'].map((c) => (
+                  <span key={c} className="clock-handle" data-corner={c} />
+                ))}
+              </div>
+              <div className="desktop" data-hide={Phase !== 'off'}>
+                <ul className="icons">
+                  {DesktopItems.map((it, i) => {
+                    return (
+                      <li
+                        key={it.id}
+                        style={{ '--i': i, '--r': DesktopItems.length - 1 - i, '--col': it.group, '--row': DesktopItems.slice(0, i).filter((o) => o.group === it.group).length + 1 } as CSSProperties}
+                      >
+                        <div className="mv" data-mv={it.id}>
+                          <button
+                            type="button"
+                            className="icon"
+                            data-icon={it.id}
+                            data-selected={Selected.includes(it.id)}
+                            style={{ '--c': it.color } as CSSProperties}
+                            onPointerDown={() => setSelected([it.id])}
+                            onClick={() => openItem(it, [it.id])}
+                          >
+                            <img src={it.src} alt="" draggable={false} />
+                            <span>{it.label}</span>
+                          </button>
+                          {it.desc && (
+                            <span className="tip" role="tooltip" data-flip={it.group >= 6}>
+                              {it.desc}
+                            </span>
+                          )}
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+              <div className="marquee" ref={MarqueeRef} aria-hidden="true" />
             {wins.map((w, z) => (
               <Window
                 key={w.key}
@@ -209,6 +282,10 @@ export default function Desktop() {
                 )}
               </Window>
             ))}
+              <div className="glare" aria-hidden="true" />
+              <div className="dim" aria-hidden="true" />
+            </div>
+            <span className="led" aria-hidden="true" />
           </div>
         </div>
         <div className="stand" aria-hidden="true" />

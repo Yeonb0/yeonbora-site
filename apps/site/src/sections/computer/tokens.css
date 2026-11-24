@@ -1,6 +1,33 @@
-/* computer 섹션 임시 토큰 : 섹션 목업 승인 후 교체 */
+/* computer 섹션 토큰 : 방 배경은 registry 의 computer 색 (#5530c0) 을 아주 어둡게 */
 :root:has(.section-computer) {
-  --bg: #0b0f0b;
-  --fg: #7cfc7c;
-  --home-fg: #7cfc7c;
+  --bg: #12082b;
+  --fg: #ece6ff;
+  --home-fg: #ece6ff;
+  /* 허브 컴퓨터 칸 색 : 들어올 때 이 색에서 방 배경색으로 바뀐다 */
+  --enter-from: #5530c0;
+  --bezel: #f4f2fa;
+  --screen: #000000;
+  --icon: #e9e4fb;
+  --line: #3a3550;
+  --pc-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --pc-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --glow: 130, 90, 255;
+
+  /* 바탕화면 아이콘 : 모니터 화면 (.screen) 이나 창 (.win) 을 container 로 삼아 cqw 로 정한다 (vw 는 쓰지 않는다) */
+  --icon-size: clamp(28px, 5.5cqw, 64px);
+  --icon-cell-w: calc(var(--icon-size) * 2);
+  --icon-label: clamp(11px, 1.1cqw, 14px);
+  --icon-cell-h: calc(var(--icon-size) * 1.1 + var(--icon-label) * 2 + 14px);
+  --icon-gap-x: calc(var(--icon-size) * 0.1);
+  --icon-gap-y: calc(var(--icon-size) * 0.1);
+  --desk-pad: calc(var(--icon-size) * 0.3);
+
+  /* 3D LED 시계 : 크기는 여기서 고정한다 (반응형은 래퍼 전체 transform: scale 로만) */
+  --clock-digit-w: 56px;
+  --clock-digit-h: 96px;
+  --clock-colon-w: 30px;
+  --clock-gap: 10px;
+  --clock-w: calc(var(--clock-digit-w) * 6 + var(--clock-colon-w) * 2 + var(--clock-gap) * 7);
+  --clock-h: var(--clock-digit-h);
+  --clock-off: #1f1d24;
 }

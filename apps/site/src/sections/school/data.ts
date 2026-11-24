@@ -55,7 +55,7 @@ export const Categories: { key: CategoryKey; label: string }[] = [
 const Members: Record<Exclude<CategoryKey, 'gen'>, string[]> = {
   phil: ['동양철학개론', '논리학개론', '한국철학사', '서양고대철학사', '소크라테스이전철학과소크라테스철학', '서양철학사', '플라톤철학', '근현대중국철학사2', '아리스토텔레스철학', '위진·당철학사', '도가철학', '유가철학', '칸트철학'],
   rel: ['세계종교입문', '한국그리스도교의이해', '중국문화속의유교와도교', '힌두교의이해', '고대근동의종교', '도교의중심사상', '힌두교강독', '종교의이해', '종교학답사I', '디지털 시대의 종교', '종교연구방법론', '종교간의대화', '그리스도교강독'],
-  cse: ['기초C언어', '이산구조', '디지털회로개론', 'JAVA언어', '자료구조', '컴퓨터시스템개론', '컴퓨터아키텍처', '프로그래밍언어', '기초머신러닝', '기초컴퓨터그래픽스', '컴퓨터네트워크', '알고리즘설계와분석', '운영체제', '기초컴파일러구성', '소프트웨어공학', '실전 AI 에이전트 시스템 설계 · 구축', '데이터베이스시스템', '시스템프로그래밍'],
+  cse: ['기초C언어', '이산구조', '디지털회로개론', 'JAVA언어', '자료구조', '컴퓨터시스템개론', '컴퓨터아키텍처', '프로그래밍언어', '기초머신러닝', '기초컴퓨터그래픽스', '컴퓨터네트워크', '알고리즘설계와분석', '운영체제', '기초컴파일러구성', '소프트웨어공학', '데이터베이스시스템', '시스템프로그래밍'],
 }
 
 export const categoryOf = (course: string): CategoryKey => {
@@ -86,5 +86,22 @@ export const nameUnits = (name: string): number => {
   return u
 }
 
-// 학교 밖 활동 (스터디 · 학회 · 동아리) : 계단 위 노란 원에서 연다. 학년 · 기간은 아직 정리 전
-export const Activities: string[] = ['멋쟁이사자처럼 14기', '멋사 중앙 해커톤, 팀 일당백', '프론트엔드 개발 동아리', '정보처리기사 스터디', '서버 엔지니어링 스터디']
+// 학교 밖 활동 : 계단 위 달에서 연다. 노션 '뭐하고 살았니' 기준 (노션은 학회/동아리가 한 분류라 여기서 나눈다)
+export type ActivityKey = 'study' | 'club' | 'society' | 'project'
+
+export const ActivityCategories: { key: ActivityKey; label: string }[] = [
+  { key: 'study', label: '스터디' },
+  { key: 'club', label: '동아리' },
+  { key: 'society', label: '학회' },
+  { key: 'project', label: '프로젝트' },
+]
+
+export const Activities: Record<ActivityKey, string[]> = {
+  study: ['AI/ML 스터디', 'Spring 스터디', '정보처리기사 스터디', '서버 엔지니어 스터디', '분석 철학 스터디', '니체 강독 + 독일어 스터디', '맹자 강독 한문 스터디', '모종삼 강독 스터디', '철학 개론 스터디'],
+  club: ['SGAEM', '서만창'],
+  society: ['멋쟁이 사자처럼', '난섹션 학생회'],
+  project: ['멋사 복커톤', '멋사 아이디어톤', '멋사 중앙 해커톤', '멋사 창업경진대회', 'Layered Wiki Harness', 'TIL (Today I Learned)', '기술 위키 (Obsidian)', '라멘티드 (Ramented)', 'Pintos (운영체제)', 'Bora.log 깃 블로그'],
+}
+
+// 활동 더미 색 기준 : 달 색 (밝은 색이라 분류 색은 검정 쪽으로 섞인다)
+export const ActivityYear: Year = { n: 0, color: '#FFB400', light: true, courses: [] }

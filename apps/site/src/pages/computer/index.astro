@@ -1,7 +1,9 @@
 ---
 import Layout from '@/sections/computer/Layout.astro'
+// 확장자를 붙인다 : 윈도우는 대소문자를 구분하지 않아 Desktop 이 desktop.ts 로 잡힌다
+import Desktop from '@/sections/computer/Desktop.tsx'
 ---
 
 <Layout>
-  <h1>준비 중</h1>
+  <Desktop client:load />
 </Layout>

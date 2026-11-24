@@ -3,6 +3,8 @@
 export interface Section {
   id: string
   label: string
+  // 허브 칸에 호버했을 때 아이콘 아래에 보이는 영어 이름
+  en: string
   href: string
   // 허브 칸에 호버했을 때 칠할 색 : 남보라 → 보라 → 자주 순으로 색상과 밝기가 함께 달라진다
   fill: string
@@ -16,6 +18,7 @@ export const Sections: Section[] = [
   {
     id: 'posts',
     label: '글',
+    en: 'Writing',
     href: '/posts/',
     fill: '#3b2f8f',
     tint: '#9a9cf7',
@@ -24,6 +27,7 @@ export const Sections: Section[] = [
   {
     id: 'computer',
     label: '컴퓨터',
+    en: 'Computer',
     href: '/computer/',
     fill: '#6d28d9',
     tint: '#b197fc',
@@ -32,6 +36,7 @@ export const Sections: Section[] = [
   {
     id: 'algo',
     label: '알고리즘',
+    en: 'Algorithm',
     href: '/algo/',
     fill: '#9333ea',
     tint: '#d09bfd',
@@ -47,6 +52,7 @@ export const Sections: Section[] = [
   {
     id: 'games',
     label: '게임',
+    en: 'Game',
     href: '/games/',
     fill: '#a21caf',
     tint: '#f09afb',

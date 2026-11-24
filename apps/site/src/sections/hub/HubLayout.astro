@@ -25,6 +25,7 @@ const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
               style={`--fill: ${s.fill}; --tint: ${s.tint}`}
               transition:name={`section-${s.id}`}
             >
+              <span class="mark">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -38,6 +39,10 @@ const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
                   <path d={d} />
                 ))}
               </svg>
+              <span class="en" aria-hidden="true">
+                {s.en}
+              </span>
+              </span>
             </a>
           ))}
         </div>
@@ -93,6 +98,33 @@ const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
   .cell:is(:hover, :focus-visible) svg {
     transform: scale(1.12);
   }
+  /* 아이콘을 칸 정중앙에 두고, 영어 이름은 그 아래에 겹쳐 띄워 아이콘이 밀리지 않게 한다 */
+  .mark {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+  .en {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-top: clamp(12px, 2.4vmin, 24px);
+    font-family: system-ui, sans-serif;
+    font-size: clamp(18px, 3vmin, 28px);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    color: var(--hub-icon-active);
+    opacity: 0;
+    transform: translate(-50%, 8px);
+    transition:
+      opacity var(--hub-speed) var(--hub-ease),
+      transform var(--hub-speed) var(--hub-ease);
+  }
+  .cell:is(:hover, :focus-visible) .en {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
   .sr-only {
     position: absolute;
     width: 1px;
@@ -104,7 +136,8 @@ const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
   @media (prefers-reduced-motion: reduce) {
     .row,
     .cell,
-    .cell svg {
+    .cell svg,
+    .en {
       transition: none;
     }
   }

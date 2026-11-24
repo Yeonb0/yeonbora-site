@@ -6,5 +6,6 @@
   --hub-label-font: var(--font-point);
   --hub-grow: 1.7;
   --hub-speed: 0.6s;
-  --hub-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* 처음에 움직임이 몰리지 않게 완만한 곡선을 쓴다 (0.22, 1, 0.36, 1 은 0.05s 만에 95% 가 끝나 애니메이션이 안 보였다) */
+  --hub-ease: cubic-bezier(0.4, 0, 0.2, 1);
 }

@@ -1,0 +1,24 @@
+---
+// religion 섹션 전용 레이아웃 : 허브 아이콘이 이 화면 전체로 확대되며 넘어온다
+import Base from '@/shared/Base.astro'
+import { findSection } from '@/sections/registry'
+import './tokens.css'
+
+const Me = findSection('religion')
+---
+
+<Base title={`${Me.label} · 연보라`}>
+  <main class="section-religion" transition:name={`section-${Me.id}`}>
+    <slot />
+  </main>
+</Base>
+
+<style>
+  main {
+    min-height: 100dvh;
+    padding: 88px 24px 24px;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-base);
+  }
+</style>

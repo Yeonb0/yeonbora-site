@@ -1,0 +1,7 @@
+/* 사이트 공통 글꼴 : 나눔스퀘어 (기본) + 나눔스퀘어 네오 (포인트) */
+/* 두 글꼴 모두 굵기마다 family 이름이 따로 있다 (네이버 공식 CSS 기준) */
+:root {
+  --font-base: 'NanumSquare', system-ui, sans-serif;
+  --font-base-bold: 'NanumSquareBold', 'NanumSquare', system-ui, sans-serif;
+  --font-point: 'NanumSquareNeoBold', 'NanumSquareNeo', system-ui, sans-serif;
+}

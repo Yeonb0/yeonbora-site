@@ -1,37 +1,46 @@
 ---
 // 허브 : 화면을 4분할하고 섹션 아이콘만 둔다
-// 호버한 칸은 그 섹션의 보라색으로 칠해지고 행 · 열이 함께 넓어진다
+// 호버한 칸은 그 섹션의 색으로 칠해지고 같은 행 · 열이 함께 부드럽게 넓어진다
+// grid 트랙 보간은 브라우저마다 지원이 달라 flex-grow 전환으로 구현한다
 import Base from '@/shared/Base.astro'
 import { Sections } from '@/sections/registry'
 import './tokens.css'
+
+const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
 ---
 
 <Base title="연보라" showHome={false}>
   <h1 class="sr-only">연보라</h1>
   <nav class="hub" aria-label="섹션">
     {
-      Sections.map((s) => (
-        <a
-          class="cell"
-          href={s.href}
-          aria-label={s.label}
-          style={`--fill: ${s.fill}`}
-          transition:name={`section-${s.id}`}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.3"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            {s.icon.map((d) => (
-              <path d={d} />
-            ))}
-          </svg>
-        </a>
+      Rows.map((Row, r) => (
+        <div class="row" data-row={r}>
+          {Row.map((s, c) => (
+            <a
+              class="cell"
+              href={s.href}
+              aria-label={s.label}
+              data-row={r}
+              data-col={c}
+              style={`--fill: ${s.fill}; --tint: ${s.tint}`}
+              transition:name={`section-${s.id}`}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="0.9"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                {s.icon.map((d) => (
+                  <path d={d} />
+                ))}
+              </svg>
+            </a>
+          ))}
+        </div>
       ))
     }
   </nav>
@@ -40,55 +49,49 @@ import './tokens.css'
 <style>
   .hub {
     height: 100dvh;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 1px;
     background: var(--hub-line);
-    transition:
-      grid-template-columns var(--hub-speed) ease,
-      grid-template-rows var(--hub-speed) ease;
   }
-  /* 호버 · 포커스한 칸이 속한 열과 행을 넓힌다 (1 2 / 3 4 순서) */
-  .hub:has(.cell:nth-child(1):is(:hover, :focus-visible)) {
-    grid-template-columns: var(--hub-grow) 1fr;
-    grid-template-rows: var(--hub-grow) 1fr;
-  }
-  .hub:has(.cell:nth-child(2):is(:hover, :focus-visible)) {
-    grid-template-columns: 1fr var(--hub-grow);
-    grid-template-rows: var(--hub-grow) 1fr;
-  }
-  .hub:has(.cell:nth-child(3):is(:hover, :focus-visible)) {
-    grid-template-columns: var(--hub-grow) 1fr;
-    grid-template-rows: 1fr var(--hub-grow);
-  }
-  .hub:has(.cell:nth-child(4):is(:hover, :focus-visible)) {
-    grid-template-columns: 1fr var(--hub-grow);
-    grid-template-rows: 1fr var(--hub-grow);
+  .row {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    gap: 1px;
+    transition: flex-grow var(--hub-speed) var(--hub-ease);
   }
   .cell {
+    flex: 1 1 0;
+    min-width: 0;
     display: grid;
     place-items: center;
-    min-width: 0;
-    min-height: 0;
     background: var(--hub-bg);
-    color: var(--hub-icon);
+    color: var(--tint);
     outline: none;
     transition:
-      background var(--hub-speed) ease,
-      color var(--hub-speed) ease;
+      flex-grow var(--hub-speed) var(--hub-ease),
+      background var(--hub-speed) var(--hub-ease),
+      color var(--hub-speed) var(--hub-ease);
   }
-  .cell svg {
-    width: clamp(44px, 6vw, 64px);
-    height: auto;
-    transition: transform var(--hub-speed) ease;
+  /* 호버 · 포커스한 칸의 행과 열을 넓힌다 */
+  .hub:has(.cell[data-row='0']:is(:hover, :focus-visible)) .row[data-row='0'],
+  .hub:has(.cell[data-row='1']:is(:hover, :focus-visible)) .row[data-row='1'],
+  .hub:has(.cell[data-col='0']:is(:hover, :focus-visible)) .cell[data-col='0'],
+  .hub:has(.cell[data-col='1']:is(:hover, :focus-visible)) .cell[data-col='1'] {
+    flex-grow: var(--hub-grow);
   }
   .cell:is(:hover, :focus-visible) {
     background: var(--fill);
     color: var(--hub-icon-active);
   }
+  .cell svg {
+    width: clamp(88px, 18vmin, 176px);
+    height: auto;
+    transition: transform var(--hub-speed) var(--hub-ease);
+  }
   .cell:is(:hover, :focus-visible) svg {
-    transform: scale(1.3);
+    transform: scale(1.12);
   }
   .sr-only {
     position: absolute;
@@ -99,7 +102,7 @@ import './tokens.css'
     white-space: nowrap;
   }
   @media (prefers-reduced-motion: reduce) {
-    .hub,
+    .row,
     .cell,
     .cell svg {
       transition: none;

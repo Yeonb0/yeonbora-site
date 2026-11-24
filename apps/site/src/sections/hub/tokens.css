@@ -2,8 +2,8 @@
 :root {
   --hub-bg: #1a1a1a;
   --hub-line: #333333;
-  --hub-icon: #8b6cf0;
-  --hub-icon-active: #f0eaff;
-  --hub-grow: 1.6fr;
-  --hub-speed: 0.35s;
+  --hub-icon-active: #ffffff;
+  --hub-grow: 1.7;
+  --hub-speed: 0.6s;
+  --hub-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }

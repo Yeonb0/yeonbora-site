@@ -4,11 +4,10 @@ publish_target: jekyll
 current_phase: 1
 phases:
   - id: 1
-    title: 도메인 + 허브 화면
-    goal: 내 도메인에서 아이콘 허브가 뜬다
+    title: 허브 화면
+    goal: 로컬에서 아이콘 허브가 뜬다
     done:
-      - 도메인 HTTPS 접속
-      - main push 시 Cloudflare Pages 자동 배포
+      - pnpm dev 로 로컬 실행
       - 아이콘 4개 허브
       - 아이콘 클릭 시 섹션 빈 페이지로 전환
   - id: 2
@@ -46,3 +45,11 @@ phases:
       - Algoristro를 packages/로 이전
       - /algo 경로로 함께 배포
       - 블로그 글과 상호 링크
+  # 도메인은 비용이 들어서 마지막에 연결한다 (2026-11-24 결정)
+  - id: 7
+    title: 배포 + 도메인
+    goal: 내 도메인에서 사이트가 뜬다
+    done:
+      - main push 시 Cloudflare Pages 자동 배포
+      - 도메인 구입 후 HTTPS 접속
+      - astro.config.mjs 의 site 를 실제 도메인으로 변경

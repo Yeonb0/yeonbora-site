@@ -1,0 +1,100 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Lines.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "B안 · Griffith (선 계단)",
+      "w": 1280,
+      "x": 1360,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "A안 (펼친 화면 : 분류별 열)",
+      "w": 1280,
+      "x": 0,
+      "y": 0
+    },
+    "Mobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "A안 모바일 · 탭으로 확장",
+      "w": 390,
+      "x": 2720,
+      "y": 0
+    },
+    "OpenBlocks.dc.html": {
+      "h": 800,
+      "title": "펼친 화면 · 블록",
+      "w": 1280,
+      "x": 2720,
+      "y": 1220
+    },
+    "OpenRows.dc.html": {
+      "h": 800,
+      "title": "펼친 화면 · 띠",
+      "w": 1280,
+      "x": 0,
+      "y": 1220
+    },
+    "OpenShelf.dc.html": {
+      "h": 800,
+      "title": "펼친 화면 · 책장",
+      "w": 1280,
+      "x": 1360,
+      "y": 1220
+    },
+    "OpenStack.dc.html": {
+      "h": 800,
+      "is_interactive": true,
+      "title": "펼친 화면 · 쌓인 책",
+      "w": 1280,
+      "x": 4080,
+      "y": 1220
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-11-24T06:45:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "noteOrder": [
+    "title",
+    "open"
+  ],
+  "notes": {
+    "open": {
+      "kind": "title1",
+      "maxW": 5360,
+      "text": "펼친 화면 버전",
+      "w": 240,
+      "x": 0,
+      "y": 920
+    },
+    "title": {
+      "kind": "title1",
+      "maxW": 3110,
+      "text": "학교 방 — 측면에서 본 학년 계단",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Lines.dc.html",
+    "Mobile.dc.html",
+    "OpenRows.dc.html",
+    "OpenShelf.dc.html",
+    "OpenBlocks.dc.html",
+    "OpenStack.dc.html"
+  ],
+  "pages": [],
+  "title": "학교 방 목업 — 학년 계단"
+}

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>학교 방 B안</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#efe8ff}a:hover{color:#f2c14e}
+.tread{transition:background-color .3s ease}
+.tread:focus-visible,.back:focus-visible{outline:3px solid #f2c14e;outline-offset:4px}
+@keyframes flood{from{clip-path:var(--from)}to{clip-path:inset(0 0 0 0)}}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.flood{animation:flood .6s cubic-bezier(.7,0,.2,1) both}
+.flood .inner{animation:rise .4s .4s ease both}
+@media (prefers-reduced-motion:reduce){.flood,.flood .inner{animation:none}}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 800px; overflow: hidden; background: #16122e; font-family: 'NanumSquare Neo', 'NanumSquare', 'Noto Sans KR', sans-serif; color: #efe8ff">
+  <div style="position: absolute; left: 0; right: 0; top: 520px; height: 1px; background: #e89bb5; opacity: .5"></div>
+  <div style="position: absolute; left: 64px; top: 56px; right: 64px; display: flex; justify-content: space-between; align-items: flex-start">
+    <div style="display: flex; flex-direction: column; gap: 10px; max-width: 520px">
+      <h1 style="margin: 0; font-size: 48px; font-weight: 900; letter-spacing: -0.02em">학교</h1>
+      <p style="margin: 0; font-size: 17px; font-weight: 300; line-height: 1.6; color: #c9bfe6">한 칸씩 올라온 다섯 해. 계단 위에 마우스를 올리면 그 해가 화면을 채웁니다.</p>
+    </div>
+    <a href="#" style="font-size: 16px; padding: 12px 18px; border: 1px solid #f2c14e; color: #f2c14e; border-radius: 999px; text-decoration: none">홈으로</a>
+  </div>
+
+  <svg aria-hidden="true" width="1280" height="800" viewBox="0 0 1280 800" style="position: absolute; inset: 0">
+    <path d="M0 720 H256 V630 H512 V540 H768 V450 H1024" fill="none" stroke="#f2c14e" stroke-width="3"></path>
+    <path d="M1024 450 V360 H1280" fill="none" stroke="#f2c14e" stroke-width="3" stroke-dasharray="8 8" opacity=".6"></path>
+    <path d="M0 720 V800 M256 720 V800 M512 630 V800 M768 540 V800 M1024 450 V800" stroke="#f2c14e" stroke-width="1" opacity=".18"></path>
+  </svg>
+
+  <sc-for list="{{years}}" as="y" hint-placeholder-count="5">
+    <button class="tread" aria-label="{{y.aria}}" onMouseEnter="{{y.open}}" onFocus="{{y.open}}" onClick="{{y.open}}" style="position: absolute; left: {{y.left}}px; top: {{y.top}}px; width: 256px; height: {{y.h}}px; margin: 0; padding: 22px 24px; box-sizing: border-box; border: 0; background: transparent; color: #efe8ff; font: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 8px">
+      <span style="display: flex; align-items: center; gap: 10px">
+        <span style="width: 12px; height: 12px; border-radius: 50%; background: {{y.dot}}; border: {{y.ring}}"></span>
+        <span style="font-size: 28px; font-weight: 900">{{y.n}}학년</span>
+      </span>
+      <span style="font-size: 15px; font-weight: 300; color: #c9bfe6; line-height: 1.5">{{y.summary}}</span>
+    </button>
+  </sc-for>
+
+  <sc-if value="{{isOpen}}" hint-placeholder-val="{{false}}">
+    <section class="flood" style="position: absolute; inset: 0; background: {{cur.bg}}; color: {{cur.ink}}; --from: {{cur.from}}">
+      <div class="inner" style="height: 100%; box-sizing: border-box; padding: 56px 64px; display: flex; flex-direction: column; gap: 40px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <h2 style="margin: 0; font-size: 64px; font-weight: 900; letter-spacing: -0.03em">{{cur.n}}학년</h2>
+          <button class="back" onClick="{{close}}" style="font: inherit; font-size: 16px; padding: 14px 22px; border-radius: 999px; border: 2px solid currentColor; background: transparent; color: inherit; cursor: pointer">계단으로 돌아가기</button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <h3 style="margin: 0; font-size: 20px; font-weight: 700">1학기</h3>
+            <sc-for list="{{cur.s1}}" as="c" hint-placeholder-count="3">
+              <a href="#" style="color: inherit; font-size: 18px; line-height: 1.5; text-decoration: none; padding: 12px 0; border-top: 1px solid currentColor">{{c}}</a>
+            </sc-for>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <h3 style="margin: 0; font-size: 20px; font-weight: 700">2학기</h3>
+            <sc-for list="{{cur.s2}}" as="c" hint-placeholder-count="3">
+              <a href="#" style="color: inherit; font-size: 18px; line-height: 1.5; text-decoration: none; padding: 12px 0; border-top: 1px solid currentColor">{{c}}</a>
+            </sc-for>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <h3 style="margin: 0; font-size: 20px; font-weight: 700">학교 밖에서</h3>
+            <sc-for list="{{cur.acts}}" as="a" hint-placeholder-count="3">
+              <span style="font-size: 18px; line-height: 1.5; padding: 12px 0; border-top: 1px dashed currentColor">{{a}}</span>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const Data = [
+      { n: 1, bg: '#3d5fc4', ink: '#ffffff', s1: ['[1학기 과목]'], s2: ['[2학기 과목]'], acts: ['[동아리 또는 스터디]'] },
+      { n: 2, bg: '#2e8a6a', ink: '#ffffff', s1: ['컴퓨터 시스템 개론 (CSE3030)'], s2: ['[과목]'], acts: ['[활동]'] },
+      { n: 3, bg: '#f2c14e', ink: '#1d1838', s1: ['알고리즘 설계와 분석 (CSE3081)', '컴퓨터 구조 (CSE4010)', '프로그래밍 언어론'], s2: ['컴퓨터 네트워크', '시스템 프로그래밍 (CSE4100)', '기초 머신러닝'], acts: ['프론트엔드 개발 동아리', '[스터디]'] },
+      { n: 4, bg: '#e0789f', ink: '#1d1838', s1: ['컴퓨터 그래픽스 (CSE4170)', '소프트웨어공학 (CSE4115)', '컴파일러 구성 (CSE4120)'], s2: ['운영체제 (Pintos)', '[AI 에이전트 수업 과목명]', '[이슬람교 관련 과목명]'], acts: ['멋쟁이사자처럼 14기', '멋사 중앙 해커톤, 팀 일당백', '뿌기사주', '기술 위키 Main'] },
+      { n: 5, bg: '#4a3a7a', ink: '#efe8ff', planned: true, s1: ['[수강 예정 과목]'], s2: ['[수강 예정 과목]'], acts: ['[예정 활동]'] }
+    ];
+    const Tops = [720, 630, 540, 450, 360];
+    const Dots = ['#3d5fc4', '#2e8a6a', '#f2c14e', '#e0789f', 'transparent'];
+    const open = this.state && this.state.open;
+    const Years = Data.map((y, i) => ({
+      ...y,
+      left: i * 256,
+      top: Tops[i] - 90,
+      h: 90,
+      dot: Dots[i],
+      ring: y.planned ? '2px dashed #a99ad6' : '0',
+      summary: y.planned ? '아직 오르지 않은 계단' : `과목 ${y.s1.length + y.s2.length}개, 활동 ${y.acts.length}개`,
+      aria: `${y.n}학년 펼치기`,
+      from: `inset(${Tops[i]}px ${100 - (i + 1) * 20}% 0 ${i * 20}%)`,
+      open: () => this.setState({ open: i + 1 })
+    }));
+    return { years: Years, isOpen: !!open, cur: open ? Years[open - 1] : Years[0], close: () => this.setState({ open: 0 }) };
+  }
+}
+</script>
+</body>
+</html>

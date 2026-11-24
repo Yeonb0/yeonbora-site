@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>학교 방 A안</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}
+.step{transition:filter .25s ease}
+.step:hover,.step:focus-visible{filter:brightness(1.12)}
+.step:focus-visible,.back:focus-visible{outline:3px solid #efe8ff;outline-offset:-6px}
+@keyframes flood{from{clip-path:var(--from)}to{clip-path:inset(0 0 0 0)}}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.flood{animation:flood .55s cubic-bezier(.7,0,.2,1) both}
+.flood .inner{animation:rise .4s .35s ease both}
+@media (prefers-reduced-motion:reduce){.flood,.flood .inner{animation:none}}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 800px; overflow: hidden; background: #0f0830; font-family: 'NanumSquare Neo', 'NanumSquare', 'Noto Sans KR', sans-serif; color: #efe8ff">
+  <a href="#" class="back" aria-label="뒤로 가기" style="position: absolute; left: 48px; top: 48px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid #4361EE; border-radius: 50%; color: #efe8ff">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+  </a>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 560px; display: flex; align-items: flex-end">
+    <sc-for list="{{years}}" as="y" hint-placeholder-count="5">
+      <button class="step" aria-label="{{y.aria}}" onMouseEnter="{{y.open}}" onFocus="{{y.open}}" onClick="{{y.open}}" style="flex: 1 1 0; height: {{y.h}}px; margin: 0; padding: 28px; box-sizing: border-box; border: {{y.border}}; background: {{y.bg}}; color: {{y.ink}}; font: inherit; text-align: left; cursor: pointer; display: flex; align-items: flex-start">
+        <span style="font-size: 96px; font-weight: 900; line-height: .85; letter-spacing: -0.04em">{{y.n}}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{isOpen}}" hint-placeholder-val="{{false}}">
+    <section class="flood" style="position: absolute; inset: 0; background: {{cur.bg}}; color: {{cur.ink}}; --from: {{cur.from}}">
+      <button class="edge" aria-label="계단으로 돌아가기" onMouseEnter="{{close}}" onClick="{{close}}" style="position: absolute; left: 0; right: 0; top: 0; height: 40px; z-index: 2; margin: 0; padding: 0; border: 0; background: transparent; cursor: n-resize"></button>
+      <div class="inner" style="height: 100%; box-sizing: border-box; padding: 48px 64px 56px 48px; display: flex; gap: 56px">
+        <div style="display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; flex: 0 0 auto">
+          <span style="font-size: 260px; font-weight: 900; line-height: .75; letter-spacing: -0.06em">{{cur.n}}</span>
+        </div>
+        <div style="flex: 1 1 0; min-width: 0; display: flex; gap: 40px; padding-top: 0; align-items: flex-start; align-self: center">
+          <sc-for list="{{cur.cols}}" as="col" hint-placeholder-count="2">
+            <ul style="flex: 1 1 0; min-width: 0; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+              <li style="font-size: 15px; font-weight: 700; padding-bottom: 2px">{{col.label}}</li>
+              <sc-for list="{{col.items}}" as="c" hint-placeholder-count="6">
+                <li><a href="#" style="display: block; padding: 12px 16px; background: {{c.bg}}; color: #ffffff; font-size: 17px; line-height: 1.4; text-decoration: none">{{c.name}}</a></li>
+              </sc-for>
+            </ul>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const Raw = {
+      1: { bg: '#FFB400', ink: '#000000', list: ['현대동아시아의형성', '성찰과성장', '알바트로스세미나', '동서고전세미나', '독일언어와문화I', '동양철학개론', '논리학개론', '세계종교입문', '프랑스언어와문화I', '한국철학사', '서양고대철학사', '소크라테스이전철학과소크라테스철학', '한국그리스도교의이해', '중국문화속의유교와도교', '법과지식재산'] },
+      2: { bg: '#7209B7', ink: '#ffffff', list: ['문화유산현장실습1', '서양철학사', '플라톤철학', '근현대중국철학사2', '힌두교의이해', '고대근동의종교', '도교의중심사상', '철학적인간학', '독일언어와문화II', '아리스토텔레스철학', '위진·당철학사', '힌두교강독', '과학사', '기초인공지능프로그래밍', '인문사회글쓰기'] },
+      3: { bg: '#3A0CA3', ink: '#ffffff', list: ['기초C언어', '도가철학', '유가철학', '칸트철학', '종교의이해', '미적분학I', '이산구조', '디지털회로개론', 'JAVA언어', '자료구조', '선형대수학', '종교학답사I', '디지털 시대의 종교', '종교연구방법론'] },
+      4: { bg: '#4361EE', ink: '#ffffff', list: ['컴퓨터시스템개론', '컴퓨터아키텍처', '프로그래밍언어', '기초머신러닝', '기초컴퓨터그래픽스', '컴퓨터네트워크', '알고리즘설계와분석', '운영체제', '기초컴파일러구성', '소프트웨어공학', '실전 AI 에이전트 시스템 설계 · 구축', '종교간의대화', '그리스도교강독'] },
+      5: { bg: '#4CC9F0', ink: '#000000', list: ['데이터베이스시스템', '시스템프로그래밍', 'Creative Solution'] }
+    };
+    const Cat = {
+      phil: ['동양철학개론', '논리학개론', '한국철학사', '서양고대철학사', '소크라테스이전철학과소크라테스철학', '서양철학사', '플라톤철학', '근현대중국철학사2', '아리스토텔레스철학', '위진·당철학사', '도가철학', '유가철학', '칸트철학'],
+      rel: ['세계종교입문', '한국그리스도교의이해', '중국문화속의유교와도교', '힌두교의이해', '고대근동의종교', '도교의중심사상', '힌두교강독', '종교의이해', '종교학답사I', '디지털 시대의 종교', '종교연구방법론', '종교간의대화', '그리스도교강독'],
+      cse: ['기초C언어', '이산구조', '디지털회로개론', 'JAVA언어', '자료구조', '컴퓨터시스템개론', '컴퓨터아키텍처', '프로그래밍언어', '기초머신러닝', '기초컴퓨터그래픽스', '컴퓨터네트워크', '알고리즘설계와분석', '운영체제', '기초컴파일러구성', '소프트웨어공학', '실전 AI 에이전트 시스템 설계 · 구축', '데이터베이스시스템', '시스템프로그래밍']
+    };
+    const Groups = [
+      { key: 'gen', label: '교양', tone: '#000000' },
+      { key: 'phil', label: '철학', tone: '#7A1E3A' },
+      { key: 'rel', label: '종교학', tone: '#1E5E4A' },
+      { key: 'cse', label: '컴퓨터공학', tone: '#1F2A44' }
+    ];
+    const catOf = (c) => (Cat.phil.includes(c) ? 'phil' : Cat.rel.includes(c) ? 'rel' : Cat.cse.includes(c) ? 'cse' : 'gen');
+    const groupsOf = (n) => Groups.map((g) => ({ ...g, items: Raw[n].list.filter((c) => catOf(c) === g.key).map((c) => ({ name: c, bg: g.tone, h: 150 + Math.min(c.length, 14) * 12 })) })).filter((g) => g.items.length);
+    const H = [150, 250, 350, 450, 550];
+    const open = this.state && this.state.open;
+    const Years = [1, 2, 3, 4, 5].map((n, i) => ({
+      n, h: H[i], bg: Raw[n].bg, ink: Raw[n].ink, border: '0', aria: `${n}학년`,
+      cols: groupsOf(n),
+      from: `inset(${800 - H[i]}px ${100 - (i + 1) * 20}% 0 ${i * 20}%)`,
+      open: () => this.setState({ open: n })
+    }));
+    return { years: Years, isOpen: !!open, cur: open ? Years[open - 1] : Years[0], close: () => this.setState({ open: 0 }) };
+  }
+}
+</script>
+</body>
+</html>

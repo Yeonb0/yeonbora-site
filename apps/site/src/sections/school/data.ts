@@ -86,5 +86,22 @@ export const nameUnits = (name: string): number => {
   return u
 }
 
-// 학교 밖 활동 (스터디 · 학회 · 동아리) : 계단 위 노란 원에서 연다. 학년 · 기간은 아직 정리 전
-export const Activities: string[] = ['멋쟁이사자처럼 14기', '멋사 중앙 해커톤, 팀 일당백', '프론트엔드 개발 동아리', '정보처리기사 스터디', '서버 엔지니어링 스터디']
+// 학교 밖 활동 : 계단 위 달에서 연다. 노션 '뭐하고 살았니' 기준 (노션은 학회/동아리가 한 분류라 여기서 나눈다)
+export type ActivityKey = 'study' | 'club' | 'society' | 'project'
+
+export const ActivityCategories: { key: ActivityKey; label: string }[] = [
+  { key: 'study', label: '스터디' },
+  { key: 'club', label: '동아리' },
+  { key: 'society', label: '학회' },
+  { key: 'project', label: '프로젝트' },
+]
+
+export const Activities: Record<ActivityKey, string[]> = {
+  study: ['AI/ML 스터디', 'Spring 스터디', '정보처리기사 스터디', '서버 엔지니어 스터디', '분석 철학 스터디', '니체 강독 + 독일어 스터디', '맹자 강독 한문 스터디', '모종삼 강독 스터디', '철학 개론 스터디'],
+  club: ['SGAEM', '서만창'],
+  society: ['멋쟁이 사자처럼', '난섹션 학생회'],
+  project: ['멋사 복커톤', '멋사 아이디어톤', '멋사 중앙 해커톤', '멋사 창업경진대회', 'Layered Wiki Harness', 'TIL (Today I Learned)', '기술 위키 (Obsidian)', '라멘티드 (Ramented)', 'Pintos (운영체제)', 'Bora.log 깃 블로그'],
+}
+
+// 활동 더미 색 기준 : 달 색 (밝은 색이라 분류 색은 검정 쪽으로 섞인다)
+export const ActivityYear: Year = { n: 0, color: '#FFB400', light: true, courses: [] }

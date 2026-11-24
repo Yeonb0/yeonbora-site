@@ -175,20 +175,20 @@
   inset: 0;
   z-index: 50;
   overflow-y: auto;
-  animation: school-flood 0.55s cubic-bezier(0.7, 0, 0.2, 1) both;
+  animation: school-flood 0.32s cubic-bezier(0.7, 0, 0.2, 1) both;
 }
 
 .school .flood.closing {
-  animation: school-unflood 0.45s cubic-bezier(0.7, 0, 0.2, 1) 0.15s both;
+  animation: school-unflood 0.28s cubic-bezier(0.7, 0, 0.2, 1) 0.08s both;
 }
 
 /* 내용은 다 번진 뒤에 나타나고, 닫을 때는 먼저 사라진다 (transform 은 쓰지 않는다 : 들고 있는 책의 fixed 기준이 바뀐다) */
 .school .flood-content {
-  animation: school-fade-in 0.3s ease 0.55s both;
+  animation: school-fade-in 0.2s ease 0.32s both;
 }
 
 .school .flood.closing .flood-content {
-  animation: school-fade-out 0.15s ease both;
+  animation: school-fade-out 0.1s ease both;
 }
 
 .school .edge {

@@ -210,8 +210,8 @@ function Flood({
     const Frames = [{ transform: Small }, { transform: 'none' }]
     const Still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     To.animate(reverse ? Frames.reverse() : Frames, {
-      duration: Still ? 10 : reverse ? 280 : 320,
-      delay: reverse && !Still ? 80 : 0,
+      duration: Still ? 10 : reverse ? 400 : 450,
+      delay: reverse && !Still ? 100 : 0,
       easing: 'cubic-bezier(0.7, 0, 0.2, 1)',
       fill: 'both',
     })

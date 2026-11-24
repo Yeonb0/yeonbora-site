@@ -1,12 +1,12 @@
 ---
-// 허브 : 화면을 4분할하고 섹션 아이콘만 둔다
+// 허브 : 화면을 6칸 (데스크톱 3 x 2, 모바일 2 x 3) 으로 나누고 섹션 아이콘만 둔다
 // 호버한 칸은 그 섹션의 색으로 칠해지고 같은 행 · 열이 함께 부드럽게 넓어진다
 // grid 트랙 보간은 브라우저마다 지원이 달라 flex-grow 전환으로 구현한다
 import Base from '@/shared/Base.astro'
-import { Sections } from '@/sections/registry'
+import { HubSections } from '@/sections/registry'
 import './tokens.css'
 
-const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
+const Rows = [HubSections.slice(0, 3), HubSections.slice(3, 6)]
 ---
 
 <Base title="연보라" showHome={false}>
@@ -84,7 +84,8 @@ const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
     .hub:has(.cell[data-row='0']:is(:hover, :focus-visible)) .row[data-row='0'],
     .hub:has(.cell[data-row='1']:is(:hover, :focus-visible)) .row[data-row='1'],
     .hub:has(.cell[data-col='0']:is(:hover, :focus-visible)) .cell[data-col='0'],
-    .hub:has(.cell[data-col='1']:is(:hover, :focus-visible)) .cell[data-col='1'] {
+    .hub:has(.cell[data-col='1']:is(:hover, :focus-visible)) .cell[data-col='1'],
+    .hub:has(.cell[data-col='2']:is(:hover, :focus-visible)) .cell[data-col='2'] {
       flex-grow: var(--hub-grow);
     }
   }
@@ -126,6 +127,17 @@ const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
   .cell:is(:hover, :focus-visible) .en {
     opacity: 1;
     transform: translate(-50%, 0);
+  }
+  /* 좁은 화면에서는 행 묶음을 풀고 2 x 3 격자로 다시 배치한다 */
+  @media (max-width: 640px) {
+    .hub {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: minmax(0, 1fr);
+    }
+    .row {
+      display: contents;
+    }
   }
   /* 호버가 없는 기기 (휴대폰) 에서는 이름을 항상 보여 준다 */
   @media (hover: none) {

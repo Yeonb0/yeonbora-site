@@ -5,11 +5,11 @@
 ## 구조
 
 ```
-apps/site/            허브 · 글 · 컴퓨터 · 게임 섹션 (Astro + React + MDX)
+apps/site/            허브 + 학교 · 컴퓨터 · 철학 · 종교학 · 알고리즘 · 게임 · 서재 섹션 (Astro + React + MDX)
   src/sections/<id>/  섹션 하나 = 레이아웃 + 토큰 (폴더 하나로 끝)
-  src/sections/registry.ts  허브에 놓일 섹션 목록
+  src/sections/registry.ts  섹션 목록 (hub: true 인 6개가 허브 칸)
   src/shared/Base.astro     공유 골격 (ClientRouter, 홈 버튼)
-packages/             Algoristro 자리 (Phase 6)
+packages/             Algoristro 자리 (Phase 10)
 ```
 
 ## 명령

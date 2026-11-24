@@ -4,8 +4,7 @@
 // grid 트랙 보간은 브라우저마다 지원이 달라 flex-grow 전환으로 구현한다
 import Base from '@/shared/Base.astro'
 import { Sections } from '@/sections/registry'
-import '@fontsource/instrument-serif/400.css'
-import '@fontsource/instrument-serif/400-italic.css'
+import '@fontsource-variable/manrope'
 import './tokens.css'
 
 const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
@@ -114,10 +113,9 @@ const Rows = [Sections.slice(0, 2), Sections.slice(2, 4)]
     left: 50%;
     margin-top: clamp(12px, 2.4vmin, 24px);
     font-family: var(--hub-label-font);
-    font-size: clamp(24px, 4vmin, 38px);
-    font-style: italic;
+    font-size: clamp(18px, 2.8vmin, 26px);
     font-weight: 400;
-    letter-spacing: 0.005em;
+    letter-spacing: 0.04em;
     white-space: nowrap;
     color: var(--hub-icon-active);
     opacity: 0;

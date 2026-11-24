@@ -35,6 +35,8 @@ export default function SchoolRoom() {
   const [opened, setOpened] = useState<Opened | null>(null)
   const [canHover, setCanHover] = useState(true)
   const BarRefs = useRef<(HTMLButtonElement | null)[]>([])
+  // 막대 안 학년 숫자 : 펼친 화면의 큰 숫자가 여기서 그대로 커진다
+  const NumRefs = useRef<(HTMLSpanElement | null)[]>([])
   const SunRef = useRef<HTMLButtonElement | null>(null)
   // 닫힌 직후 커서 아래에 있는 입구는 커서가 한 번 벗어날 때까지 호버로 다시 열지 않는다
   const Blocked = useRef<string | null>(null)
@@ -118,7 +120,14 @@ export default function SchoolRoom() {
             style={{ height: `${StepHeights[i]}%`, background: y.color, color: y.light ? '#000' : '#fff' }}
             {...entryProps({ kind: 'year', index: i })}
           >
-            {y.n}
+            <span
+              className="step-n"
+              ref={(el) => {
+                NumRefs.current[i] = el
+              }}
+            >
+              {y.n}
+            </span>
           </button>
         ))}
         <button
@@ -138,6 +147,8 @@ export default function SchoolRoom() {
           ink={opened.target.kind === 'year' && !Years[opened.target.index].light ? '#fff' : '#000'}
           label={opened.target.kind === 'year' ? `${Years[opened.target.index].n}학년 과목` : '활동'}
           touch={!canHover}
+          number={opened.target.kind === 'year' ? Years[opened.target.index].n : undefined}
+          numberFrom={opened.target.kind === 'year' ? NumRefs.current[opened.target.index] : null}
           onClose={close}
           onClosed={finishClose}
         >
@@ -155,6 +166,8 @@ function Flood({
   ink,
   label,
   touch,
+  number,
+  numberFrom,
   onClose,
   onClosed,
   children,
@@ -164,6 +177,8 @@ function Flood({
   ink: string
   label: string
   touch: boolean
+  number?: number
+  numberFrom?: HTMLElement | null
   onClose: () => void
   onClosed: () => void
   children: (lock: (on: boolean) => void) => ReactNode
@@ -183,6 +198,33 @@ function Flood({
   const leave = () => {
     if (!Locked.current) onClose()
   }
+  // 학년 숫자 : 막대 안 숫자 모양에서 큰 숫자로 커지고, 닫을 때는 같은 자리로 줄어든다 (사라지지 않는다)
+  const NumRef = useRef<HTMLSpanElement | null>(null)
+  const NumAnim = (reverse: boolean) => {
+    const To = NumRef.current
+    if (!To || !numberFrom) return
+    const F = numberFrom.getBoundingClientRect()
+    const T = To.getBoundingClientRect()
+    const Scale = parseFloat(getComputedStyle(numberFrom).fontSize) / parseFloat(getComputedStyle(To).fontSize)
+    const Small = `translate(${F.left - T.left}px, ${F.top - T.top}px) scale(${Scale})`
+    const Frames = [{ transform: Small }, { transform: 'none' }]
+    const Still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    To.animate(reverse ? Frames.reverse() : Frames, {
+      duration: Still ? 10 : reverse ? 280 : 320,
+      delay: reverse && !Still ? 80 : 0,
+      easing: 'cubic-bezier(0.7, 0, 0.2, 1)',
+      fill: 'both',
+    })
+  }
+  useLayoutEffect(() => {
+    NumAnim(false)
+    // 열릴 때 한 번만
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  useEffect(() => {
+    if (opened.closing) NumAnim(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opened.closing])
   const onEnd = (e: AnimationEvent<HTMLElement>) => {
     if (e.target === e.currentTarget && e.animationName === 'school-unflood') onClosed()
   }
@@ -196,6 +238,11 @@ function Flood({
           <div className="edge edge-bottom" aria-hidden="true" onMouseEnter={leave} />
           <div className="edge edge-left" aria-hidden="true" onMouseEnter={leave} />
         </>
+      )}
+      {number !== undefined && (
+        <span className="year-number" ref={NumRef} aria-hidden="true">
+          {number}
+        </span>
       )}
       <div className="flood-content">
         {children((on) => {
@@ -323,11 +370,6 @@ function Shelf({ year, activity, lock }: { year: Year; activity?: boolean; lock:
 
   return (
     <>
-      {!activity && (
-        <span className="year-number" aria-hidden="true">
-          {year.n}
-        </span>
-      )}
       <div className="piles">
         {Piles.map((p) => {
           const Size = p.books.length > 8 ? 16 : 18

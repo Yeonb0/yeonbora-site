@@ -111,7 +111,7 @@
 .school .sun {
   position: absolute;
   left: 90%;
-  width: clamp(56px, 7vw, 96px);
+  width: clamp(84px, 10.5vw, 148px);
   aspect-ratio: 1;
   margin: 0;
   padding: 0;
@@ -241,6 +241,9 @@
 
 .school .year-number {
   position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  transform-origin: 0 0;
   left: clamp(20px, 4.4vw, 56px);
   top: clamp(64px, 6vh, 80px);
   font-family: var(--font-point);

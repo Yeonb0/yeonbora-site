@@ -1,52 +1,106 @@
-// 학교 방 : 1 ~ 5학년 색 막대 계단
-// 막대에 호버 (터치 기기는 탭) 하면 그 막대에서 학년 색이 화면 전체로 번지고 분류별로 쌓인 책이 나온다
-// 펼친 화면은 위쪽 테두리로 마우스를 올리거나 (탭) Esc 로 닫는다
+// 학교 방 : 1 ~ 5학년 색 막대 계단 + 5학년 위 노란 원 (활동)
+// 막대에 호버 (터치는 탭) 하면 그 막대에서 학년 색이 화면 전체로 번지고, 다 번진 뒤에 분류별로 쌓인 책이 나온다
+// 노란 원은 같은 방식으로 원에서 화면 전체로 번지며 활동 목록을 연다
+// 펼친 화면은 마우스가 화면 테두리 (위 · 오른쪽 · 아래 · 왼쪽) 로 가거나 Esc 를 누르면 왔던 모양으로 다시 줄어들며 닫힌다
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { PointerEvent as ReactPointerEvent } from 'react'
-import { Categories, Years, categoryColor, categoryOf, nameUnits } from './data'
+import type { AnimationEvent, CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react'
+import { Activities, Categories, Years, categoryColor, categoryOf, nameUnits } from './data'
 import type { Year } from './data'
 import './school.css'
 
 // 계단 높이 (화면 높이 대비 %)
-const StepHeights = [22, 36, 50, 64, 78]
+const StepHeights = [18, 29, 40, 51, 62]
 // 책을 들쭉날쭉하게 놓는 기본 왼쪽 여백 (%)
 const Offsets = [3, 9, 1, 13, 6, 11, 0, 8]
+const ActivityColor = '#FFB400'
 
 // 펼친 화면을 닫았다 열어도 옮긴 책 순서 · 위치가 남도록 페이지 단위로 기억한다
 const SavedOrder = new Map<string, string[]>()
 const SavedShift = new Map<string, number>()
 
+// 열린 화면 : 학년 (0 ~ 4) 또는 활동
+type Target = { kind: 'year'; index: number } | { kind: 'activity' }
+
+interface Opened {
+  target: Target
+  // 번지기 시작 모양과 다 번진 모양 (clip-path)
+  from: string
+  to: string
+  closing: boolean
+}
+
+const keyOf = (t: Target) => (t.kind === 'year' ? `year-${t.index}` : 'activity')
+
 export default function SchoolRoom() {
-  const [open, setOpen] = useState<number | null>(null)
-  const [from, setFrom] = useState('inset(0 0 0 0)')
+  const [opened, setOpened] = useState<Opened | null>(null)
   const [canHover, setCanHover] = useState(true)
   const BarRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const SunRef = useRef<HTMLButtonElement | null>(null)
+  // 닫힌 직후 커서 아래에 있는 입구는 커서가 한 번 벗어날 때까지 호버로 다시 열지 않는다
+  const Blocked = useRef<string | null>(null)
+  const LastPointer = useRef({ x: -1, y: -1 })
 
   useEffect(() => {
     const Query = window.matchMedia('(hover: hover) and (pointer: fine)')
     setCanHover(Query.matches)
     const onChange = () => setCanHover(Query.matches)
+    const onMove = (e: PointerEvent) => {
+      LastPointer.current = { x: e.clientX, y: e.clientY }
+    }
     Query.addEventListener('change', onChange)
-    return () => Query.removeEventListener('change', onChange)
+    window.addEventListener('pointermove', onMove)
+    return () => {
+      Query.removeEventListener('change', onChange)
+      window.removeEventListener('pointermove', onMove)
+    }
   }, [])
 
+  const close = () => setOpened((o) => (o && !o.closing ? { ...o, closing: true } : o))
+
   useEffect(() => {
-    if (open === null) return
+    if (!opened) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(null)
+      if (e.key === 'Escape') close()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open])
+  }, [opened])
 
-  const openYear = (i: number) => {
-    const Bar = BarRefs.current[i]
-    if (Bar) {
-      const R = Bar.getBoundingClientRect()
-      setFrom(`inset(${R.top}px ${window.innerWidth - R.right}px ${window.innerHeight - R.bottom}px ${R.left}px)`)
+  const open = (target: Target, viaHover: boolean) => {
+    if (opened) return
+    if (viaHover && Blocked.current === keyOf(target)) return
+    const W = window.innerWidth
+    const H = window.innerHeight
+    if (target.kind === 'year') {
+      const R = BarRefs.current[target.index]?.getBoundingClientRect()
+      if (!R) return
+      setOpened({ target, from: `inset(${R.top}px ${W - R.right}px ${H - R.bottom}px ${R.left}px)`, to: 'inset(0px 0px 0px 0px)', closing: false })
+    } else {
+      const R = SunRef.current?.getBoundingClientRect()
+      if (!R) return
+      const Cx = R.left + R.width / 2
+      const Cy = R.top + R.height / 2
+      const Far = Math.hypot(Math.max(Cx, W - Cx), Math.max(Cy, H - Cy))
+      setOpened({ target, from: `circle(${R.width / 2}px at ${Cx}px ${Cy}px)`, to: `circle(${Far}px at ${Cx}px ${Cy}px)`, closing: false })
     }
-    setOpen(i)
   }
+
+  const finishClose = () => {
+    // 닫힌 자리 아래에 커서가 있으면 그 입구는 커서가 벗어날 때까지 막는다
+    const { x, y } = LastPointer.current
+    const Under = x >= 0 ? document.elementFromPoint(x, y)?.closest('[data-entry]') : null
+    Blocked.current = Under ? Under.getAttribute('data-entry') : null
+    setOpened(null)
+  }
+
+  const entryProps = (target: Target) => ({
+    'data-entry': keyOf(target),
+    onMouseEnter: canHover ? () => open(target, true) : undefined,
+    onMouseLeave: () => {
+      if (Blocked.current === keyOf(target)) Blocked.current = null
+    },
+    onClick: () => open(target, false),
+  })
 
   return (
     <div className="school">
@@ -62,15 +116,103 @@ export default function SchoolRoom() {
             type="button"
             aria-label={`${y.n}학년`}
             style={{ height: `${StepHeights[i]}%`, background: y.color, color: y.light ? '#000' : '#fff' }}
-            onMouseEnter={canHover ? () => openYear(i) : undefined}
-            onClick={() => openYear(i)}
+            {...entryProps({ kind: 'year', index: i })}
           >
             {y.n}
           </button>
         ))}
+        <button
+          ref={SunRef}
+          className="sun"
+          type="button"
+          aria-label="활동"
+          style={{ bottom: `calc(${StepHeights[4]}% + clamp(20px, 4vh, 40px))`, background: ActivityColor }}
+          {...entryProps({ kind: 'activity' })}
+        />
       </div>
-      {open !== null && <Shelf key={open} year={Years[open]} from={from} onClose={() => setOpen(null)} />}
+      {opened && (
+        <Flood
+          key={keyOf(opened.target)}
+          opened={opened}
+          color={opened.target.kind === 'year' ? Years[opened.target.index].color : ActivityColor}
+          ink={opened.target.kind === 'year' && !Years[opened.target.index].light ? '#fff' : '#000'}
+          label={opened.target.kind === 'year' ? `${Years[opened.target.index].n}학년 과목` : '활동'}
+          touch={!canHover}
+          onClose={close}
+          onClosed={finishClose}
+        >
+          {(lock) => (opened.target.kind === 'year' ? <Shelf year={Years[opened.target.index]} lock={lock} /> : <ActivityList />)}
+        </Flood>
+      )}
     </div>
+  )
+}
+
+// 번지며 열리고 줄어들며 닫히는 전체 화면. 내용은 다 번진 뒤에 나타나고 닫기 전에 먼저 사라진다
+function Flood({
+  opened,
+  color,
+  ink,
+  label,
+  touch,
+  onClose,
+  onClosed,
+  children,
+}: {
+  opened: Opened
+  color: string
+  ink: string
+  label: string
+  touch: boolean
+  onClose: () => void
+  onClosed: () => void
+  children: (lock: (on: boolean) => void) => ReactNode
+}) {
+  // 책을 들고 있는 동안에는 테두리로 가도 닫지 않는다
+  const Locked = useRef(false)
+  // 펼친 화면 색에 맞춰 공용 홈 버튼 색을 바꾼다 (노랑 · 하늘색 위에서도 보이게)
+  useEffect(() => {
+    const Root = document.documentElement.style
+    Root.setProperty('--home-fg', ink)
+    Root.setProperty('--home-bg', ink === '#000' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.12)')
+    return () => {
+      Root.removeProperty('--home-fg')
+      Root.removeProperty('--home-bg')
+    }
+  }, [ink])
+  const leave = () => {
+    if (!Locked.current) onClose()
+  }
+  const onEnd = (e: AnimationEvent<HTMLElement>) => {
+    if (e.target === e.currentTarget && e.animationName === 'school-unflood') onClosed()
+  }
+  const Style = { background: color, color: ink, '--from': opened.from, '--to': opened.to } as CSSProperties
+  return (
+    <section className={`flood${opened.closing ? ' closing' : ''}`} style={Style} aria-label={label} onAnimationEnd={onEnd}>
+      <button className="edge edge-top" type="button" aria-label="계단으로 돌아가기" onMouseEnter={leave} onClick={onClose} />
+      {!touch && (
+        <>
+          <div className="edge edge-right" aria-hidden="true" onMouseEnter={leave} />
+          <div className="edge edge-bottom" aria-hidden="true" onMouseEnter={leave} />
+          <div className="edge edge-left" aria-hidden="true" onMouseEnter={leave} />
+        </>
+      )}
+      <div className="flood-content">
+        {children((on) => {
+          Locked.current = on
+        })}
+      </div>
+    </section>
+  )
+}
+
+function ActivityList() {
+  return (
+    <ul className="activities">
+      {Activities.map((a) => (
+        <li key={a}>{a}</li>
+      ))}
+    </ul>
   )
 }
 
@@ -88,7 +230,7 @@ interface Held {
   size: number
 }
 
-function Shelf({ year, from, onClose }: { year: Year; from: string; onClose: () => void }) {
+function Shelf({ year, lock }: { year: Year; lock: (on: boolean) => void }) {
   const Piles = Categories.map((c, index) => ({
     ...c,
     id: `${year.n}${c.key}`,
@@ -137,6 +279,7 @@ function Shelf({ year, from, onClose }: { year: Year; from: string; onClose: () 
     const Start: Held = { name, pile, offX: e.clientX - B.left, offY: e.clientY - B.top, x: e.clientX, y: e.clientY, w: B.width, pileLeft: P.left, pileWidth: P.width, color, size }
     HeldRef.current = Start
     setHeld(Start)
+    lock(true)
 
     const move = (ev: PointerEvent) => {
       const Cur = HeldRef.current
@@ -171,6 +314,7 @@ function Shelf({ year, from, onClose }: { year: Year; from: string; onClose: () 
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', up)
       window.removeEventListener('pointercancel', up)
+      lock(false)
       const D = HeldRef.current
       HeldRef.current = null
       setHeld(null)
@@ -186,8 +330,7 @@ function Shelf({ year, from, onClose }: { year: Year; from: string; onClose: () 
   }
 
   return (
-    <section className="flood" style={{ background: year.color, color: year.light ? '#000' : '#fff', ['--from' as string]: from }} aria-label={`${year.n}학년 과목`}>
-      <button className="edge" type="button" aria-label="계단으로 돌아가기" onMouseEnter={onClose} onClick={onClose} />
+    <>
       <span className="year-number" aria-hidden="true">
         {year.n}
       </span>
@@ -198,7 +341,7 @@ function Shelf({ year, from, onClose }: { year: Year; from: string; onClose: () 
             <div className="pile" key={p.id}>
               <ul>
                 {order[p.id].map((name, i) => {
-                  const Width = `clamp(50%, ${Math.round(nameUnits(name) * Size) + 96}px, 100%)`
+                  const Width = `clamp(60%, ${Math.round(nameUnits(name) * Size) + 96}px, 100%)`
                   const Left = shift[name] ?? SavedShift.get(name)
                   return (
                     <li
@@ -233,6 +376,6 @@ function Shelf({ year, from, onClose }: { year: Year; from: string; onClose: () 
           {held.name}
         </div>
       )}
-    </section>
+    </>
   )
 }

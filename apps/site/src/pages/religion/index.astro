@@ -1,7 +1,12 @@
 ---
 import Layout from '@/sections/religion/Layout.astro'
+// 확장자를 붙인다 : 윈도우는 대소문자를 구분하지 않는다
+import Room from '@/sections/religion/Room.tsx'
+import { Religions } from '@/sections/religion/data'
+import Wide from '@/sections/religion/assets/velvet.webp'
+import Tall from '@/sections/religion/assets/velvet-tall.webp'
 ---
 
 <Layout>
-  <h1>준비 중</h1>
+  <Room client:only="react" religions={Religions} velvet={{ wide: Wide.src, tall: Tall.src }} />
 </Layout>

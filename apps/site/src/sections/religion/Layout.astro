@@ -8,6 +8,10 @@ const Me = findSection('religion')
 ---
 
 <Base title={`${Me.label} · 연보라`}>
+  <!-- 허브에서 막 들어왔는지 (이 방의 기록 깊이가 아직 없음) : 글에서 돌아오거나 뒤로가기면 상자를 연 채로 바로 보인다 -->
+  <script is:inline>
+    document.documentElement.toggleAttribute('data-enter-hub', history.state?.religionDepth === undefined)
+  </script>
   <main class="section-religion" transition:name={`section-${Me.id}`}>
     <slot />
   </main>
@@ -16,9 +20,27 @@ const Me = findSection('religion')
 <style>
   main {
     min-height: 100dvh;
-    padding: 88px 24px 24px;
+    /* 섬이 뜨기 전 (client:only 라 잠깐 비어 있다) 에도 어두운 바탕이라 허브 칸 색에서 자연스럽게 이어진다 */
     background: var(--bg);
     color: var(--fg);
     font-family: var(--font-base);
+  }
+  /* 허브 칸 색 (보라) 에서 어두운 방으로 : 화면 전환 (0.6s) 과 함께 시작해 이어서 가라앉는다 */
+  :global(html[data-enter-hub]) main {
+    animation: enter-dusk 1.1s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+  @keyframes enter-dusk {
+    from {
+      background: var(--enter-from);
+    }
+    to {
+      background: var(--bg);
+    }
+  }
+  :global(::view-transition-group(section-religion)),
+  :global(::view-transition-old(section-religion)),
+  :global(::view-transition-new(section-religion)) {
+    animation-duration: 0.6s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 </style>

@@ -1,6 +1,8 @@
-/* religion 섹션 임시 토큰 : 섹션 목업 승인 후 교체 */
+/* religion 섹션 토큰 : 어두운 방에 놓인 검은 가죽 진열 상자 */
 :root:has(.section-religion) {
-  --bg: #1a1a1a;
+  --bg: #0f0c12;
   --fg: #e0e0e0;
   --home-fg: #e0e0e0;
+  /* 허브 종교학 칸 색 : 들어올 때 이 색에서 방이 가라앉으며 드러난다 */
+  --enter-from: #9333ea;
 }

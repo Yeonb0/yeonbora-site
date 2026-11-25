@@ -1,0 +1,1318 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>종교학 방 목업</title>
+<style>
+  /*
+    목업 2차 : 상자 하나 + 벨벳 방석 하나 + 3D 금속 뱃지 (three.js)
+    방석은 Figma AI 실사 이미지, 뱃지는 badges.js 의 평면 도형을 돌출 (extrude) 한 3D 모델
+    빛 : 방 환경광 반사 + 마우스 쪽으로 기우는 뱃지, 뚜껑이 열리면 빛 한 줄기가 훑는다
+  */
+  :root {
+    --enter-from: #9333ea;
+    --bg: #0f0c12;
+    --fg: #e0e0e0;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --tilt: 6deg;
+    --lid-open: 100deg;
+    --box-w: min(80vw, 860px, 98vh);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'NanumSquare', system-ui, sans-serif;
+    overflow: hidden;
+  }
+
+  .room {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 55% at 50% 46%, #2a2131 0%, #17121b 55%, #0b090d 100%);
+  }
+
+  .veil {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: var(--enter-from);
+    pointer-events: none;
+    transition: opacity 0.8s var(--ease);
+  }
+  .veil.gone { opacity: 0; }
+
+  .stage {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding-top: var(--drop, 24vh);
+    perspective: 1700px;
+    perspective-origin: 50% 0%;
+  }
+
+  .box {
+    position: relative;
+    width: var(--box-w);
+    aspect-ratio: 1.6;
+    transform-style: preserve-3d;
+    transform: translateY(24px) rotateX(var(--tilt));
+    opacity: 0;
+    transition: transform 0.7s var(--ease), opacity 0.5s var(--ease);
+  }
+  .box.shown { opacity: 1; transform: translateY(0) rotateX(var(--tilt)); }
+
+  .box .floor-shadow {
+    position: absolute;
+    inset: 4% -3% -6% -3%;
+    transform: translateZ(-30px);
+    background: radial-gradient(closest-side, rgba(0, 0, 0, 0.75), transparent);
+    filter: blur(18px);
+  }
+
+  /* 상자 몸통 : 검은 가죽 */
+  .tray {
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    background: #121014;
+    padding: 2.4%;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 2px 0 rgba(255, 255, 255, 0.06);
+    transform-style: preserve-3d;
+  }
+  .tray::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.3' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .tray::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 34px;
+    transform-origin: bottom;
+    transform: rotateX(-90deg);
+    border-radius: 0 0 10px 10px;
+    background: linear-gradient(#1c191f, #0a090b);
+  }
+
+  /* 안쪽 : 벨벳 방석 하나가 꽉 차게 들어 있다 */
+  .lining {
+    position: relative;
+    height: 100%;
+    border-radius: 4px;
+    background: #0b0a0c;
+    box-shadow: inset 0 10px 24px rgba(0, 0, 0, 0.9);
+  }
+  .velvet {
+    position: absolute;
+    inset: 0.6%;
+    width: 98.8%;
+    height: 98.8%;
+    object-fit: fill;
+    user-select: none;
+    pointer-events: none;
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.8));
+  }
+  .badges3d {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  /* 뚜껑이 닫혀 있을 때 안쪽이 어둡다 */
+  .lining::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #000;
+    opacity: 0.86;
+    transition: opacity 1.1s var(--ease);
+    pointer-events: none;
+    z-index: 5;
+  }
+  .box.open .lining::after { opacity: 0; }
+
+  /* 뱃지 자리 버튼 : 보이지 않는 칸. 누르기 · 호버 · 키보드는 여기서 받고 3D 장면에 알린다 */
+  .hits {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+  }
+  .hit {
+    position: absolute;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .hit:focus-visible { outline: 1.5px solid rgba(255, 220, 160, 0.75); outline-offset: 4px; }
+
+  .lid {
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    transform-origin: 50% 0%;
+    transform: translateZ(2px) rotateX(0deg);
+    transform-style: preserve-3d;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .lid .frame {
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    border: calc(var(--box-w) * 0.022) solid #151316;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.6);
+    background:
+      linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.09) 38%, rgba(255, 255, 255, 0.02) 46%, transparent 52%),
+      linear-gradient(115deg, transparent 58%, rgba(255, 255, 255, 0.05) 61%, transparent 66%),
+      rgba(30, 26, 34, 0.38);
+  }
+  .box.open .lid { animation: lid-open 1.15s var(--ease) forwards; }
+  .box.closing .lid { animation: lid-close 0.85s cubic-bezier(0.55, 0, 0.7, 0.2) forwards; }
+  @keyframes lid-open {
+    0% { transform: translateZ(2px) rotateX(0deg); }
+    78% { transform: translateZ(2px) rotateX(var(--lid-open)); }
+    90% { transform: translateZ(2px) rotateX(calc(var(--lid-open) - 3deg)); }
+    100% { transform: translateZ(2px) rotateX(var(--lid-open)); }
+  }
+  @keyframes lid-close {
+    from { transform: translateZ(2px) rotateX(var(--lid-open)); }
+    to { transform: translateZ(2px) rotateX(0deg); }
+  }
+
+  .latch {
+    position: absolute;
+    bottom: 1.6%;
+    width: 4.2%;
+    aspect-ratio: 1.3;
+    border-radius: 3px;
+    background: linear-gradient(160deg, #f4f5f7, #9ea3ab 45%, #e6e8ec 60%, #6f747c);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+    transform-origin: 50% 100%;
+    transform: translateZ(4px);
+    transition: transform 0.28s var(--ease);
+    z-index: 12;
+  }
+  .latch::after {
+    content: '';
+    position: absolute;
+    left: 30%;
+    right: 30%;
+    top: 22%;
+    height: 22%;
+    border-radius: 2px;
+    background: #4a4e55;
+  }
+  .latch.l { left: 22%; }
+  .latch.r { right: 22%; }
+  .latch.up { transform: translateZ(4px) rotateX(125deg); }
+
+  /* 뱃지를 고르면 상자가 어둠 속으로 물러난다 */
+  .dimmer {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(20, 14, 24, 0.8), rgba(8, 6, 10, 0.93));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s var(--ease);
+  }
+  .dimmer.on { opacity: 1; pointer-events: auto; }
+
+  /* 뽑아 든 뱃지를 그리는 화면 전체 캔버스 */
+  .lift3d {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 30;
+    pointer-events: none;
+    touch-action: none;
+  }
+  .lift3d.live { pointer-events: auto; cursor: grab; }
+  .lift3d.live:active { cursor: grabbing; }
+
+  /* 문서 화면 : 들고 있던 뱃지를 한 번 더 누르면 뱃지가 위로 올라가 제목 자리에 앉고, 그 아래로 그 종교의 글 목록이 열린다 */
+  .docs {
+    position: fixed;
+    inset: 0;
+    z-index: 29;
+    overflow-y: auto;
+    background: radial-gradient(ellipse 80% 50% at 50% 0%, #2a1f30, #141017 60%, #0e0b10);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.55s var(--ease);
+  }
+  .docs.on { opacity: 1; pointer-events: auto; }
+  .docs-inner {
+    width: min(90vw, 640px);
+    margin: 0 auto;
+    padding: 196px 0 80px;
+  }
+  .docs h1 {
+    margin: 0 0 28px;
+    text-align: center;
+    font-family: 'NanumSquare Neo', 'NanumSquare', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: 0.02em;
+    color: #efe6f2;
+  }
+  .docs ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  .docs li {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s var(--ease), transform 0.5s var(--ease);
+  }
+  .docs.ready li { opacity: 1; transform: none; }
+  .docs.ready li:nth-child(2) { transition-delay: 0.05s; }
+  .docs.ready li:nth-child(3) { transition-delay: 0.1s; }
+  .docs.ready li:nth-child(4) { transition-delay: 0.15s; }
+  .docs.ready li:nth-child(5) { transition-delay: 0.2s; }
+  .docs a {
+    display: grid;
+    gap: 8px;
+    padding: 16px 18px;
+    border-radius: 10px;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .docs a:hover { background: rgba(255, 255, 255, 0.07); }
+  .docs .bar { display: block; height: 10px; border-radius: 5px; background: rgba(255, 255, 255, 0.16); }
+  .docs .bar.sub { height: 7px; background: rgba(255, 255, 255, 0.07); }
+
+  .mock {
+    position: fixed;
+    right: 14px;
+    bottom: 14px;
+    z-index: 60;
+    display: flex;
+    gap: 6px;
+  }
+  .mock button {
+    min-width: 38px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .mock button[aria-pressed='true'] { border-color: #9333ea; color: #d09bfd; }
+
+  .home {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 40;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    color: #e0e0e0;
+    background: rgba(255, 255, 255, 0.08);
+    text-decoration: none;
+    font-size: 22px;
+  }
+
+  @media (max-width: 700px) {
+    :root { --box-w: 88vw; --drop: 14vh; }
+    .box { aspect-ratio: 0.62; }
+    .latch { width: 8%; }
+    .latch.l { left: 18%; }
+    .latch.r { right: 18%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .box, .veil, .docs, .docs li, .latch, .dimmer { transition-duration: 0.15s !important; }
+    .box.open .lid, .box.closing .lid { animation-duration: 0.2s; }
+  }
+</style>
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+</script>
+</head>
+<body>
+<div class="room"></div>
+<a class="home" href="#" aria-label="홈으로">⌂</a>
+<div class="veil" id="veil"></div>
+
+<div class="stage">
+  <div class="box" id="box">
+    <div class="floor-shadow"></div>
+    <div class="tray">
+      <div class="lining" id="lining">
+        <img class="velvet" id="velvet" src="velvet.webp" alt="" draggable="false" />
+        <canvas class="badges3d" id="tray3d"></canvas>
+        <div class="hits" id="hits"></div>
+      </div>
+    </div>
+    <div class="lid"><div class="frame"></div></div>
+    <span class="latch l"></span>
+    <span class="latch r"></span>
+  </div>
+</div>
+
+<div class="dimmer" id="dimmer"></div>
+<canvas class="lift3d" id="lift3d"></canvas>
+<section class="docs" id="docs" aria-live="polite"><div class="docs-inner"><h1 id="docs-title"></h1><ol id="docs-list"></ol></div></section>
+
+<div class="mock" aria-label="목업 조작">
+  <button type="button" data-v="a" aria-pressed="false">A</button>
+  <button type="button" data-v="b" aria-pressed="true">B</button>
+  <button type="button" id="shadow" aria-pressed="true" aria-label="뱃지 그림자">◐</button>
+  <button type="button" id="replay" aria-label="다시 열기">↻</button>
+</div>
+
+<script type="module">
+  import * as THREE from 'three'
+  import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js'
+  import { Badges } from './badges.js'
+  RectAreaLightUniformsLib.init()
+
+  const Reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  // 목업 조작 : 방석 위 뱃지 그림자 (주소 끝에 #noshadow 를 붙이면 끈 채로 열린다)
+  let ShowShade = location.hash !== '#noshadow'
+  const Small = () => innerWidth <= 700
+  const lerp = (a, b, k) => a + (b - a) * k
+
+  // ---------- 재질 ----------
+  // 금속 겉면 : 광을 낸 판에 남은 아주 가는 흠집과 얼룩. 거칠기 (roughness) 와 요철 (bump) 에 같이 쓴다
+  const surfaceTex = (brushed) => {
+    const c = document.createElement('canvas')
+    c.width = c.height = 512
+    const g = c.getContext('2d')
+    g.fillStyle = brushed ? 'rgb(90,90,90)' : 'rgb(30,30,30)'
+    g.fillRect(0, 0, 512, 512)
+    // 넓게 번진 얼룩 : 광이 고르지 않은 느낌
+    for (let i = 0; i < 40; i++) {
+      const x = Math.random() * 512
+      const y = Math.random() * 512
+      const r = 30 + Math.random() * 90
+      const G = g.createRadialGradient(x, y, 0, x, y, r)
+      const v = Math.random() < 0.5 ? 0 : 255
+      G.addColorStop(0, `rgba(${v},${v},${v},${brushed ? 0.06 : 0.035})`)
+      G.addColorStop(1, `rgba(${v},${v},${v},0)`)
+      g.fillStyle = G
+      g.fillRect(x - r, y - r, r * 2, r * 2)
+    }
+    if (brushed) {
+      // 솔결 : 한 방향으로 긴 줄
+      for (let i = 0; i < 1400; i++) {
+        const y = Math.random() * 512
+        const v = 60 + Math.random() * 120
+        g.strokeStyle = `rgba(${v},${v},${v},${0.25 + Math.random() * 0.4})`
+        g.lineWidth = 0.4 + Math.random() * 1.2
+        g.beginPath()
+        g.moveTo(-10, y)
+        g.lineTo(522, y + (Math.random() - 0.5) * 4)
+        g.stroke()
+      }
+    } else {
+      // 잔 흠집 : 짧고 가는 선, 방향은 제각각
+      for (let i = 0; i < 220; i++) {
+        const x = Math.random() * 512
+        const y = Math.random() * 512
+        const a = Math.random() * Math.PI
+        const l = 6 + Math.random() * 40
+        g.strokeStyle = `rgba(255,255,255,${0.03 + Math.random() * 0.05})`
+        g.lineWidth = 0.4 + Math.random() * 0.7
+        g.beginPath()
+        g.moveTo(x, y)
+        g.quadraticCurveTo(x + Math.cos(a) * l * 0.5 + (Math.random() - 0.5) * 6, y + Math.sin(a) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l)
+        g.stroke()
+      }
+    }
+    // 고운 입자
+    const D = g.getImageData(0, 0, 512, 512)
+    for (let i = 0; i < D.data.length; i += 4) {
+      const n = (Math.random() - 0.5) * 14
+      D.data[i] += n
+      D.data[i + 1] += n
+      D.data[i + 2] += n
+    }
+    g.putImageData(D, 0, 0)
+    const T = new THREE.CanvasTexture(c)
+    T.wrapS = T.wrapT = THREE.RepeatWrapping
+    // 도형 좌표 (100 단위) 기준 : 텍스처 한 장이 뱃지 폭의 절반쯤
+    T.repeat.set(1 / 55, 1 / 55)
+    T.anisotropy = 8
+    return T
+  }
+  // 볼록한 면 : 실제 뱃지처럼 가운데가 아주 살짝 부풀어 있어서, 평평한 금 면에도 밝은 곳에서 어두운 곳으로 반사가 흐른다
+  const domeTex = (() => {
+    const N = 256
+    const c = document.createElement('canvas')
+    c.width = c.height = N
+    const g = c.getContext('2d')
+    const D = g.createImageData(N, N)
+    const a = 0.28
+    for (let y = 0; y < N; y++)
+      for (let x = 0; x < N; x++) {
+        const u = (x / (N - 1)) * 2 - 1
+        const v = 1 - (y / (N - 1)) * 2
+        const nx = u * a
+        // 세로 방향으로는 굽지 않는다 : 반사가 세로 일자 띠로 맺힌다
+        const ny = 0 * v
+        const l = Math.hypot(nx, ny, 1)
+        const i = (y * N + x) * 4
+        D.data[i] = ((nx / l) * 0.5 + 0.5) * 255
+        D.data[i + 1] = ((ny / l) * 0.5 + 0.5) * 255
+        D.data[i + 2] = ((1 / l) * 0.5 + 0.5) * 255
+        D.data[i + 3] = 255
+      }
+    g.putImageData(D, 0, 0)
+    const T = new THREE.CanvasTexture(c)
+    T.colorSpace = THREE.NoColorSpace
+    // 도형 좌표 -50 ~ 50 → 0 ~ 1
+    T.repeat.set(1 / 100, 1 / 100)
+    T.offset.set(0.5, 0.5)
+    return T
+  })()
+  // 원형으로 깎은 (스핀 브러시) 금 : 가운데를 중심으로 동심원 결. 결 방향 (anisotropy) 은 원의 접선
+  const spinTex = (() => {
+    const N = 512
+    const c = document.createElement('canvas')
+    c.width = c.height = N
+    const g = c.getContext('2d')
+    const D = g.createImageData(N, N)
+    for (let y = 0; y < N; y++)
+      for (let x = 0; x < N; x++) {
+        const u = (x / (N - 1)) * 2 - 1
+        const v = 1 - (y / (N - 1)) * 2
+        const th = Math.atan2(v, u)
+        const i = (y * N + x) * 4
+        // RG : 결 방향 (접선), B : 결의 세기
+        D.data[i] = (-Math.sin(th) * 0.5 + 0.5) * 255
+        D.data[i + 1] = (Math.cos(th) * 0.5 + 0.5) * 255
+        D.data[i + 2] = 255
+        D.data[i + 3] = 255
+      }
+    g.putImageData(D, 0, 0)
+    const T = new THREE.CanvasTexture(c)
+    T.colorSpace = THREE.NoColorSpace
+    T.repeat.set(1 / 100, 1 / 100)
+    T.offset.set(0.5, 0.5)
+    return T
+  })()
+  // 동심원 결의 거칠기 : 가는 고리마다 조금씩 다른 거칠기
+  const ringTex = (() => {
+    const N = 1024
+    const c = document.createElement('canvas')
+    c.width = c.height = N
+    const g = c.getContext('2d')
+    g.fillStyle = 'rgb(84,84,84)'
+    g.fillRect(0, 0, N, N)
+    for (let r = 2; r < N * 0.72; r += 1.1 + Math.random() * 1.4) {
+      const v = 60 + Math.random() * 60
+      g.strokeStyle = `rgba(${v},${v},${v},${0.35 + Math.random() * 0.4})`
+      g.lineWidth = 0.6 + Math.random() * 0.9
+      g.beginPath()
+      g.arc(N / 2, N / 2, r, 0, Math.PI * 2)
+      g.stroke()
+    }
+    const T = new THREE.CanvasTexture(c)
+    T.colorSpace = THREE.NoColorSpace
+    T.repeat.set(1 / 100, 1 / 100)
+    T.offset.set(0.5, 0.5)
+    T.anisotropy = 8
+    return T
+  })()
+  const Polished = surfaceTex(false)
+  // 가로로 결을 낸 금 : 빛이 결과 수직인 세로줄로 길게 맺힌다
+  const Brushed = surfaceTex(true)
+  // 반사색 : 실제 금 (1.0, 0.77, 0.34) · 은 (0.97, 0.96, 0.91) 의 선형값
+  const metal = (rgb, tex, rough, extra = {}) => {
+    const M = new THREE.MeshPhysicalMaterial({ metalness: 1, roughness: rough, roughnessMap: tex, normalMap: domeTex, ...extra })
+    M.color.setRGB(...rgb, THREE.LinearSRGBColorSpace)
+    return M
+  }
+  const Mats = {
+    gold: metal([1.0, 0.78, 0.36], Polished, 1.0),
+    // 卍 도 다른 뱃지처럼 광낸 금 (두께만 더 두껍다)
+    brushed: metal([1.0, 0.78, 0.36], Polished, 1.0),
+    silver: metal([0.97, 0.96, 0.92], Polished, 1.0),
+  }
+  // 색 면 : 광 없는 무광 (반사는 금에만)
+  // 색 면은 빛을 받아도 그대로인 무광 (조명의 영향을 받지 않는 평면 색) : 빛은 금에만 반응한다
+  const enamel = (hex) =>
+    (Mats[hex] ??= new THREE.MeshStandardMaterial({
+      color: new THREE.Color(hex),
+      metalness: 0,
+      roughness: 0.92,
+      envMapIntensity: 0.55,
+    }))
+
+
+
+  // ---------- 평면 도형 → 3D 뱃지 ----------
+  // 높이 (도형 단위) : 바탕 금속 5 + 에나멜 1.6 + 솟은 금속선 3
+  const Depth = {
+    plate: { z: 0, depth: 4.5, bevelEnabled: true, bevelThickness: 1.6, bevelSize: 1.3, bevelSegments: 4 },
+    enamel: { z: 4.5, depth: 2.0, bevelEnabled: true, bevelThickness: 0.4, bevelSize: 0, bevelSegments: 2 },
+    lines: { z: 4.5, depth: 2.2, bevelEnabled: true, bevelThickness: 1.0, bevelSize: 0.45, bevelSegments: 5 },
+  }
+  const toPath = (flat, P) => {
+    for (let i = 0; i < flat.length; i += 2) {
+      const x = flat[i] - 50
+      const y = 50 - flat[i + 1]
+      i === 0 ? P.moveTo(x, y) : P.lineTo(x, y)
+    }
+    return P
+  }
+  const Geo = new Map()
+  const badgeGeometry = (b) => {
+    if (Geo.has(b.id)) return Geo.get(b.id)
+    const parts = b.layers.map((L) => {
+      const shapes = L.polys.map((poly) => {
+        const S = toPath(poly[0], new THREE.Shape())
+        for (const h of poly.slice(1)) S.holes.push(toPath(h, new THREE.Path()))
+        return S
+      })
+      const opt = { ...Depth[L.kind], curveSegments: 12 }
+      // 통짜 금속 (卍) 은 더 두껍게
+      if (L.mat === 'brushed') Object.assign(opt, { depth: 8, bevelThickness: 1.6, bevelSize: 1.2 })
+      const g = new THREE.ExtrudeGeometry(shapes, opt)
+      g.translate(0, 0, Depth[L.kind].z)
+      return { g, mat: L.mat, kind: L.kind }
+    })
+    Geo.set(b.id, parts)
+    return parts
+  }
+  // own : 뱃지마다 재질을 따로 둔다 (마우스 가까운 뱃지만 밝히려고)
+  const makeBadge = (b, own = false) => {
+    const G = new THREE.Group()
+    G.userData.metals = []
+    G.userData.colors = []
+    for (const { g, mat, kind } of badgeGeometry(b)) {
+      let Mt = Mats[mat] ?? enamel(mat)
+      if (own) Mt = Mt.clone()
+      ;(Mt.metalness === 1 ? G.userData.metals : G.userData.colors).push(Mt)
+      const M = new THREE.Mesh(g, Mt)
+      G.add(M)
+    }
+    // 도형 100 단위 → 장면 1 단위
+    G.scale.setScalar(0.01)
+    return G
+  }
+
+  // ---------- 장면 공통 ----------
+  const makeRenderer = (canvas) => {
+    const R = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
+    R.setPixelRatio(Math.min(devicePixelRatio, 2))
+    // 에나멜 색이 바래지 않도록 색을 덜 건드리는 톤 매핑
+    R.toneMapping = THREE.NeutralToneMapping
+    R.toneMappingExposure = 1
+    R.outputColorSpace = THREE.SRGBColorSpace
+    return R
+  }
+  // 반사 환경 : 보석 촬영 스튜디오 파노라마를 직접 만든다 (HDR, 밝은 판은 1 보다 훨씬 밝다)
+  // 장면 좌표 : 뱃지 면이 +z (카메라 쪽), 위가 +y
+  const makeEnv = (R) => {
+    const W = 512
+    const H = 256
+    const D = new Float32Array(W * H * 4)
+    const v3 = (x, y, z) => new THREE.Vector3(x, y, z).normalize()
+    const soft = (d, r0, r1) => Math.max(0, Math.min(1, (r1 - d) / (r1 - r0)))
+    // 둥근 소프트박스 · 작은 스폿 : 방향, 반지름 (라디안), 밝기, 색
+    const Boxes = [
+      { c: v3(-0.5, 0.5, 0.72), r: 0.42, k: 5.6, col: [1, 0.96, 0.9] },
+      { c: v3(0.05, 0.75, 0.66), r: 0.18, k: 7.7, col: [1, 0.97, 0.92] },
+      { c: v3(0.35, 0.55, 0.76), r: 0.06, k: 34, col: [1, 0.95, 0.85] },
+      { c: v3(-0.15, -0.55, 0.82), r: 0.22, k: 1.4, col: [1, 0.92, 0.85] },
+      { c: v3(0.1, 0.12, 1), r: 0.3, k: 1.2, col: [1, 0.93, 0.8] },
+      // 정면 따뜻한 빛 : 평평한 금 면이 갈색이 아니라 밝은 금색으로 보이게
+    ]
+    // 세로 띠 조명 : 기울이면 금속 면을 가로지르며 번쩍인다
+    const Strips = [
+      { c: v3(0.72, 0, 0.7), w: 0.06, h: 0.95, k: 10 },
+      { c: v3(-0.8, -0.1, 0.55), w: 0.04, h: 0.8, k: 6.8 },
+      { c: v3(0.3, 0, 0.95), w: 0.025, h: 0.9, k: 8.5 },
+      { c: v3(-0.35, 0, 0.94), w: 0.02, h: 0.9, k: 6 },
+    ]
+    const dir = new THREE.Vector3()
+    for (let row = 0; row < H; row++) {
+      const vv = (row + 0.5) / H
+      const lat = (vv - 0.5) * Math.PI
+      for (let x = 0; x < W; x++) {
+        const th = ((x + 0.5) / W - 0.5) * Math.PI * 2
+        dir.set(Math.cos(lat) * Math.cos(th), Math.sin(lat), Math.cos(lat) * Math.sin(th))
+        // 바탕 : 어두운 방, 위로 갈수록 조금 밝다. 뒤쪽 (-z) 은 빨간 방석
+        let r = 0.03 + 0.04 * Math.max(dir.y, 0)
+        let g = 0.026 + 0.035 * Math.max(dir.y, 0)
+        let b = 0.024 + 0.03 * Math.max(dir.y, 0)
+        if (dir.z < 0) {
+          const k = -dir.z
+          r += 0.09 * k
+          g += 0.02 * k
+          b += 0.02 * k
+        }
+        for (const B of Boxes) {
+          const d = Math.acos(Math.min(1, dir.dot(B.c)))
+          const f = soft(d, B.r * 0.8, B.r) * B.k
+          r += f * B.col[0]
+          g += f * B.col[1]
+          b += f * B.col[2]
+        }
+        for (const S of Strips) {
+          if (dir.dot(S.c) < 0) continue
+          const side = new THREE.Vector3(0, 1, 0).cross(S.c).normalize()
+          const across = Math.abs(Math.asin(Math.max(-1, Math.min(1, dir.dot(side)))))
+          const along = Math.abs(dir.y)
+          const f = soft(across, S.w * 0.6, S.w) * soft(along, S.h * 0.85, S.h) * S.k
+          r += f
+          g += f
+          b += f
+        }
+        const i = (row * W + x) * 4
+        D[i] = r
+        D[i + 1] = g
+        D[i + 2] = b
+        D[i + 3] = 1
+      }
+    }
+    const T = new THREE.DataTexture(D, W, H, THREE.RGBAFormat, THREE.FloatType)
+    T.mapping = THREE.EquirectangularReflectionMapping
+    T.needsUpdate = true
+    const P = new THREE.PMREMGenerator(R)
+    const out = P.fromEquirectangular(T).texture
+    T.dispose()
+    P.dispose()
+    return out
+  }
+  const Tray = makeRenderer(document.getElementById('tray3d'))
+  const Env = makeEnv(Tray)
+
+  const Scene = new THREE.Scene()
+  Scene.environment = Env
+  Scene.environmentIntensity = 1
+  // 원근 카메라 : 자리마다 보는 각도가 조금씩 달라서 평평한 금속 면에도 반사 그라데이션이 생긴다
+  const CamD = 2.4
+  const Cam = new THREE.PerspectiveCamera((2 * Math.atan(0.5 / CamD) * 180) / Math.PI, 1, 0.1, 50)
+  // 왼쪽 위에서 오는 주광 : 방석 위로 그림자를 떨군다
+  const Key = new THREE.DirectionalLight(0xfff1dc, 0.9)
+  Key.position.set(-2.4, 3, 6)
+  Scene.add(Key, Key.target)
+  // 뱃지 밑 그림자 : 눌린 자리에 박힌 느낌을 주는 부드러운 어둠 (실시간 그림자 대신 텍스처 한 장)
+  const ShadowTex = (() => {
+    const c = document.createElement('canvas')
+    c.width = c.height = 128
+    const g = c.getContext('2d')
+    const r = g.createRadialGradient(64, 64, 0, 64, 64, 64)
+    r.addColorStop(0, 'rgba(20,0,2,0.95)')
+    r.addColorStop(0.45, 'rgba(20,0,2,0.6)')
+    r.addColorStop(1, 'rgba(20,0,2,0)')
+    g.fillStyle = r
+    g.fillRect(0, 0, 128, 128)
+    return new THREE.CanvasTexture(c)
+  })()
+  const ShadowGeo = new THREE.PlaneGeometry(1, 1)
+  // 뱃지 모양 그대로의 부드러운 그림자 : 바탕 판 모양을 흐리게 칠한 텍스처 (도형 -20 ~ 120 범위)
+  const badgeShadowTex = (b) => {
+    const N = 256
+    const c = document.createElement('canvas')
+    c.width = c.height = N
+    const g = c.getContext('2d')
+    const k = N / 140
+    g.filter = 'blur(7px)'
+    g.fillStyle = 'rgba(18,0,3,1)'
+    const plate = b.layers.find((L) => L.kind === 'plate')
+    g.beginPath()
+    for (const poly of plate.polys)
+      for (const ring of poly) {
+        for (let i = 0; i < ring.length; i += 2) {
+          const x = (ring[i] + 20) * k
+          const y = (ring[i + 1] + 20) * k
+          i === 0 ? g.moveTo(x, y) : g.lineTo(x, y)
+        }
+        g.closePath()
+      }
+    g.fill('evenodd')
+    const T = new THREE.CanvasTexture(c)
+    T.colorSpace = THREE.SRGBColorSpace
+    return T
+  }
+
+  // ---------- 진열 ----------
+  const Hits = document.getElementById('hits')
+  const Slots = Badges.map((b, i) => {
+    const G = makeBadge(b, true)
+    const Pivot = new THREE.Group()
+    Pivot.add(G)
+    const Shade = new THREE.Mesh(ShadowGeo, new THREE.MeshBasicMaterial({ map: badgeShadowTex(b), transparent: true, depthWrite: false }))
+    Shade.renderOrder = -1
+    Scene.add(Shade, Pivot)
+    const Btn = document.createElement('button')
+    Btn.className = 'hit'
+    Btn.type = 'button'
+    Btn.setAttribute('aria-label', b.name)
+    Hits.appendChild(Btn)
+    // 손으로 꽂은 듯 조금씩 다른 기울기
+    const rot = [-0.07, 0.05, -0.03, 0.08, -0.05, 0.03, -0.08, 0.05][i]
+    const S = { b, i, Pivot, G, Shade, Btn, rot, lift: 0, liftT: 0, hidden: false }
+    Btn.addEventListener('pointerenter', () => (S.liftT = 1))
+    Btn.addEventListener('pointerleave', () => (S.liftT = 0))
+    Btn.addEventListener('focus', () => (S.liftT = 1))
+    Btn.addEventListener('blur', () => (S.liftT = 0))
+    Btn.addEventListener('click', () => pick(S))
+    return S
+  })
+
+  // 자리 : 방석의 오목하게 눌린 8곳 (velvet.webp 에서 찾은 비율 좌표). 휴대폰은 방석을 세워 2열
+  const Tufts = {
+    wide: [[0.1847, 0.2918], [0.3915, 0.2883], [0.6154, 0.2895], [0.8284, 0.2918], [0.1847, 0.6576], [0.3922, 0.6552], [0.6154, 0.6529], [0.8298, 0.6517]],
+  }
+  // 세운 방석 : 왼쪽으로 90° 돌렸으므로 (x, y) → (y, 1 - x)
+  Tufts.tall = Tufts.wide.map(([x, y]) => [y, 1 - x]).sort((p, q) => Math.round(p[1] * 8) - Math.round(q[1] * 8) || p[0] - q[0])
+  // 방석 그림은 안쪽 판의 0.6% 안쪽에 꽉 차게 놓인다
+  const Inset = 0.006
+  let Aspect = 1
+  let Size = 0.2
+  const layout = () => {
+    const C = Tray.domElement
+    const w = C.clientWidth
+    const h = C.clientHeight
+    if (!w || !h) return
+    Tray.setSize(w, h, false)
+    const small = Small()
+    document.getElementById('velvet').src = small ? 'velvet-tall.webp' : 'velvet.webp'
+    const T = small ? Tufts.tall : Tufts.wide
+    // 장면 단위 : 캔버스 높이 = 1, 왼쪽 위가 (0, 0)
+    Aspect = w / h
+    Cam.aspect = Aspect
+    Cam.position.set(Aspect / 2, -0.5, CamD)
+    Cam.updateProjectionMatrix()
+    const pos = T.map(([fx, fy]) => [(Inset + fx * (1 - 2 * Inset)) * Aspect, Inset + fy * (1 - 2 * Inset)])
+    // 뱃지 크기 : 이웃한 눌린 자리 사이 거리의 62%
+    let gap = Infinity
+    for (let i = 0; i < pos.length; i++)
+      for (let j = i + 1; j < pos.length; j++) gap = Math.min(gap, Math.hypot(pos[i][0] - pos[j][0], pos[i][1] - pos[j][1]))
+    Size = gap * 0.56
+    Slots.forEach((S) => {
+      const [x, y] = pos[S.i]
+      S.Pivot.position.set(x, -y, 0)
+      S.G.scale.setScalar(Size / 100)
+      Object.assign(S.Btn.style, {
+        left: `${(x / Aspect) * 100}%`,
+        top: `${y * 100}%`,
+        width: `${((Size * 1.1) / Aspect) * 100}%`,
+      })
+    })
+    Key.position.set(Aspect / 2 - 1.2, 1.1, 6)
+    Key.target.position.set(Aspect / 2, -0.5, 0)
+  }
+  new ResizeObserver(layout).observe(Tray.domElement)
+
+  // ---------- 빛과 기울기 ----------
+  let TiltX = 0
+  let TiltY = 0
+  let TX = 0
+  let TY = 0
+  let Interactive = false
+  const NoHover = matchMedia('(hover: none)').matches
+  // 손전등 : 마우스가 있는 자리 위에 작은 빛. 가까운 뱃지만 빛을 받는다
+  const Torch = { mx: -1e4, my: -1e4, x: -10, y: -10, on: 0, onT: 0 }
+  addEventListener('pointermove', (e) => {
+    if (!Interactive || Reduce || e.pointerType !== 'mouse') return
+    TX = (e.clientX / innerWidth - 0.5) * 2
+    TY = (e.clientY / innerHeight - 0.5) * 2
+    Torch.mx = e.clientX
+    Torch.my = e.clientY
+    Torch.onT = 1
+  })
+  document.documentElement.addEventListener('pointerleave', () => (Torch.onT = 0))
+  const TorchLight = new THREE.PointLight(0xfff3df, 0, 0, 1.4)
+  Scene.add(TorchLight)
+  const TrayBar = new THREE.RectAreaLight(0xfff2dc, 0, 0.05, 1)
+  Scene.add(TrayBar)
+
+
+  let SweepK = -1
+  const sweep = () =>
+    new Promise((res) => {
+      if (Reduce) return res()
+      const t0 = performance.now()
+      const f = (t) => {
+        const k = Math.min(1, (t - t0) / 1500)
+        SweepK = k
+        if (k < 1) requestAnimationFrame(f)
+        else {
+          SweepK = -1
+          res()
+        }
+      }
+      requestAnimationFrame(f)
+    })
+
+  const frame = (t) => {
+    // 마우스가 없는 기기 : 빛이 아주 천천히 오간다
+    if (NoHover && Interactive && !Reduce) {
+      TX = Math.sin(t / 3200) * 0.7
+      TY = Math.sin(t / 4700) * 0.3
+    }
+    TiltX = lerp(TiltX, TX, 0.08)
+    TiltY = lerp(TiltY, TY, 0.08)
+    let sx = TiltX
+    let sy = TiltY
+    // 빛이 닿는 자리 (장면 좌표, 캔버스 높이 = 1)
+    let tx
+    let ty
+    let on = Torch.on
+    const R = Tray.domElement.getBoundingClientRect()
+    if (SweepK >= 0) {
+      // 뚜껑이 열린 뒤 : 빛이 왼쪽에서 오른쪽으로 지나가며 뱃지를 하나씩 밝힌다
+      const e = 1 - Math.pow(1 - SweepK, 2)
+      tx = lerp(-0.3, Aspect + 0.3, e)
+      ty = -0.5
+      on = Math.min(1, Math.sin(SweepK * Math.PI) * 3)
+    } else if (NoHover && Interactive && !Reduce) {
+      // 마우스가 없는 기기 : 빛이 천천히 뱃지 사이를 오간다
+      tx = Aspect / 2 + Math.sin(t / 2600) * Aspect * 0.42
+      ty = -0.5 + Math.sin(t / 3900) * 0.22
+      on = 1
+    } else {
+      tx = ((Torch.mx - R.left) / R.width) * Aspect
+      ty = -(Torch.my - R.top) / R.height
+      Torch.on = lerp(Torch.on, Torch.onT, 0.1)
+      on = Torch.on
+    }
+    Torch.x = lerp(Torch.x, tx, SweepK >= 0 ? 1 : 0.25)
+    Torch.y = lerp(Torch.y, ty, SweepK >= 0 ? 1 : 0.25)
+    TorchLight.position.set(Torch.x, Torch.y, Size * 0.9)
+    TorchLight.intensity = on * 0.2
+
+    // 가까운 뱃지일수록 금이 주변 빛을 더 많이 비춘다
+    const Rad = Size * 1.05
+    for (const S of Slots) {
+      const d2 = (S.Pivot.position.x - Torch.x) ** 2 + (S.Pivot.position.y - Torch.y) ** 2
+      const g = Math.exp(-d2 / (Rad * Rad)) * on
+      for (const M of S.G.userData.metals) M.envMapIntensity = 0.28 + g * 3.4
+      for (const M of S.G.userData.colors) M.envMapIntensity = 0.45 + g * 0.12
+    }
+
+    for (const S of Slots) {
+      S.lift = lerp(S.lift, S.liftT, 0.15)
+      S.Pivot.visible = !S.hidden
+      S.Pivot.position.z = S.lift * Size * 0.25
+      S.Pivot.rotation.set(S.lift * 0.05, 0, S.rot)
+      const k = 1 + S.lift * 0.06
+      S.Pivot.scale.set(k, k, k)
+      // 들리면 그림자가 옆으로 밀리며 넓고 옅어진다
+      S.Shade.visible = !S.hidden && ShowShade
+      S.Shade.position.set(S.Pivot.position.x + Size * (0.07 + S.lift * 0.1), S.Pivot.position.y - Size * (0.09 + S.lift * 0.12), -0.01)
+      S.Shade.rotation.z = S.rot
+      S.Shade.scale.setScalar(Size * 1.4 * (1 + S.lift * 0.08))
+      S.Shade.material.opacity = 0.75 - S.lift * 0.25
+    }
+    // 세로로 긴 가는 조명 (실제 광원) : 마우스 위치 앞에 세워 두어, 금 면의 각도에 맞는 자리에 세로 일자 반사가 생긴다
+    TrayBar.position.set(Torch.x, Torch.y, CamD * 0.55)
+    TrayBar.lookAt(Torch.x, Torch.y, 0)
+    TrayBar.width = Size * 0.12
+    TrayBar.height = Size * 2.2
+    TrayBar.intensity = on * 14
+    Tray.render(Scene, Cam)
+    if (Lift.on) drawLift(t)
+    requestAnimationFrame(frame)
+  }
+
+  // ---------- 고른 뱃지 : 화면 전체 캔버스에서 크게 ----------
+  const Lift = { on: false, R: null, scene: new THREE.Scene(), cam: new THREE.PerspectiveCamera(28, 1, 1, 20000), G: null, from: null, to: null, k: 0, kT: 0, t0: 0 }
+  Lift.R = makeRenderer(document.getElementById('lift3d'))
+  Lift.scene.environment = makeEnv(Lift.R)
+  const LiftKey = new THREE.DirectionalLight(0xfff1dc, 1.4)
+  LiftKey.position.set(-300, 400, 600)
+  Lift.scene.add(LiftKey)
+  // 들어 올린 뱃지 위의 손전등 : 마우스 자리 바로 위에서 비춰, 빛이 닿는 곳에 또렷한 반사가 생긴다
+  const LiftTorch = new THREE.PointLight(0xfff3df, 0, 0, 0)
+  const LiftBar = new THREE.RectAreaLight(0xfff2dc, 0, 10, 100)
+  Lift.scene.add(LiftBar)
+
+  const sizeLift = () => {
+    Lift.R.setSize(innerWidth, innerHeight, false)
+    // 화면 1px = 장면 1 단위가 되도록 카메라 거리를 맞춘다
+    Lift.cam.aspect = innerWidth / innerHeight
+    Lift.cam.position.set(innerWidth / 2, -innerHeight / 2, innerHeight / 2 / Math.tan((14 * Math.PI) / 180))
+    Lift.cam.updateProjectionMatrix()
+  }
+  addEventListener('resize', sizeLift)
+  sizeLift()
+
+  // ---------- 떠오른 뱃지 만지기 ----------
+  const LiftCanvas = document.getElementById('lift3d')
+  Lift.user = { q: new THREE.Quaternion(), px: 0, py: 0, zoom: 1, vx: 0, vy: 0, drag: false, touched: false, reset: false }
+  const resetUser = () => Object.assign(Lift.user, { q: new THREE.Quaternion(), px: 0, py: 0, zoom: 1, vx: 0, vy: 0, drag: false, touched: false, reset: false })
+  const Ptrs = new Map()
+  let Mode = null
+  let Moved = 0
+  let Pinch = null
+  const ZoomMin = 0.6
+  const ZoomMax = 3.2
+  const clampZoom = (z) => Math.max(ZoomMin, Math.min(ZoomMax, z))
+  // 뱃지 위를 눌렀는지 : 화면에서 뱃지가 차지하는 원 안인지로 가늠한다
+  const onBadge = (cx, cy) => {
+    const U = Lift.user
+    const bx = Lift.to.x + U.px
+    const by = Lift.to.y + U.py
+    return Math.hypot(cx - bx, cy - by) < (Lift.to.s * U.zoom) / 2 + 20
+  }
+  LiftCanvas.addEventListener('pointerdown', (e) => {
+    if (!Picked) return
+    LiftCanvas.setPointerCapture(e.pointerId)
+    Ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    Moved = 0
+    const U = Lift.user
+    U.drag = true
+    U.vx = U.vy = 0
+    if (Ptrs.size === 2) {
+      const [a, b] = [...Ptrs.values()]
+      Pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), z: U.zoom, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, px: U.px, py: U.py }
+      Mode = 'pinch'
+    } else Mode = e.button === 2 || e.shiftKey ? 'move' : 'turn'
+  })
+  LiftCanvas.addEventListener('pointermove', (e) => {
+    const P = Ptrs.get(e.pointerId)
+    if (!P) return
+    const dx = e.clientX - P.x
+    const dy = e.clientY - P.y
+    P.x = e.clientX
+    P.y = e.clientY
+    Moved += Math.abs(dx) + Math.abs(dy)
+    const U = Lift.user
+    if (Moved > 4) U.touched = true
+    if (Mode === 'pinch' && Ptrs.size === 2) {
+      const [a, b] = [...Ptrs.values()]
+      U.zoom = clampZoom((Pinch.z * Math.hypot(a.x - b.x, a.y - b.y)) / Pinch.d)
+      U.px = Pinch.px + (a.x + b.x) / 2 - Pinch.mx
+      U.py = Pinch.py + (a.y + b.y) / 2 - Pinch.my
+    } else if (Mode === 'move') {
+      U.px += dx
+      U.py += dy
+    } else if (Mode === 'turn') {
+      // 끈 방향으로 굴린다 : 가로로 끌면 세로축, 세로로 끌면 가로축
+      U.vx = dx * 0.01
+      U.vy = dy * 0.01
+      U.q.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(U.vy, U.vx, 0)))
+    }
+  })
+  const up = (e) => {
+    if (!Ptrs.has(e.pointerId)) return
+    Ptrs.delete(e.pointerId)
+    if (Ptrs.size === 1) {
+      // 두 손가락 중 하나를 떼면 남은 손가락으로 이어서 돌린다
+      Mode = 'turn'
+      return
+    }
+    if (Ptrs.size) return
+    Lift.user.drag = false
+    // 뱃지 밖을 가볍게 누르면 제자리로 돌려놓는다
+    if (Moved < 5 && Mode !== 'pinch') onBadge(e.clientX, e.clientY) ? openDocs() : history.back()
+    Mode = null
+  }
+  LiftCanvas.addEventListener('pointerup', up)
+  LiftCanvas.addEventListener('pointercancel', up)
+  LiftCanvas.addEventListener('contextmenu', (e) => e.preventDefault())
+  LiftCanvas.addEventListener(
+    'wheel',
+    (e) => {
+      if (!Picked) return
+      e.preventDefault()
+      const U = Lift.user
+      U.touched = true
+      U.zoom = clampZoom(U.zoom * Math.exp(-e.deltaY * 0.0015))
+    },
+    { passive: false },
+  )
+  // 두 번 누르면 처음 모습으로
+  LiftCanvas.addEventListener('dblclick', () => Picked && (Lift.user.reset = true))
+  // 키보드 : 화살표 돌리기, + / - 확대 · 축소, 0 처음으로
+  addEventListener('keydown', (e) => {
+    if (!Picked) return
+    const U = Lift.user
+    const turn = { ArrowLeft: [0, -0.25], ArrowRight: [0, 0.25], ArrowUp: [-0.25, 0], ArrowDown: [0.25, 0] }[e.key]
+    if (turn) {
+      U.touched = true
+      U.q.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(turn[0], turn[1], 0)))
+    } else if (e.key === '+' || e.key === '=') U.zoom = clampZoom(U.zoom * 1.2)
+    else if (e.key === '-') U.zoom = clampZoom(U.zoom / 1.2)
+    else if (e.key === '0') U.reset = true
+  })
+  const drawLift = (t) => {
+    // 화면 주사율과 상관없이 같은 빠르기로 : 지난 그림 이후 흐른 시간으로 다가간다
+    const dt = Math.min(0.1, (t - (Lift.last ?? t)) / 1000)
+    Lift.last = t
+    Lift.k = lerp(Lift.k, Lift.kT, Reduce ? 1 : 1 - Math.exp(-dt * 6.5))
+    if (Math.abs(Lift.k - Lift.kT) < 0.002) Lift.k = Lift.kT
+    const e = Lift.k
+    const x = lerp(Lift.from.x, Lift.to.x, e)
+    const y = lerp(Lift.from.y, Lift.to.y, e)
+    const s = lerp(Lift.from.s, Lift.to.s, e)
+    const U = Lift.user
+    // 손을 놓으면 돌던 힘이 서서히 줄어든다. 제자리로 돌아갈 때는 사용자가 바꾼 것을 풀어 준다
+    if (!U.drag) {
+      U.q.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(U.vy, U.vx, 0)))
+      U.vx *= 0.92
+      U.vy *= 0.92
+    }
+    if (Lift.kT === 0 || U.reset) {
+      U.q.slerp(new THREE.Quaternion(), 0.15)
+      U.px = lerp(U.px, 0, 0.15)
+      U.py = lerp(U.py, 0, 0.15)
+      U.zoom = lerp(U.zoom, 1, 0.15)
+      if (U.reset && Math.abs(U.zoom - 1) < 0.01 && U.q.angleTo(new THREE.Quaternion()) < 0.01) U.reset = false
+    }
+    Lift.G.position.set(x + U.px * e, -(y + U.py * e), 0)
+    Lift.G.scale.setScalar((s * lerp(1, U.zoom, e)) / 100)
+    // 만지기 전에는 손에 들고 돌려 보는 것처럼 천천히 흔들린다 : 두께와 반사가 보인다
+    const sway = 0
+    // 자리만 옮길 때 (문서 화면 오가기) 는 기울기를 처음부터 다시 잡지 않는다
+    const er = Lift.settled ? 1 : e
+    const base = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.18 * er, sway, Lift.rot * (1 - er)))
+    Lift.G.quaternion.copy(U.q).multiply(base)
+    // 마우스가 없으면 왼쪽 위에서
+    const hasMouse = Torch.mx > -1e3 && !NoHover
+    LiftTorch.position.set(hasMouse ? Torch.mx : innerWidth * 0.35, -(hasMouse ? Torch.my : innerHeight * 0.15), Lift.to.s * 0.9)
+    // 들어 올린 뱃지 : 마우스 쪽에 세로로 긴 가는 조명. 뱃지를 돌리면 면 각도에 따라 반사가 따라 움직이거나 사라진다
+    {
+      const lx = hasMouse ? Torch.mx : x + Math.sin(t / 1800) * s * 0.35
+      const ls = s * lerp(1, U.zoom, e)
+      const camZ = Lift.cam.position.z
+      LiftBar.position.set(lx, -(y + U.py * e), camZ * 0.5)
+      LiftBar.lookAt(lx, -(y + U.py * e), 0)
+      LiftBar.width = ls * 0.16
+      LiftBar.height = ls * 3
+      LiftBar.intensity = 14 * e
+    }
+    Lift.R.render(Lift.scene, Lift.cam)
+    if (Lift.kT === 0 && Lift.k < 0.01) {
+      Lift.on = false
+      Lift.last = null
+      Lift.R.clear()
+      // 다 내려앉은 뒤에야 방석 위 뱃지를 다시 보인다
+      Lift.done?.()
+      Lift.done = null
+    }
+  }
+
+  const Docs = document.getElementById('docs')
+  const Dimmer = document.getElementById('dimmer')
+  // 화면 상태 : box (상자) → held (뱃지를 들고 만지는 중) → docs (그 종교의 문서 화면)
+  let View = 'box'
+  let Picked = null
+  const wait = (ms) => new Promise((r) => setTimeout(r, Reduce ? Math.min(ms, 60) : ms))
+  const Held = () => ({ x: innerWidth / 2, y: innerHeight * 0.42, s: Math.min(innerWidth * 0.5, innerHeight * 0.42, 320) })
+  const Header = () => ({ x: innerWidth / 2, y: 96, s: 100 })
+  // 지금 화면에 보이는 자리에서 새 자리로 옮긴다
+  const glide = (to) => {
+    const U = Lift.user
+    const e = Lift.k
+    Lift.from = {
+      x: lerp(Lift.from.x, Lift.to.x, e) + U.px * e,
+      y: lerp(Lift.from.y, Lift.to.y, e) + U.py * e,
+      s: lerp(Lift.from.s, Lift.to.s, e) * lerp(1, U.zoom, e),
+    }
+    U.px = U.py = 0
+    U.zoom = 1
+    U.reset = true
+    Lift.to = to
+    Lift.k = 0
+    Lift.kT = 1
+    Lift.settled = true
+  }
+
+  // 1. 한 번 누르면 : 방석에서 뽑혀 떠오르고, 끌어서 돌리고 옮기고 확대할 수 있다
+  async function pick(S) {
+    if (Picked || !Interactive) return
+    Picked = S
+    View = 'held'
+    const r = S.Btn.getBoundingClientRect()
+    Lift.G && Lift.scene.remove(Lift.G)
+    Lift.G = makeBadge(S.b)
+    // 돌리는 축이 뱃지 두께의 가운데를 지나도록
+    Lift.G.children.forEach((m) => m.position.set(0, 0, -4))
+    Lift.scene.add(Lift.G)
+    resetUser()
+    LiftCanvas.classList.add('live')
+    Lift.rot = S.rot
+    Lift.settled = false
+    Lift.from = { x: r.left + r.width / 2, y: r.top + r.height / 2, s: r.width / 1.1 }
+    Lift.to = Held()
+    Lift.k = 0
+    Lift.kT = 1
+    Lift.t0 = performance.now()
+    Lift.on = true
+    S.hidden = true
+    Dimmer.classList.add('on')
+    history.pushState({ v: 'held' }, '', `#${S.b.id}`)
+  }
+
+  // 2. 들고 있는 뱃지를 한 번 더 누르면 : 뱃지가 위로 올라가 제목 자리에 앉고 문서 화면이 열린다
+  async function openDocs() {
+    if (View !== 'held') return
+    View = 'docs'
+    history.pushState({ v: 'docs' }, '', `#${Picked.b.id}-docs`)
+    LiftCanvas.classList.remove('live')
+    Lift.user.touched = false
+    glide(Header())
+    document.getElementById('docs-title').textContent = Picked.b.name
+    document.getElementById('docs-list').innerHTML = [
+      [68, 40],
+      [54, 62],
+      [80, 34],
+      [46, 52],
+      [72, 44],
+    ]
+      .map(([a, b]) => `<li><a href="#"><span class="bar" style="width:${a}%"></span><span class="bar sub" style="width:${b}%"></span></a></li>`)
+      .join('')
+    Docs.scrollTop = 0
+    Docs.classList.add('on')
+    // 글 목록은 전환이 끝난 뒤에
+    await wait(560)
+    if (View === 'docs') Docs.classList.add('ready')
+  }
+  async function closeDocs() {
+    View = 'held'
+    Docs.classList.remove('ready')
+    await wait(150)
+    Docs.classList.remove('on')
+    glide(Held())
+    LiftCanvas.classList.add('live')
+  }
+
+  // 3. 뱃지 밖을 누르거나 뒤로가기 : 방석의 제자리로
+  async function putBack() {
+    if (!Picked) return
+    const S = Picked
+    View = 'box'
+    const r = S.Btn.getBoundingClientRect()
+    glide({ x: r.left + r.width / 2, y: r.top + r.height / 2, s: r.width / 1.1 })
+    Lift.settled = false
+    Lift.kT = 0
+    Lift.k = 1
+    Lift.to = Lift.from
+    Lift.from = { x: r.left + r.width / 2, y: r.top + r.height / 2, s: r.width / 1.1 }
+    Lift.user.drag = false
+    LiftCanvas.classList.remove('live')
+    Dimmer.classList.remove('on')
+    Lift.done = () => {
+      S.hidden = false
+      Picked = null
+    }
+  }
+
+  addEventListener('keydown', (e) => e.key === 'Escape' && View !== 'box' && history.back())
+  addEventListener('popstate', async (e) => {
+    const v = e.state?.v
+    if (View === 'docs' && v !== 'docs') await closeDocs()
+    if (View === 'held' && v !== 'held') putBack()
+  })
+  Dimmer.addEventListener('click', () => View === 'held' && history.back())
+
+  // ---------- 열고 닫기 ----------
+  const Box = document.getElementById('box')
+  const Veil = document.getElementById('veil')
+  const Latches = [...document.querySelectorAll('.latch')]
+  async function enter() {
+    Interactive = false
+    TX = TY = 0
+    Veil.classList.remove('gone')
+    Box.classList.remove('shown', 'open', 'closing')
+    Latches.forEach((l) => l.classList.remove('up'))
+    await wait(350)
+    Veil.classList.add('gone')
+    await wait(650)
+    Box.classList.add('shown')
+    await wait(650)
+    Latches[0].classList.add('up')
+    await wait(110)
+    Latches[1].classList.add('up')
+    await wait(260)
+    Box.classList.add('open')
+    await wait(500)
+    Interactive = true
+    await wait(400)
+    sweep()
+  }
+  async function leave() {
+    Interactive = false
+    TX = TY = 0
+    if (View === 'docs') {
+      history.back()
+      await wait(700)
+    }
+    if (View === 'held') {
+      history.back()
+      await wait(900)
+    }
+    Box.classList.remove('open')
+    Box.classList.add('closing')
+    await wait(820)
+    Latches[1].classList.remove('up')
+    await wait(100)
+    Latches[0].classList.remove('up')
+    await wait(300)
+    Veil.classList.remove('gone')
+    await wait(800)
+  }
+  document.querySelector('.home').addEventListener('click', async (e) => {
+    e.preventDefault()
+    await leave()
+    enter()
+  })
+
+  // 목업 조작 : A 비스듬한 시점 / B 거의 위에서 본 시점
+  const Views = { a: { tilt: '32deg', lid: '104deg', origin: '50% 20%' }, b: { tilt: '6deg', lid: '100deg', origin: '50% 0%' } }
+  document.querySelectorAll('.mock [data-v]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mock [data-v]').forEach((x) => x.setAttribute('aria-pressed', String(x === btn)))
+      const V = Views[btn.dataset.v]
+      document.documentElement.style.setProperty('--tilt', Small() && btn.dataset.v === 'a' ? '18deg' : V.tilt)
+      document.documentElement.style.setProperty('--lid-open', V.lid)
+      document.querySelector('.stage').style.perspectiveOrigin = V.origin
+      enter()
+    }),
+  )
+  document.getElementById('replay').addEventListener('click', enter)
+  // 목업 조작 : 방석 위 뱃지 그림자 켜기 / 끄기 (주소 끝에 #noshadow 를 붙이면 끈 채로 열린다)
+  const ShadeBtn = document.getElementById('shadow')
+  ShadeBtn.setAttribute('aria-pressed', String(ShowShade))
+  ShadeBtn.addEventListener('click', () => {
+    ShowShade = !ShowShade
+    ShadeBtn.setAttribute('aria-pressed', String(ShowShade))
+  })
+
+  layout()
+  requestAnimationFrame(frame)
+  enter()
+</script>
+</body>
+</html>

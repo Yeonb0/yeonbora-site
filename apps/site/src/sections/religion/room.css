@@ -1,0 +1,376 @@
+/* 종교학 방 : 검은 가죽 진열 상자 + 빨간 벨벳 방석 + 3D 금 뱃지 */
+.religion-room {
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* 거의 위에서 본 시점 (B 안) */
+  --tilt: 6deg;
+  --lid-open: 100deg;
+  --box-w: min(80vw, 860px, 98vh);
+  --drop: 24vh;
+}
+
+.religion-room .stage {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding-top: var(--drop);
+  perspective: 1700px;
+  perspective-origin: 50% 0%;
+  /* 위에서 내려오는 조명 하나 */
+  background: radial-gradient(ellipse 60% 55% at 50% 46%, #2a2131 0%, #17121b 55%, #0b090d 100%);
+}
+
+.religion-room .box {
+  position: relative;
+  width: var(--box-w);
+  aspect-ratio: 1.6;
+  transform-style: preserve-3d;
+  transform: translateY(24px) rotateX(var(--tilt));
+  opacity: 0;
+  transition:
+    transform 0.7s var(--ease),
+    opacity 0.5s var(--ease);
+}
+.religion-room .box.shown {
+  opacity: 1;
+  transform: translateY(0) rotateX(var(--tilt));
+}
+
+.religion-room .floor-shadow {
+  position: absolute;
+  inset: 4% -3% -6% -3%;
+  transform: translateZ(-30px);
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.75), transparent);
+  filter: blur(18px);
+}
+
+/* 상자 몸통 : 검은 가죽 */
+.religion-room .tray {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: #121014;
+  padding: 2.4%;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 2px 0 rgba(255, 255, 255, 0.06);
+  transform-style: preserve-3d;
+}
+.religion-room .tray::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.3' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.religion-room .tray::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34px;
+  transform-origin: bottom;
+  transform: rotateX(-90deg);
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(#1c191f, #0a090b);
+}
+
+/* 안쪽 : 벨벳 방석 하나가 꽉 차게 들어 있다 */
+.religion-room .lining {
+  position: relative;
+  height: 100%;
+  border-radius: 4px;
+  background: #0b0a0c;
+  box-shadow: inset 0 10px 24px rgba(0, 0, 0, 0.9);
+}
+.religion-room .velvet {
+  position: absolute;
+  inset: 0.6%;
+  width: 98.8%;
+  height: 98.8%;
+  object-fit: fill;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.8));
+}
+.religion-room .badges3d {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+/* 뚜껑이 닫혀 있을 때 안쪽이 어둡다 : 열리면서 빛이 든다 */
+.religion-room .lining::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0.6;
+  transition: opacity 1.1s var(--ease);
+  pointer-events: none;
+  z-index: 5;
+}
+.religion-room .box.open .lining::after {
+  opacity: 0;
+}
+
+/* 뱃지 자리 버튼 : 보이지 않는 원. 누르기 · 호버 · 키보드를 받아 3D 장면에 알린다 */
+.religion-room .hits {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+}
+.religion-room .hit {
+  position: absolute;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.religion-room .hit:focus-visible {
+  outline: 1.5px solid rgba(255, 220, 160, 0.75);
+  outline-offset: 4px;
+}
+
+/* 뚜껑 : 검은 테두리만 (유리 없음), 뒤쪽 모서리가 경첩 */
+.religion-room .lid {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  transform-origin: 50% 0%;
+  transform: translateZ(2px) rotateX(0deg);
+  transform-style: preserve-3d;
+  pointer-events: none;
+  z-index: 10;
+}
+.religion-room .lid .frame {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  border: calc(var(--box-w) * 0.022) solid #151316;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+.religion-room .box.open .lid {
+  animation: religion-lid-open 1.15s var(--ease) forwards;
+}
+.religion-room .box.closing .lid {
+  animation: religion-lid-close 0.85s cubic-bezier(0.55, 0, 0.7, 0.2) forwards;
+}
+@keyframes religion-lid-open {
+  0% {
+    transform: translateZ(2px) rotateX(0deg);
+  }
+  78% {
+    transform: translateZ(2px) rotateX(var(--lid-open));
+  }
+  90% {
+    transform: translateZ(2px) rotateX(calc(var(--lid-open) - 3deg));
+  }
+  100% {
+    transform: translateZ(2px) rotateX(var(--lid-open));
+  }
+}
+@keyframes religion-lid-close {
+  from {
+    transform: translateZ(2px) rotateX(var(--lid-open));
+  }
+  to {
+    transform: translateZ(2px) rotateX(0deg);
+  }
+}
+
+/* 앞쪽 걸쇠 2개 */
+.religion-room .latch {
+  position: absolute;
+  bottom: 1.6%;
+  width: 4.2%;
+  aspect-ratio: 1.3;
+  border-radius: 3px;
+  background: linear-gradient(160deg, #f4f5f7, #9ea3ab 45%, #e6e8ec 60%, #6f747c);
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  transform-origin: 50% 100%;
+  transform: translateZ(4px);
+  transition: transform 0.28s var(--ease);
+  z-index: 12;
+}
+.religion-room .latch::after {
+  content: '';
+  position: absolute;
+  left: 30%;
+  right: 30%;
+  top: 22%;
+  height: 22%;
+  border-radius: 2px;
+  background: #4a4e55;
+}
+.religion-room .latch.l {
+  left: 22%;
+}
+.religion-room .latch.r {
+  right: 22%;
+}
+.religion-room .latch.up {
+  transform: translateZ(4px) rotateX(125deg);
+}
+
+/* 글에서 돌아오기 · 새로고침 : 열린 상자를 연출 없이 */
+.religion-room.instant .box,
+.religion-room.instant .latch,
+.religion-room.instant .lining::after {
+  transition: none;
+}
+.religion-room.instant .box.open .lid {
+  animation-duration: 0s;
+}
+
+/* 뱃지를 고르면 상자가 어둠 속으로 물러난다 (상자에 filter 를 걸면 3D 가 납작해져서 막을 씌운다) */
+.religion-room .dimmer {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(20, 14, 24, 0.8), rgba(8, 6, 10, 0.93));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s var(--ease);
+}
+.religion-room .dimmer.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 들어 올린 뱃지를 그리는 화면 전체 캔버스 : 든 동안만 손을 받는다 */
+.religion-room .lift3d {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 30;
+  pointer-events: none;
+  touch-action: none;
+}
+.religion-room .lift3d.live {
+  pointer-events: auto;
+  cursor: grab;
+}
+.religion-room .lift3d.live:active {
+  cursor: grabbing;
+}
+
+/* 문서 화면 : 뱃지가 제목 자리에 앉고 그 아래로 그 종교의 글 목록 */
+.religion-room .docs {
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+  overflow-y: auto;
+  background: radial-gradient(ellipse 80% 50% at 50% 0%, #2a1f30, #141017 60%, #0e0b10);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.55s var(--ease);
+}
+.religion-room .docs.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+.religion-room .docs-inner {
+  width: min(90vw, 640px);
+  margin: 0 auto;
+  padding: 196px 0 80px;
+}
+.religion-room .docs h1 {
+  margin: 0 0 28px;
+  text-align: center;
+  font-family: var(--font-point);
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: 0.02em;
+  color: #efe6f2;
+}
+.religion-room .docs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.religion-room .docs-list li {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.4s var(--ease),
+    transform 0.5s var(--ease);
+}
+.religion-room .docs.ready .docs-list li {
+  opacity: 1;
+  transform: none;
+}
+.religion-room .docs.ready .docs-list li:nth-child(2) {
+  transition-delay: 0.05s;
+}
+.religion-room .docs.ready .docs-list li:nth-child(3) {
+  transition-delay: 0.1s;
+}
+.religion-room .docs.ready .docs-list li:nth-child(n + 4) {
+  transition-delay: 0.15s;
+}
+.religion-room .docs-list a {
+  display: block;
+  padding: 16px 18px;
+  border-radius: 10px;
+  color: #e9e2ea;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.religion-room .docs-list a:hover,
+.religion-room .docs-list a:focus-visible {
+  background: rgba(255, 255, 255, 0.07);
+}
+.religion-room .docs-list .empty {
+  text-align: center;
+  color: rgba(233, 226, 234, 0.45);
+}
+
+/* 휴대폰 : 세로 상자, 2열 */
+@media (max-width: 700px) {
+  .religion-room {
+    --box-w: 88vw;
+    --drop: 14vh;
+  }
+  .religion-room .box {
+    aspect-ratio: 0.62;
+  }
+  .religion-room .latch {
+    width: 8%;
+  }
+  .religion-room .latch.l {
+    left: 18%;
+  }
+  .religion-room .latch.r {
+    right: 18%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .religion-room .box,
+  .religion-room .docs,
+  .religion-room .docs-list li,
+  .religion-room .latch,
+  .religion-room .dimmer {
+    transition-duration: 0.15s !important;
+  }
+  .religion-room .box.open .lid,
+  .religion-room .box.closing .lid {
+    animation-duration: 0.2s;
+  }
+}

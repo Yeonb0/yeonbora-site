@@ -48,17 +48,19 @@ const returnedFrom = (scene: Scene, philosophers: Philosopher[]): Rect | null =>
     return null
   }
   if (!id) return null
-  const Hit = framesOf(scene.room, philosophers).find((h) => h.id === id)
+  const Hit = framesOf(scene.room, philosophers).find((h) => h.id === id || h.partner === id)
   return Hit ? Hit.rect : null
 }
 
 export default function Museum({ philosophers, images }: MuseumProps) {
   const [init] = useState(() => {
     const { scene, canonical } = parseScene(location.search)
+    // 허브에서 막 들어온 것인지 : 기록에 이 섬의 깊이가 이미 있으면 (글에서 돌아옴 · 뒤로가기) 보라색 번짐을 건너뛴다
+    const fromHub = history.state?.museumDepth === undefined
     if (canonical !== location.search) history.replaceState({ ...history.state, museumDepth: 0 }, '', location.pathname + canonical)
     else history.replaceState({ ...history.state, museumDepth: history.state?.museumDepth ?? 0 }, '')
     const back = returnedFrom(scene, philosophers)
-    return { scene, back }
+    return { scene, back, dusk: fromHub && !back }
   })
   const [state, dispatch] = useReducer(reduce, init.scene, (s): MachineState => (init.back ? { ...idle(s), phase: 'entering' } : idle(s)))
   const [anim, setAnim] = useState<Anim>(init.back ? 'enter-back' : 'arrive')
@@ -153,7 +155,7 @@ export default function Museum({ philosophers, images }: MuseumProps) {
     const S = state.scene
     const Next: Scene[] =
       S.kind === 'crossroads'
-        ? [{ kind: 'hall', wing: 'east' }, { kind: 'hall', wing: 'west' }]
+        ? [{ kind: 'hall', wing: 'west' }, { kind: 'hall', wing: 'east' }]
         : S.kind === 'hall'
           ? RoomsOf[S.wing].map((room): Scene => ({ kind: 'room', wing: S.wing, room }))
           : []
@@ -197,14 +199,15 @@ export default function Museum({ philosophers, images }: MuseumProps) {
   const StageStyle = {
     '--ox': focus ? `${focus.x + focus.w / 2}%` : '50%',
     '--oy': focus ? `${focus.y + focus.h / 2}%` : '50%',
-    '--zs': focus ? `${Math.min(6, 90 / Math.min(focus.w, focus.h))}` : '1.6',
+    // 초상화로 확대할 때만 화면을 채울 만큼 (최대 6 배), 방 사이 이동은 1.5 배까지만 : 짧고 빠르게 밀고 들어간다
+    '--zs': focus ? `${Math.min(state.scene.kind === 'room' ? 6 : 1.5, 90 / Math.min(focus.w, focus.h))}` : '1.6',
     '--glow': GlowOf(state.scene),
   } as CSSProperties
 
   const settled = state.phase === 'idle' && anim === ''
 
   return (
-    <div className="museum" ref={ViewRef}>
+    <div className={`museum${init.dusk ? ' dusk' : ''}`} ref={ViewRef}>
       <div
         ref={StageRef}
         className={`stage${reduced ? ' reduced' : ''}`}

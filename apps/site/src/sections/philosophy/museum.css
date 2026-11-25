@@ -6,7 +6,10 @@
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
-  /* 허브 칸 색에서 장면이 번져 나온 뒤 어두운 바탕으로 */
+  background: #0b0806;
+}
+/* 허브 칸 색에서 장면이 번져 나온 뒤 어두운 바탕으로 : 허브에서 막 들어왔을 때만 */
+.museum.dusk {
   animation: museum-dusk 1.1s var(--ease) both;
 }
 .museum::-webkit-scrollbar {
@@ -48,23 +51,27 @@
   color: inherit;
 }
 
-/* 전환 */
+/* 전환 : 방 사이는 문 쪽으로 빠르게 밀고 들어가고 (0.45s), 새 방은 그 기세로 크게 시작해 제자리에 선다 (0.55s)
+   초상화로 확대할 때 (전시실) 만 화면을 채울 때까지 천천히 */
 .stage[data-anim='arrive'] {
   animation: stage-arrive 0.9s var(--ease) 0.25s both;
 }
 .stage[data-anim='leave-fwd'] {
-  animation: stage-leave-fwd 0.9s cubic-bezier(0.55, 0, 0.7, 0.2) both;
+  animation: stage-leave-fwd 0.45s cubic-bezier(0.5, 0, 0.8, 0.4) both;
+}
+.stage[data-kind='room'][data-anim='leave-fwd'] {
+  animation: stage-leave-portrait 0.9s cubic-bezier(0.55, 0, 0.7, 0.2) both;
 }
 .stage[data-anim='enter-fwd'] {
   transform-origin: 50% 50%;
-  animation: stage-enter-fwd 0.7s var(--ease) both;
+  animation: stage-enter-fwd 0.55s cubic-bezier(0.1, 0.7, 0.2, 1) both;
 }
 .stage[data-anim='leave-back'] {
   transform-origin: 50% 50%;
-  animation: stage-leave-back 0.55s var(--ease) both;
+  animation: stage-leave-back 0.35s cubic-bezier(0.5, 0, 0.8, 0.4) both;
 }
 .stage[data-anim='enter-back'] {
-  animation: stage-enter-back 0.9s var(--ease) both;
+  animation: stage-enter-back 0.55s cubic-bezier(0.1, 0.7, 0.2, 1) both;
 }
 @keyframes stage-arrive {
   from {
@@ -72,6 +79,15 @@
   }
 }
 @keyframes stage-leave-fwd {
+  55% {
+    opacity: 1;
+  }
+  to {
+    transform: scale(var(--zs));
+    opacity: 0;
+  }
+}
+@keyframes stage-leave-portrait {
   to {
     transform: scale(var(--zs));
     opacity: 0;
@@ -80,13 +96,19 @@
 }
 @keyframes stage-enter-fwd {
   from {
-    transform: scale(1.08);
+    transform: scale(1.15);
     opacity: 0;
+  }
+  45% {
+    opacity: 1;
   }
 }
 @keyframes stage-leave-back {
+  45% {
+    opacity: 1;
+  }
   to {
-    transform: scale(0.92);
+    transform: scale(0.9);
     opacity: 0;
   }
 }
@@ -94,6 +116,9 @@
   from {
     transform: scale(var(--zs));
     opacity: 0;
+  }
+  45% {
+    opacity: 1;
   }
 }
 .stage.reduced[data-anim] {
@@ -142,9 +167,13 @@
   inset: 4% 7% -22%;
   border-radius: 50% 50% 0 0 / 24% 24% 0 0;
   backdrop-filter: brightness(1) saturate(1);
-  transition: backdrop-filter 0.8s var(--ease);
+  /* 배율만 올리면 복도 안쪽 어두운 곳은 그대로라 빛이 고르지 않다 : 따뜻한 빛을 아치 안 전체에 얹는다 */
+  background-color: rgba(255, 204, 138, 0);
+  transition:
+    backdrop-filter 0.8s var(--ease),
+    background-color 0.8s var(--ease);
   --m1: linear-gradient(to bottom, #000 66%, rgba(0, 0, 0, 0.28) 78%, transparent 92%);
-  --m2: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+  --m2: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
   -webkit-mask-image: var(--m1), var(--m2);
   mask-image: var(--m1), var(--m2);
   -webkit-mask-composite: source-in;
@@ -152,19 +181,22 @@
 }
 .arch .spill {
   position: absolute;
-  inset: -30% -55% -40%;
+  inset: -40% -85% -50%;
   pointer-events: none;
   mix-blend-mode: screen;
   opacity: 0;
   transition: opacity 0.8s var(--ease);
+  /* 문 밖 벽 · 기둥 · 바닥으로 번지는 빛 */
   background:
+    radial-gradient(ellipse 36% 42% at 50% 46%, rgba(255, 200, 130, 0.3), rgba(255, 185, 110, 0.14) 55%, transparent 100%),
     radial-gradient(ellipse 30% 38% at 50% 46%, rgba(255, 206, 140, 0.5), rgba(255, 180, 100, 0.22) 55%, transparent 80%),
     radial-gradient(ellipse 46% 20% at 50% 75%, rgba(255, 205, 135, 0.5), rgba(255, 180, 100, 0.2) 50%, transparent 80%),
     radial-gradient(ellipse 70% 30% at 50% 86%, rgba(255, 190, 110, 0.2), transparent 74%);
 }
 .arch:hover .inner,
 .arch:focus-visible .inner {
-  backdrop-filter: brightness(1.7) saturate(1.1);
+  backdrop-filter: brightness(1.5) saturate(1.1);
+  background-color: rgba(255, 204, 138, 0.28);
 }
 .arch:hover .spill,
 .arch:focus-visible .spill {
@@ -337,6 +369,17 @@
 .room.spot {
   transition: --sa 0.45s var(--ease);
 }
+/* 빛이 같은 액자 안에서 옆 사람으로 옮겨 갈 때만 미끄러진다 */
+@property --sx {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+.room.spot.slide {
+  transition:
+    --sa 0.45s var(--ease),
+    --sx 0.4s var(--ease);
+}
 .room .lit {
   position: absolute;
   inset: 0;
@@ -383,7 +426,7 @@
     inset 0 1px 0 rgba(255, 220, 180, 0.25),
     inset 0 -2px 2px rgba(0, 0, 0, 0.5),
     0 6px 16px rgba(0, 0, 0, 0.6);
-  transition: filter 0.7s var(--ease);
+  /* 밝기는 스포트라이트 (--sa) 와 같은 값을 따라 간다 : 따로 전환하면 꺼지는 속도가 어긋난다 */
   filter: brightness(0.45);
 }
 .room-east .frame {
@@ -392,7 +435,7 @@
   --wood3: #4a2f1c;
 }
 .frame.on {
-  filter: brightness(1);
+  filter: brightness(calc(0.45 + 0.55 * var(--sa)));
 }
 .frame[aria-disabled='true'] {
   cursor: default;
@@ -417,6 +460,34 @@
   object-fit: cover;
   filter: sepia(0.15) saturate(0.85);
 }
+/* 한 액자를 나눠 쓰는 두 사람 : 스포트라이트가 마우스 쪽 사람만 비추고 (--px 가 부드럽게 옮겨 간다) 이름도 그 사람 아래로 따라간다
+   빛이 꺼지는 속도는 방의 스포트라이트 (--sa) 와 같다 */
+@property --px {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 35%;
+}
+.frame.pair {
+  transition: --px 0.4s var(--ease);
+}
+.frame .canvas {
+  position: relative;
+}
+.frame .dim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(ellipse 34% 95% at var(--px) 45%, transparent 50%, rgba(0, 0, 0, 0.74) 100%);
+}
+.frame.pair.on .dim {
+  opacity: var(--sa);
+}
+.frame.pair .label {
+  left: var(--px);
+  right: auto;
+  transform: translateX(-50%);
+}
 .frame.empty .canvas {
   background: #d9d0bf;
 }
@@ -428,20 +499,20 @@
   text-align: center;
   white-space: nowrap;
   color: rgba(255, 244, 226, 0.95);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 0, 0, 0.8);
   font-family: Cinzel, serif;
   font-weight: 600;
-  font-size: min(12px, 11cqw);
+  /* 이름은 액자 폭을 따르되 너무 작아지지도 (11px) 커지지도 (16px) 않게 */
+  font-size: clamp(11px, 15cqw, 16px);
   opacity: 0;
-  transition: opacity 0.4s var(--ease);
 }
 .room-east .frame .label {
   font-family: 'Noto Serif KR', serif;
   font-weight: 700;
-  font-size: min(15px, 18cqw);
+  font-size: clamp(13px, 20cqw, 18px);
 }
 .frame.on .label {
-  opacity: 1;
+  opacity: var(--sa);
 }
 
 /* 호버가 없는 기기 : 문 이름 · 액자 이름을 늘 보이고, 뒤로가기 빛을 옅게 켜 둔다 */
@@ -458,7 +529,11 @@
   .frame {
     filter: brightness(0.75);
   }
-  .frame .label {
+  .frame.on {
+    filter: brightness(calc(0.75 + 0.25 * var(--sa)));
+  }
+  .frame .label,
+  .frame.on .label {
     opacity: 1;
   }
   .stage[data-settled='true'] .backglow {

@@ -8,6 +8,8 @@ const LampY = 3
 export interface Spot {
   beam: string
   pool: string
+  // 원뿔 꼭짓점 · 웅덩이 중심의 가로 위치 (px) : CSS 변수 --sx 로 넘겨 옮길 때 부드럽게 이어지게 한다
+  cx: number
 }
 
 // stageW · stageH : 사진 상자의 실제 px 크기 (원뿔 각도를 px 로 계산해야 화면 비율과 무관하게 같은 모양이 된다)
@@ -21,7 +23,8 @@ export const spotFor = (f: Rect, stageW: number, stageH: number): Spot => {
   const a = (Math.atan2((f.w / 100) * stageW * 0.75, mid - top) * 180) / Math.PI
   const soft = a * 0.45
   return {
-    beam: `conic-gradient(from ${180 - a}deg at ${cx}px ${top}px, transparent 0deg, #000 ${soft}deg, #000 ${a * 2 - soft}deg, transparent ${a * 2}deg)`,
-    pool: `radial-gradient(ellipse ${f.w * 1.6}% ${(End - LampY) / 2 + 2}% at ${X}% ${(LampY + End) / 2}%, #000 0%, #000 62%, rgba(0,0,0,.45) 82%, transparent 100%)`,
+    cx,
+    beam: `conic-gradient(from ${180 - a}deg at var(--sx) ${top}px, transparent 0deg, #000 ${soft}deg, #000 ${a * 2 - soft}deg, transparent ${a * 2}deg)`,
+    pool: `radial-gradient(ellipse ${f.w * 1.6}% ${(End - LampY) / 2 + 2}% at var(--sx) ${(LampY + End) / 2}%, #000 0%, #000 62%, rgba(0,0,0,.45) 82%, transparent 100%)`,
   }
 }

@@ -2,10 +2,10 @@
 import { RoomsOf } from './types'
 import type { Rect, RoomId, Scene, Wing } from './types'
 
-// 갈림길의 아치 : 왼쪽이 동양관, 오른쪽이 서양관
+// 갈림길의 아치 : 왼쪽이 서양관, 오른쪽이 동양관
 export const CrossroadsArches: Record<Wing, Rect> = {
-  east: { x: 10, y: 14, w: 22, h: 60 },
-  west: { x: 68, y: 14, w: 24, h: 60 },
+  west: { x: 10, y: 14, w: 22, h: 60 },
+  east: { x: 68, y: 14, w: 24, h: 60 },
 }
 
 // 홀의 문짝 영역 (RoomsOf 순서) : 서양관은 위쪽이 반원 아치, 동양관은 창살 부분

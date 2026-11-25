@@ -5,8 +5,11 @@ import type { Hung, Philosopher, Rect } from './types'
 
 // 액자 폭 (벽 폭 대비)
 const WidthOf = { 3: 0.16, 2: 0.11, 1: 0.07 } as const
-// 초상화 4 : 5
+// 초상화 4 : 5, 둘이 함께 걸리는 액자는 가로로 넓은 6 : 5 에 가깝다 (세로 / 가로)
 const Portrait = 1.25
+const PairPortrait = 0.85
+// 둘이 함께 걸리는 액자는 한 사람 액자의 이 배율만큼 넓다
+const PairWidth = 1.65
 const Aspect = 16 / 9
 // 액자 사이 여백 : 가로는 액자 폭 대비, 세로는 이름이 들어갈 틈 (벽 높이 대비)
 const GapX = 0.22
@@ -19,6 +22,7 @@ const Tries = 400
 
 interface Item {
   id: string | null
+  partner?: string
   weight: 1 | 2 | 3
 }
 
@@ -63,11 +67,11 @@ const tryHang = (Items: Item[], wall: Rect, scale: number, seed: number): Hung[]
   const dist = (a: Rect, b: Rect) => Math.hypot(a.x + a.w / 2 - (b.x + b.w / 2), (a.y + a.h / 2 - (b.y + b.h / 2)) / Aspect)
   for (const it of Items) {
     const k = it.weight === top ? 1 : 1 + (rand() * 2 - 1) * Jitter
-    const w = wall.w * WidthOf[it.weight] * scale * k
-    const h = w * Portrait * Aspect
+    const w = wall.w * WidthOf[it.weight] * (it.partner ? PairWidth : 1) * scale * k
+    const h = w * (it.partner ? PairPortrait : Portrait) * Aspect
     // 액자가 하나뿐이면 정가운데
     if (Items.length === 1) {
-      Out.push({ id: it.id, weight: it.weight, rect: { x: cx - w / 2, y: cy - h / 2, w, h } })
+      Out.push({ id: it.id, partner: it.partner, weight: it.weight, rect: { x: cx - w / 2, y: cy - h / 2, w, h } })
       continue
     }
     const yRange = it.weight === top ? wall.h * MidBand : (wall.h - h) / 2
@@ -89,13 +93,20 @@ const tryHang = (Items: Item[], wall: Rect, scale: number, seed: number): Hung[]
       }
     }
     if (!best) return null
-    Out.push({ id: it.id, weight: it.weight, rect: best })
+    Out.push({ id: it.id, partner: it.partner, weight: it.weight, rect: best })
   }
   return Out
 }
 
 export const hangFrames = (list: Philosopher[], wall: Rect): Hung[] => {
-  const Items: Item[] = list.length === 0 ? EmptyRoom : list.map((p) => ({ id: p.id, weight: p.weight }))
+  // pair 로 묶인 철학자는 따로 걸지 않고 짝의 액자 오른쪽 절반을 쓴다
+  const Partners = new Set(list.map((p) => p.pair).filter((id): id is string => !!id && list.some((q) => q.id === id)))
+  const Items: Item[] =
+    list.length === 0
+      ? EmptyRoom
+      : list
+          .filter((p) => !Partners.has(p.id))
+          .map((p) => ({ id: p.id, weight: p.weight, partner: p.pair && Partners.has(p.pair) ? p.pair : undefined }))
   // 큰 것부터 건다 (같은 비중은 목록 순서)
   const Sorted = [...Items].sort((a, b) => b.weight - a.weight)
   const seed = seedOf(Sorted)

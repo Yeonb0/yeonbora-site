@@ -8,6 +8,12 @@ const Me = findSection('philosophy')
 ---
 
 <Base title={`${Me.label} · 연보라`}>
+  <Fragment slot="head">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- 명판 대신 쓰는 이름 글자 : 서양관 영문 Cinzel, 동양관 한자 Noto Serif KR -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Noto+Serif+KR:wght@700&display=swap" />
+  </Fragment>
   <main class="section-philosophy" transition:name={`section-${Me.id}`}>
     <slot />
   </main>
@@ -16,7 +22,6 @@ const Me = findSection('philosophy')
 <style>
   main {
     min-height: 100dvh;
-    padding: 88px 24px 24px;
     background: var(--bg);
     color: var(--fg);
     font-family: var(--font-base);

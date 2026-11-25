@@ -1,7 +1,34 @@
 ---
+import { getImage } from 'astro:assets'
 import Layout from '@/sections/philosophy/Layout.astro'
+// 확장자를 붙인다 : 윈도우는 대소문자를 구분하지 않는다
+import Museum from '@/sections/philosophy/Museum.tsx'
+import { Philosophers } from '@/sections/philosophy/data'
+
+// 장면 사진 : assets/<번호>-<이름>.png → imageKey (crossroads, west, east, ancient …) 로 묶어 webp 로 줄인다
+const Files = import.meta.glob<{ default: ImageMetadata }>('/src/sections/philosophy/assets/*.png', { eager: true })
+const KeyOf: Record<string, string> = {
+  '01-crossroads': 'crossroads',
+  '02-west-hall': 'west',
+  '03-east-hall': 'east',
+  '10-west-ancient': 'ancient',
+  '11-west-medieval': 'medieval',
+  '12-west-modern': 'modern',
+  '13-west-contemporary': 'contemporary',
+  '20-east-confucian': 'confucian',
+  '21-east-daoist': 'daoist',
+  '22-east-buddhist': 'buddhist',
+  '23-east-hundred': 'hundred',
+}
+const Images: Record<string, string> = {}
+for (const [path, mod] of Object.entries(Files)) {
+  const name = path.split('/').pop()!.replace('.png', '')
+  const key = KeyOf[name]
+  if (!key) continue
+  Images[key] = (await getImage({ src: mod.default, format: 'webp', width: 1920, quality: 82 })).src
+}
 ---
 
 <Layout>
-  <h1>준비 중</h1>
+  <Museum client:only="react" philosophers={Philosophers} images={Images} />
 </Layout>

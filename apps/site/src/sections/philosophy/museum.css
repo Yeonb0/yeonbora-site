@@ -125,7 +125,9 @@
   opacity: 0;
   pointer-events: none;
 }
-.stage:not([data-settled='true']) .backzone {
+.stage:not([data-settled='true']) .backzone,
+.stage:not([data-settled='true']) .door,
+.stage:not([data-settled='true']) .arch {
   pointer-events: none;
 }
 

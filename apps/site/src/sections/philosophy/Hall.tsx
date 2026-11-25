@@ -14,7 +14,8 @@ interface HallProps {
   image: string
   // 전시실에서 돌아왔으면 그 문이 열린 채로 시작해 닫힌다
   openFrom: Rect | null
-  onGo: (to: Scene, origin: Rect) => void
+  // 받아들였으면 true
+  onGo: (to: Scene, origin: Rect) => boolean
 }
 
 export function Hall({ wing, image, openFrom, onGo }: HallProps) {
@@ -22,11 +23,14 @@ export function Hall({ wing, image, openFrom, onGo }: HallProps) {
   const startOpen = openFrom ? Doors.findIndex((d) => d.x === openFrom.x && d.y === openFrom.y) : -1
   const [open, setOpen] = useState<number>(startOpen)
   const Leaving = useRef(false)
+  const Timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    if (startOpen < 0) return
-    const T = setTimeout(() => setOpen((o) => (o === startOpen ? -1 : o)), 900)
-    return () => clearTimeout(T)
+    const T = startOpen >= 0 ? setTimeout(() => setOpen((o) => (o === startOpen ? -1 : o)), 900) : null
+    return () => {
+      if (T) clearTimeout(T)
+      if (Timer.current) clearTimeout(Timer.current)
+    }
   }, [])
 
   const enter = (i: number) => {
@@ -34,7 +38,17 @@ export function Hall({ wing, image, openFrom, onGo }: HallProps) {
     Leaving.current = true
     const wasOpen = open === i
     setOpen(i)
-    setTimeout(() => onGo({ kind: 'room', wing, room: RoomsOf[wing][i] }, Doors[i]), wasOpen ? 120 : OpenMs)
+    Timer.current = setTimeout(
+      () => {
+        Timer.current = null
+        // 거절되면 (그사이 뒤로가기 등) 문을 닫고 다시 누를 수 있게 한다
+        if (!onGo({ kind: 'room', wing, room: RoomsOf[wing][i] }, Doors[i])) {
+          Leaving.current = false
+          setOpen(-1)
+        }
+      },
+      wasOpen ? 120 : OpenMs,
+    )
   }
 
   return (

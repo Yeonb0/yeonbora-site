@@ -5,7 +5,7 @@ import type { Rect, Scene, Wing } from './types'
 
 const pos = (r: Rect) => ({ left: `${r.x}%`, top: `${r.y}%`, width: `${r.w}%`, height: `${r.h}%` })
 
-export function Crossroads({ onGo }: { onGo: (to: Scene, origin: Rect) => void }) {
+export function Crossroads({ onGo }: { onGo: (to: Scene, origin: Rect) => boolean }) {
   const Wings: [Wing, string][] = [
     ['east', '동양관'],
     ['west', '서양관'],

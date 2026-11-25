@@ -67,24 +67,31 @@ export default function Museum({ philosophers, images }: MuseumProps) {
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
   const StageRef = useRef<HTMLDivElement>(null)
   const PendingHref = useRef<string | null>(null)
+  // 타이머 · 이벤트에서 늘 최신 상태를 보도록 (오래된 클로저가 지난 상태로 기록을 쌓지 않게)
+  const PhaseRef = useRef(state.phase)
+  const AnimRef = useRef<Anim>(anim)
+  const SceneRef = useRef(state.scene)
+  PhaseRef.current = state.phase
+  AnimRef.current = anim
+  SceneRef.current = state.scene
   const ViewRef = useRef<HTMLDivElement>(null)
 
   const src = (s: Scene) => images[imageKey(s)]
 
   // 앞으로 가기 : 누른 자리 (origin) 로 확대
-  const go = useCallback(
-    (to: Scene, origin: Rect | null) => {
-      if (state.phase !== 'idle' || same(state.scene, to)) return
-      preload(src(to))
-      history.pushState({ ...history.state, museumDepth: (history.state?.museumDepth ?? 0) + 1 }, '', location.pathname + sceneToSearch(to))
-      dispatch({ type: 'go', to, origin })
-    },
-    [state.phase, state.scene],
-  )
+  // 받아들였으면 true : 전환 중이거나 초상화로 확대 중이면 거절한다 (누른 쪽이 상태를 되돌릴 수 있게)
+  const go = useCallback((to: Scene, origin: Rect | null): boolean => {
+    if (PhaseRef.current !== 'idle' || AnimRef.current !== '' || same(SceneRef.current, to)) return false
+    preload(src(to))
+    PendingHref.current = null
+    history.pushState({ ...history.state, museumDepth: (history.state?.museumDepth ?? 0) + 1 }, '', location.pathname + sceneToSearch(to))
+    dispatch({ type: 'go', to, origin })
+    return true
+  }, [])
 
   // 한 단계 뒤로 : 갈림길에서는 허브로 나간다
   const back = useCallback(() => {
-    if (state.phase !== 'idle') return
+    if (state.phase !== 'idle' || AnimRef.current !== '') return
     const Parent = parentOf(state.scene)
     if (!Parent) {
       navigate('/')
@@ -97,7 +104,7 @@ export default function Museum({ philosophers, images }: MuseumProps) {
       history.replaceState({ ...history.state, museumDepth: 0 }, '', location.pathname + sceneToSearch(Parent))
       dispatch({ type: 'go', to: Parent, origin: null })
     }
-  }, [state.phase, state.scene])
+  }, [state.phase, state.scene, anim])
 
   // 브라우저 뒤로 · 앞으로 : 같은 방 안이면 ClientRouter 보다 먼저 받아 장면만 바꾼다
   useEffect(() => {
@@ -105,6 +112,12 @@ export default function Museum({ philosophers, images }: MuseumProps) {
       // 이 섬이 화면에 있고, 같은 방 안의 기록일 때만 (다른 페이지로 오가는 기록은 ClientRouter 몫)
       if (!ViewRef.current?.isConnected || !location.pathname.startsWith('/philosophy') || e.state?.museumDepth === undefined) return
       e.stopImmediatePropagation()
+      // 초상화로 확대하던 중이면 글로 가지 않고 확대를 거둔다
+      if (PendingHref.current) {
+        PendingHref.current = null
+        setFocus(null)
+        setAnim('')
+      }
       const { scene } = parseScene(location.search)
       preload(src(scene))
       dispatch({ type: 'pop', to: scene })

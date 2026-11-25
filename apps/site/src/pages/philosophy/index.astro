@@ -27,8 +27,17 @@ for (const [path, mod] of Object.entries(Files)) {
   if (!key) continue
   Images[key] = (await getImage({ src: mod.default, format: 'webp', width: 1920, quality: 82 })).src
 }
+
+// 초상화 : portraits/<철학자 id>.jpg 가 있으면 걸고, 없으면 자리표시 그림
+const PortraitFiles = import.meta.glob<{ default: ImageMetadata }>('/src/sections/philosophy/portraits/*.jpg', { eager: true })
+const PortraitOf: Record<string, string> = {}
+for (const [path, mod] of Object.entries(PortraitFiles)) {
+  const id = path.split('/').pop()!.replace('.jpg', '')
+  PortraitOf[id] = (await getImage({ src: mod.default, format: 'webp', width: 480, quality: 82 })).src
+}
+const People = Philosophers.map((p) => (PortraitOf[p.id] ? { ...p, portrait: PortraitOf[p.id] } : p))
 ---
 
 <Layout>
-  <Museum client:only="react" philosophers={Philosophers} images={Images} />
+  <Museum client:only="react" philosophers={People} images={Images} />
 </Layout>

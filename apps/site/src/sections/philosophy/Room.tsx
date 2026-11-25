@@ -71,7 +71,7 @@ export function Room({ wing, room, image, philosophers, stageRef, settled, onPor
     '--sx': `${SpotX}px`, '--beam': spot?.beam ?? 'none', '--pool': spot?.pool ?? 'none', '--sa': on && settled ? 1 : 0 } as CSSProperties
 
   return (
-    <div className={`room room-${wing}${on ? ' spot' : ''}${slide ? ' slide' : ''}`} style={Vars}>
+    <div className={`room room-${wing}${on ? ' spot' : ''}${slide ? ' slide' : ''}`} data-lit={on && settled} style={Vars}>
       <img className="lit" src={image} alt="" draggable={false} />
       <span className="beam" />
       {Frames.map((h, i) => {

@@ -22,7 +22,7 @@ export interface MuseumProps {
 }
 
 // 애니메이션 이름 : 앞으로 (fwd) 는 누른 자리로 확대, 뒤로 (back) 는 들어온 자리에서 줄어듦
-type Anim = '' | 'arrive' | 'leave-fwd' | 'enter-fwd' | 'leave-back' | 'enter-back'
+type Anim = '' | 'arrive' | 'enter-hub' | 'leave-fwd' | 'enter-fwd' | 'leave-back' | 'enter-back'
 
 const same = (a: Scene | null, b: Scene | null) => !!a && !!b && sceneToSearch(a) === sceneToSearch(b)
 
@@ -55,15 +55,13 @@ const returnedFrom = (scene: Scene, philosophers: Philosopher[]): Rect | null =>
 export default function Museum({ philosophers, images }: MuseumProps) {
   const [init] = useState(() => {
     const { scene, canonical } = parseScene(location.search)
-    // 허브에서 막 들어온 것인지 : 기록에 이 섬의 깊이가 이미 있으면 (글에서 돌아옴 · 뒤로가기) 보라색 번짐을 건너뛴다
-    const fromHub = history.state?.museumDepth === undefined
     if (canonical !== location.search) history.replaceState({ ...history.state, museumDepth: 0 }, '', location.pathname + canonical)
     else history.replaceState({ ...history.state, museumDepth: history.state?.museumDepth ?? 0 }, '')
     const back = returnedFrom(scene, philosophers)
-    return { scene, back, dusk: fromHub && !back }
+    return { scene, back }
   })
   const [state, dispatch] = useReducer(reduce, init.scene, (s): MachineState => (init.back ? { ...idle(s), phase: 'entering' } : idle(s)))
-  const [anim, setAnim] = useState<Anim>(init.back ? 'enter-back' : 'arrive')
+  const [anim, setAnim] = useState<Anim>(init.back ? 'enter-back' : document.documentElement.hasAttribute('data-enter-hub') ? 'enter-hub' : 'arrive')
   // 확대 · 축소 원점 (사진 기준 %)
   const [focus, setFocus] = useState<Rect | null>(init.back)
   const reduced = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
@@ -187,7 +185,7 @@ export default function Museum({ philosophers, images }: MuseumProps) {
         setAnim(isBack ? 'enter-back' : 'enter-fwd')
         dispatch({ type: 'left' })
       })
-    } else if (anim === 'enter-fwd' || anim === 'enter-back' || anim === 'arrive') {
+    } else if (anim === 'enter-fwd' || anim === 'enter-back' || anim === 'arrive' || anim === 'enter-hub') {
       setAnim('')
       if (state.phase === 'entering') dispatch({ type: 'entered' })
     }
@@ -207,7 +205,7 @@ export default function Museum({ philosophers, images }: MuseumProps) {
   const settled = state.phase === 'idle' && anim === ''
 
   return (
-    <div className={`museum${init.dusk ? ' dusk' : ''}`} ref={ViewRef}>
+    <div className="museum" ref={ViewRef}>
       <div
         ref={StageRef}
         className={`stage${reduced ? ' reduced' : ''}`}

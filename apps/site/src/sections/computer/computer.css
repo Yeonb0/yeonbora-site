@@ -102,23 +102,24 @@
   container-type: size;
   animation: pc-on 0.9s var(--pc-ease) var(--t-screen) both;
 }
-/* 받침 : 세로 기둥 + 모니터 폭의 40% 가로선 */
+/* 받침 : 세로 기둥 + 모니터 폭의 40% 가로선
+   모니터가 기울면 2px 선은 가장자리가 계단져 보인다 : 4px 로 두되 가장자리를 투명하게 풀어 (그라데이션) 직접 안티앨리어싱한다 */
 .stand {
-  width: 2px;
+  width: 4px;
   height: 20px;
-  border-radius: 1px;
-  background: var(--bezel);
+  margin-top: -1px;
+  background: linear-gradient(to right, transparent 0, var(--bezel) 1px, var(--bezel) 3px, transparent 4px);
   opacity: 0;
   animation: pc-fade 0.4s ease 0.9s forwards;
+  backface-visibility: hidden;
 }
 .stand::after {
   content: '';
   display: block;
   width: calc(var(--w) * 0.4);
-  height: 2px;
-  border-radius: 1px;
-  margin: 18px 0 0 calc(var(--w) * -0.2 + 1px);
-  background: var(--bezel);
+  height: 4px;
+  margin: 17px 0 0 calc(var(--w) * -0.2 + 2px);
+  background: linear-gradient(to bottom, transparent 0, var(--bezel) 1px, var(--bezel) 3px, transparent 4px);
 }
 @keyframes pc-fade { to { opacity: 1; } }
 
@@ -309,12 +310,22 @@
   white-space: nowrap;
 }
 .seg-digit {
+  position: relative;
   display: block;
   flex: 0 0 var(--clock-digit-w);
   width: var(--clock-digit-w);
   height: var(--clock-digit-h);
+}
+.seg-layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
   overflow: visible;
 }
+/* 옆면 겹은 자기 층에서 transform 만 바뀐다 : 다시 그리지 않고 합성기에서 옮긴다 */
+.seg-side { will-change: transform; }
 .clock-colon {
   display: block;
   flex: 0 0 var(--clock-colon-w);
@@ -395,15 +406,15 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  /* 왼쪽부터 채우되 칸이 남는 폭을 나눠 가져서 오른쪽에 큰 빈 공간이 남지 않는다 */
   display: grid;
-  grid-template-columns: repeat(auto-fill, calc(var(--icon-cell-w) * 1.2));
-  gap: var(--icon-gap-y) var(--icon-gap-x);
-  justify-content: start;
-  font-size: calc(var(--icon-label) * 1.15);
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--icon-cell-w) * 1.4), 1fr));
+  gap: var(--icon-gap-y) 0;
+  font-size: calc(var(--icon-label) * 1.25);
 }
-.folder li { height: calc(var(--icon-cell-h) * 1.2); }
-/* 폴더 안 아이콘은 바탕화면보다 살짝 크게 */
-.folder .icon img { width: calc(var(--icon-size) * 1.2); height: calc(var(--icon-size) * 1.2); }
+/* 폴더 안 아이콘은 바탕화면보다 크게 (1.4 배) */
+.folder li { height: calc(var(--icon-cell-h) * 1.4); }
+.folder .icon img { width: calc(var(--icon-size) * 1.4); height: calc(var(--icon-size) * 1.4); }
 .list ul { list-style: none; margin: 0; padding: 0; }
 .list a { color: var(--icon); text-decoration: none; }
 .list li a {

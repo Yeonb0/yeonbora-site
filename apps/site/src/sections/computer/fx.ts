@@ -106,13 +106,19 @@ export function useClockSaver(Screen: RefObject<HTMLElement | null>, Mover: RefO
     }
     const Zone = () => {
       const m = Max()
-      return { top: Math.min(sc.clientHeight * 0.6, m.y), m }
+      return { top: Math.min(sh * 0.6, m.y), m }
     }
     const Home = () => {
       const z = Zone()
       return { x: u * z.m.x, y: z.top + v * (z.m.y - z.top) }
     }
-    const Max = () => ({ x: Math.max(0, sc.clientWidth - mv.offsetWidth * s), y: Math.max(0, sc.clientHeight - mv.offsetHeight * s) })
+    // 화면 · 시계 크기는 layout (ResizeObserver) 에서만 잰다
+    // 떠다니는 루프가 매 프레임 transform 을 쓴 뒤 offsetWidth 를 읽으면 스타일 · 레이아웃 계산이 강제된다
+    let sw = sc.clientWidth
+    let sh = sc.clientHeight
+    let mw = mv.offsetWidth
+    let mh = mv.offsetHeight
+    const Max = () => ({ x: Math.max(0, sw - mw * s), y: Math.max(0, sh - mh * s) })
     const place = (nx: number, ny: number) => {
       x = nx
       y = ny
@@ -120,15 +126,17 @@ export function useClockSaver(Screen: RefObject<HTMLElement | null>, Mover: RefO
     }
     // 배율 범위 : 0.4 배 ~ 화면 폭 · 아래 영역 높이에 맞는 최대
     const ClampK = (kk: number) => {
-      const mx = Math.min(sc.clientWidth / (mv.offsetWidth * base), (sc.clientHeight * 0.4) / (mv.offsetHeight * base))
+      const mx = Math.min(sw / (mw * base), (sh * 0.4) / (mh * base))
       return Math.min(Math.max(kk, 0.4), Math.max(0.4, mx))
     }
     // 화면 폭에서 계산한 scale : 모바일은 폭의 62%, 그 밖은 28%. 아래 40% 영역의 80% 를 넘지 않게 한다
     const layout = () => {
-      const sw = sc.clientWidth
-      const sh = sc.clientHeight
+      sw = sc.clientWidth
+      sh = sc.clientHeight
+      mw = mv.offsetWidth
+      mh = mv.offsetHeight
       if (!sw || !sh) return
-      base = Math.min((sw * (sw < 500 ? 0.7 : 0.5)) / mv.offsetWidth, (sh * 0.4 * 0.92) / mv.offsetHeight)
+      base = Math.min((sw * (sw < 500 ? 0.7 : 0.5)) / mw, (sh * 0.4 * 0.92) / mh)
       k = ClampK(k)
       s = base * k
       if (phase === 'on' && !Reduced()) {
@@ -225,8 +233,8 @@ export function useClockSaver(Screen: RefObject<HTMLElement | null>, Mover: RefO
       if (!H || phase !== 'off' || e.button !== 0) return
       const right = H.dataset.corner?.includes('r') ?? false
       const bottom = H.dataset.corner?.includes('b') ?? false
-      const w = mv.offsetWidth * s
-      const h = mv.offsetHeight * s
+      const w = mw * s
+      const h = mh * s
       Size = { right, bottom, ax: right ? x : x + w, ay: bottom ? y : y + h }
       H.setPointerCapture(e.pointerId)
       e.stopPropagation()
@@ -236,11 +244,11 @@ export function useClockSaver(Screen: RefObject<HTMLElement | null>, Mover: RefO
       const Box = sc.getBoundingClientRect()
       const px = e.clientX - Box.left
       const py = e.clientY - Box.top
-      const wanted = Math.max(Math.abs(px - Size.ax) / mv.offsetWidth, Math.abs(py - Size.ay) / mv.offsetHeight)
+      const wanted = Math.max(Math.abs(px - Size.ax) / mw, Math.abs(py - Size.ay) / mh)
       k = ClampK(wanted / base)
       s = base * k
-      const w = mv.offsetWidth * s
-      const h = mv.offsetHeight * s
+      const w = mw * s
+      const h = mh * s
       const m = Max()
       const z = Zone()
       place(Math.min(Math.max(Size.right ? Size.ax : Size.ax - w, 0), m.x), Math.min(Math.max(Size.bottom ? Size.ay : Size.ay - h, z.top), m.y))

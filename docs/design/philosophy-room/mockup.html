@@ -191,8 +191,7 @@
       const bottom = (f.y + f.h) / 100 * R.height, half = (f.w / 100 * R.width) * .64
       const a = Math.atan2(half, bottom - top) * 180 / Math.PI, soft = .6
       S.style.setProperty('--cone', `conic-gradient(from ${180 - a}deg at ${cx}px ${top}px, transparent 0deg, #000 ${soft}deg, #000 ${a * 2 - soft}deg, transparent ${a * 2}deg)`)
-      const end = f.y + f.h + 5
-      S.style.setProperty('--fade', `linear-gradient(to bottom, rgba(0,0,0,.75) 0%, #000 ${f.y}%, #000 ${end - 3}%, transparent ${end}%)`)
+      S.style.setProperty('--fade', `linear-gradient(to bottom, rgba(0,0,0,.75) 0%, #000 ${f.y}%, #000 70%, rgba(0,0,0,.5) 100%)`)
       S.style.setProperty('--pool', `radial-gradient(ellipse ${f.w * 1.7}% ${f.h * 1.25}% at ${f.x + f.w / 2}% ${f.y + f.h * .45}%, #000 45%, rgba(0,0,0,.6) 70%, transparent 100%)`)
     }
     hang(People[room], Walls[room]).forEach((f) => {

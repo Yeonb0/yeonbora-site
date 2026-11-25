@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>철학 방 목업</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Noto+Serif+KR:wght@700&display=swap" rel="stylesheet" />
+<style>
+  :root { --ease: cubic-bezier(0.22, 1, 0.36, 1); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #1a1a1a; color: #e0e0e0; display: grid; gap: 48px; padding: 48px 24px; justify-items: center; }
+  .screen { position: relative; width: min(1280px, 100%); aspect-ratio: 16 / 9; overflow: hidden; background: #000; }
+  .screen > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .abs { position: absolute; }
+
+  /* 공용 버튼 : 홈 + 뒤로가기 */
+  .btn { position: absolute; left: 16px; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #e0e0e0; background: rgba(255,255,255,.08); backdrop-filter: blur(8px); font-size: 20px; z-index: 5; }
+  .btn.home { top: 16px; } .btn.back { top: 68px; }
+
+  /* 갈림길 아치 */
+  .arch { cursor: pointer; border-radius: 48% 48% 0 0 / 26% 26% 0 0; transition: background .6s var(--ease); }
+  .arch:hover { background: radial-gradient(ellipse at 50% 70%, rgba(255,214,150,.16), transparent 70%); }
+
+  /* 문 */
+  .door { cursor: pointer; perspective: 1200px; overflow: hidden; }
+  .door .behind { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(5px) brightness(.85); transform: scale(1.1); }
+  .door .glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 95%, rgba(255,207,138,.55), rgba(255,180,90,.15) 45%, transparent 70%); opacity: 0; transition: opacity .6s var(--ease); }
+  .door .leaf { position: absolute; top: 0; bottom: 0; width: 50%; background-repeat: no-repeat; transition: transform .6s var(--ease); }
+  .door .leaf.l { left: 0; } .door .leaf.r { right: 0; }
+  .west .door { border-radius: 50% 50% 0 0 / 22% 22% 0 0; }
+  .west .door .leaf.l { transform-origin: left center; }
+  .west .door .leaf.r { transform-origin: right center; }
+  .west .door:hover .leaf.l { transform: rotateY(72deg); }
+  .west .door:hover .leaf.r { transform: rotateY(-72deg); }
+  .east .door:hover .leaf.l { transform: translateX(-100%); }
+  .east .door:hover .leaf.r { transform: translateX(100%); }
+  .door:hover .glow { opacity: 1; }
+  .floorglow { pointer-events: none; background: radial-gradient(ellipse at 50% 0%, rgba(255,200,120,.35), transparent 70%); opacity: 0; transition: opacity .6s var(--ease); }
+
+  /* 명판 */
+  .plaque { pointer-events: none; overflow: hidden; display: grid; place-items: center; color: #fff; border-radius: 2px;
+    background: url(PLATE) center / cover; text-shadow: 0 1px 2px rgba(0,0,0,.75), 0 0 1px rgba(0,0,0,.6);
+    filter: brightness(.78); transition: filter .5s var(--ease); }
+  .plaque::after { content: ""; position: absolute; top: -40%; bottom: -40%; width: 40%; left: -60%; background: linear-gradient(105deg, transparent, rgba(255,255,255,.5), transparent); transform: skewX(-12deg); }
+  .plaque.lit { filter: brightness(1); } .plaque.lit::after { animation: sweep .9s var(--ease) forwards; }
+  .west .plaque { font-family: Cinzel, serif; font-weight: 600; letter-spacing: .08em; font-size: clamp(6px, .9vw, 12px); }
+  .east .plaque { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: clamp(12px, 2.2vw, 28px); }
+  @keyframes sweep { to { left: 130%; } }
+
+  /* 전시실 : 불 꺼진 방 + 스포트라이트 */
+  .room .dark { filter: brightness(.22); }
+  .room .lit { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    -webkit-mask-image: radial-gradient(circle at var(--sx) var(--sy), #000 var(--sr), transparent calc(var(--sr) + 14%));
+    mask-image: radial-gradient(circle at var(--sx) var(--sy), #000 var(--sr), transparent calc(var(--sr) + 14%));
+    transition: --sr .9s var(--ease); }
+  @property --sr { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+  .frame { cursor: pointer; padding: .45%; border-radius: 1px; opacity: .3; transition: opacity .7s var(--ease); }
+  .frame.on { opacity: 1; }
+  .west .frame { background: linear-gradient(135deg, #8a6a2a, #d8b15e 35%, #7a5a20 65%, #c9a14f); box-shadow: 0 6px 16px rgba(0,0,0,.6); }
+  .east .frame { background: #2a1a10; box-shadow: 0 6px 16px rgba(0,0,0,.6); }
+  .frame .canvas { width: 100%; height: 100%; background: radial-gradient(ellipse at 50% 38%, #b48a5c 0 16%, transparent 17%), radial-gradient(ellipse at 50% 92%, #5a3a22 0 38%, transparent 39%), linear-gradient(#3a2a1c, #1f150d); }
+  .frame.empty .canvas { background: #d9d0bf; }
+  .label { position: absolute; left: 50%; top: calc(100% + 6px); transform: translateX(-50%); padding: 2px 10px; white-space: nowrap; color: #fff; background: url(PLATE) center / cover; text-shadow: 0 1px 2px rgba(0,0,0,.75); font-family: Cinzel, serif; font-weight: 600; letter-spacing: .1em; font-size: clamp(7px, .9vw, 12px); opacity: 0; transition: opacity .4s var(--ease); }
+  .frame.on .label { opacity: 1; }
+
+  /* 모바일 */
+  .phone { width: 390px; height: 844px; border-radius: 36px; border: 10px solid #2a2a2a; overflow-x: auto; overflow-y: hidden; position: relative; background: #000; }
+  .phone .pan { position: relative; aspect-ratio: 16 / 9; height: 100%; }
+  .phone .btn { position: sticky; float: left; margin: 16px 0 0 16px; }
+  .phone .pan > img { width: 100%; height: 100%; object-fit: cover; }
+  .phone .plaque { filter: brightness(1); }
+</style>
+</head>
+<body>
+
+<!-- 1. 갈림길 -->
+<section class="screen">
+  <img class="bg" src="IMG_01-crossroads" alt="" />
+  <a class="btn home" aria-label="홈으로">⌂</a>
+  <div class="abs arch" style="left:10%;top:14%;width:22%;height:60%"></div>
+  <div class="abs arch" style="left:68%;top:14%;width:24%;height:60%"></div>
+</section>
+
+<!-- 2. 서양관 홀 / 3. 동양관 홀 : 문은 스크립트로 채운다 -->
+<section class="screen west" data-hall="west"><img class="bg" src="IMG_02-west-hall" alt="" /><a class="btn home">⌂</a><a class="btn back">←</a></section>
+<section class="screen east" data-hall="east"><img class="bg" src="IMG_03-east-hall" alt="" /><a class="btn home">⌂</a><a class="btn back">←</a></section>
+
+<!-- 4. 고대 전시실 / 5. 중세 전시실 (빈 방) -->
+<section class="screen room west" data-room="ancient"><img class="bg dark" src="IMG_10-west-ancient" alt="" /><img class="lit" src="IMG_10-west-ancient" alt="" /><a class="btn home">⌂</a><a class="btn back">←</a></section>
+<section class="screen room west" data-room="medieval"><img class="bg dark" src="IMG_11-west-medieval" alt="" /><img class="lit" src="IMG_11-west-medieval" alt="" /><a class="btn home">⌂</a><a class="btn back">←</a></section>
+<section class="screen room east" data-room="confucian"><img class="bg dark" src="IMG_20-east-confucian" alt="" /><img class="lit" src="IMG_20-east-confucian" alt="" /><a class="btn home">⌂</a><a class="btn back">←</a></section>
+
+<!-- 6. 모바일 : 동양관 홀, 가운데에서 시작해 좌우로 끌어 본다 -->
+<div class="phone" id="phone"><div class="pan east" data-hall="east" data-phone><img src="IMG_03-east-hall" alt="" /></div></div>
+
+<script>
+  const Doors = {
+    west: [[6.4,17.6,15.6,58.4],[31.4,21.6,14.3,54],[54.3,21.6,14.3,54],[78,17.6,15.6,58.4]],
+    east: [[10,32.5,12.3,39.5],[33.5,35,11.5,36.5],[55.4,35,11.1,36.5],[77.8,32.5,12.2,39.5]],
+  }
+  const Labels = { west: ['ANCIENT','MEDIEVAL','MODERN','CONTEMPORARY'], east: ['儒','道','佛','百'] }
+  const Rooms = { west: ['IMG_10-west-ancient','IMG_11-west-medieval','IMG_12-west-modern','IMG_13-west-contemporary'], east: ['IMG_20-east-confucian','IMG_21-east-daoist','IMG_22-east-buddhist','IMG_23-east-hundred'] }
+
+  document.querySelectorAll('[data-hall]').forEach((S) => {
+    const wing = S.dataset.hall
+    const hallSrc = S.querySelector('img').src
+    Doors[wing].forEach(([x, y, w, h], i) => {
+      const D = document.createElement('div')
+      D.className = 'abs door'
+      Object.assign(D.style, { left: x + '%', top: y + '%', width: w + '%', height: h + '%' })
+      const bgSize = `${(100 / w) * 100}% ${(100 / h) * 100}%`
+      const leaf = (side, offX) => `<div class="leaf ${side}" style="background-image:url(${hallSrc});background-size:${(100 / (w / 2)) * 100}% ${(100 / h) * 100}%;background-position:${((x + offX) / (100 - w / 2)) * 100}% ${(y / (100 - h)) * 100}%"></div>`
+      D.innerHTML = `<div class="behind" style="background-image:url(${Rooms[wing][i]})"></div><div class="glow"></div>` + leaf('l', 0) + leaf('r', w / 2)
+      const P = document.createElement('div')
+      P.className = 'abs plaque'
+      const pw = wing === 'west' ? 11 : 4, ph = wing === 'west' ? 3.8 : 5.6, gap = wing === 'west' ? 6.4 : 7.6
+      Object.assign(P.style, { left: x + w / 2 - pw / 2 + '%', top: y - gap + '%', width: pw + '%', height: ph + '%' })
+      P.textContent = Labels[wing][i]
+      const F = document.createElement('div')
+      F.className = 'abs floorglow'
+      Object.assign(F.style, { left: x - w * 0.3 + '%', top: y + h + '%', width: w * 1.6 + '%', height: '18%' })
+      D.addEventListener('mouseenter', () => { P.classList.remove('lit'); void P.offsetWidth; P.classList.add('lit'); F.style.opacity = 1 })
+      D.addEventListener('mouseleave', () => { P.classList.remove('lit'); F.style.opacity = 0 })
+      S.append(F, D, P)
+    })
+  })
+
+  // 전시실 : hang.ts 와 같은 규칙으로 계산한 자리
+  const Walls = { ancient: [12,12,76,46], medieval: [12,10,74,54], confucian: [16,11,68,47] }
+  const People = {
+    ancient: [['SOCRATES',3],['PLATO',3],['ARISTOTLE',3],['THALES',1],['PYTHAGORAS',1],['HERACLITUS',1],['PARMENIDES',1],['DEMOCRITUS',1]],
+    medieval: [],
+    confucian: [['孔子',3],['孟子',3],['荀子',3],['朱熹',2],['李滉',2],['李珥',2]],
+  }
+  const WidthOf = { 3: .16, 2: .11, 1: .07 }
+  const hang = (list, [wx, wy, ww, wh]) => {
+    const Items = list.length ? list.map(([l, wt]) => ({ l, wt })) : [{ l: null, wt: 2 }, { l: null, wt: 2 }, { l: null, wt: 2 }]
+    const top = Math.max(...Items.map((i) => i.wt))
+    const Mid = Items.filter((i) => i.wt === top), Rest = Items.filter((i) => i.wt !== top).sort((a, b) => b.wt - a.wt)
+    const Up = [], Down = []; Rest.forEach((it, i) => (i % 2 ? Down : Up).push(it))
+    const Rows = [Up, Mid, Down]
+    let s = 1
+    const lay = (r) => { const Sz = r.map((i) => { const w = ww * WidthOf[i.wt] * s; return { w, h: w * 1.25 * 16 / 9 } }); const g = Math.max(0, ...Sz.map((z) => z.w)) * .25; return { Sz, g, W: Sz.reduce((a, z) => a + z.w, 0) + g * Math.max(0, r.length - 1), H: Math.max(0, ...Sz.map((z) => z.h)) } }
+    let L
+    for (;;) { L = Rows.map(lay); const fy = L[1].H + 2 * Math.max(L[0].H + (Up.length ? 5.5 : 0), L[2].H + (Down.length ? 5.5 : 0)) <= wh; if ((L.every((l) => l.W <= ww) && fy) || s < .05) break; s *= .95 }
+    const my = wy + wh / 2, T = [my - L[1].H / 2 - 5.5 - L[0].H, my - L[1].H / 2, my + L[1].H / 2 + 5.5]
+    const Out = []
+    Rows.forEach((r, ri) => { let x = wx + (ww - L[ri].W) / 2; r.forEach((it, i) => { const z = L[ri].Sz[i]; const y = ri === 0 ? T[0] + L[0].H - z.h : ri === 1 ? T[1] + (L[1].H - z.h) / 2 : T[2]; Out.push({ ...it, x, y, w: z.w, h: z.h }); x += z.w + L[ri].g }) })
+    return Out
+  }
+  document.querySelectorAll('[data-room]').forEach((S) => {
+    const room = S.dataset.room
+    S.style.setProperty('--sx', '50%'); S.style.setProperty('--sy', '40%')
+    hang(People[room], Walls[room]).forEach((f) => {
+      const F = document.createElement('div')
+      F.className = 'abs frame' + (f.l ? '' : ' empty')
+      Object.assign(F.style, { left: f.x + '%', top: f.y + '%', width: f.w + '%', height: f.h + '%' })
+      F.innerHTML = `<div class="canvas"></div>` + (f.l ? `<div class="label">${f.l}</div>` : '')
+      F.addEventListener('mouseenter', () => { S.style.setProperty('--sx', f.x + f.w / 2 + '%'); S.style.setProperty('--sy', f.y + f.h / 2 + '%'); S.style.setProperty('--sr', Math.max(f.w, f.h) * .9 + '%'); F.classList.add('on') })
+      F.addEventListener('mouseleave', () => { S.style.setProperty('--sr', '0%'); F.classList.remove('on') })
+      S.append(F)
+    })
+  })
+  const Ph = document.getElementById('phone'); Ph.scrollLeft = (Ph.scrollWidth - Ph.clientWidth) / 2
+</script>
+</body>
+</html>

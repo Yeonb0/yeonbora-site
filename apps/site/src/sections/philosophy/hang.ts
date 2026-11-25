@@ -9,7 +9,7 @@ const Portrait = 1.25
 const Aspect = 16 / 9
 // 액자 사이 가로 간격 (그 줄에서 가장 넓은 액자 폭 대비) 과 줄 사이 세로 간격 (%)
 const GapX = 0.25
-const GapY = 3
+const GapY = 5.5
 
 interface Item {
   id: string | null

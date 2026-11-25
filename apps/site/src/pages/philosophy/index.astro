@@ -25,7 +25,7 @@ for (const [path, mod] of Object.entries(Files)) {
   const name = path.split('/').pop()!.replace('.png', '')
   const key = KeyOf[name]
   if (!key) continue
-  Images[key] = (await getImage({ src: mod.default, format: 'webp', width: 1920, quality: 82 })).src
+  Images[key] = (await getImage({ src: mod.default, format: 'webp', width: 1920, quality: 92 })).src
 }
 
 // 초상화 : portraits/<철학자 id>.jpg 가 있으면 걸고, 없으면 자리표시 그림
@@ -33,9 +33,13 @@ const PortraitFiles = import.meta.glob<{ default: ImageMetadata }>('/src/section
 const PortraitOf: Record<string, string> = {}
 for (const [path, mod] of Object.entries(PortraitFiles)) {
   const id = path.split('/').pop()!.replace('.jpg', '')
-  PortraitOf[id] = (await getImage({ src: mod.default, format: 'webp', width: 480, quality: 82 })).src
+  PortraitOf[id] = (await getImage({ src: mod.default, format: 'webp', width: 480, quality: 92 })).src
 }
-const People = Philosophers.map((p) => (PortraitOf[p.id] ? { ...p, portrait: PortraitOf[p.id] } : p))
+// 둘이 한 액자에 걸리는 철학자 (pair) 는 portraits/<id>-<짝 id>.jpg 를 쓴다
+const People = Philosophers.map((p) => {
+  const Img = (p.pair && PortraitOf[`${p.id}-${p.pair}`]) || PortraitOf[p.id]
+  return Img ? { ...p, portrait: Img } : p
+})
 ---
 
 <Layout>

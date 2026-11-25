@@ -5,7 +5,7 @@ import type { Philosopher } from './types'
 export const Philosophers: Philosopher[] = [
   // 고대 : 소크라테스 · 플라톤 · 아리스토텔레스는 크게, 소크라테스 이전 철학자들은 작게
   { id: 'socrates', name: '소크라테스', label: 'SOCRATES', wing: 'west', room: 'ancient', weight: 3, posts: [] },
-  { id: 'plato', name: '플라톤', label: 'PLATO', wing: 'west', room: 'ancient', weight: 3, posts: [] },
+  { id: 'plato', name: '플라톤', label: 'PLATO', wing: 'west', room: 'ancient', weight: 3, pair: 'aristotle', posts: [] },
   { id: 'aristotle', name: '아리스토텔레스', label: 'ARISTOTLE', wing: 'west', room: 'ancient', weight: 3, posts: [] },
   { id: 'thales', name: '탈레스', label: 'THALES', wing: 'west', room: 'ancient', weight: 1, posts: [] },
   { id: 'pythagoras', name: '피타고라스', label: 'PYTHAGORAS', wing: 'west', room: 'ancient', weight: 1, posts: [] },

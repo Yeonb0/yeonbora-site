@@ -29,6 +29,8 @@ export interface Philosopher {
   // 액자 크기 : 1 작게 · 2 보통 · 3 크게
   weight: 1 | 2 | 3
   portrait?: string
+  // 같은 액자에 함께 거는 철학자 id : 액자 왼쪽 절반이 이 철학자, 오른쪽 절반이 pair (같은 장면의 두 사람)
+  pair?: string
   // 0편 : 클릭 불가, 1편 : 그 글로, 여러 편 : 서재 목록으로
   posts: string[]
 }
@@ -44,6 +46,8 @@ export interface Rect {
 // 벽에 건 액자 : id 가 null 이면 빈 액자
 export interface Hung {
   id: string | null
+  // 한 액자를 나눠 쓰는 오른쪽 철학자 id
+  partner?: string
   weight: 1 | 2 | 3
   rect: Rect
 }

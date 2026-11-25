@@ -12,11 +12,15 @@ const centerY = (r: Rect) => r.y + r.h / 2
 const centerX = (r: Rect) => r.x + r.w / 2
 
 describe('hangFrames', () => {
-  it('고대 8명이 모두 걸리고 서로 겹치지 않고 벽 안에 있다', () => {
+  it('고대 8명이 모두 걸리고 (플라톤 · 아리스토텔레스는 한 액자) 서로 겹치지 않고 벽 안에 있다', () => {
     const Ancient = inRoom('ancient')
     expect(Ancient).toHaveLength(8)
     const Out = hangFrames(Ancient, Wall)
-    expect(Out.map((h) => h.id).sort()).toEqual(Ancient.map((p) => p.id).sort())
+    // 액자는 7개 : 아리스토텔레스는 플라톤 액자의 오른쪽 절반
+    expect(Out).toHaveLength(7)
+    const Ids = Out.flatMap((h) => [h.id, h.partner])
+    expect(Ids.filter(Boolean).sort()).toEqual(Ancient.map((p) => p.id).sort())
+    expect(Out.find((h) => h.id === 'plato')?.partner).toBe('aristotle')
     for (let i = 0; i < Out.length; i++) {
       expect(inside(Out[i].rect, Wall)).toBe(true)
       for (let j = i + 1; j < Out.length; j++) expect(overlaps(Out[i].rect, Out[j].rect)).toBe(false)

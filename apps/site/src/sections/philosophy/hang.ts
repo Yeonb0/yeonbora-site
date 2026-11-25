@@ -50,29 +50,46 @@ const tooClose = (a: Rect, b: Rect, wall: Rect) => {
   return a.x < b.x + b.w + gx && b.x < a.x + a.w + gx && a.y < b.y + b.h + gy && b.y < a.y + a.h + gy
 }
 
+// 가장 멀리 떨어진 후보 고르기 (best-candidate) : 액자가 벽 전체에 고르게 흩어진다
+const Candidates = 48
+
 const tryHang = (Items: Item[], wall: Rect, scale: number, seed: number): Hung[] | null => {
   const rand = rng(seed)
   const top = Math.max(...Items.map((it) => it.weight))
   const Out: Hung[] = []
   const cx = wall.x + wall.w / 2
   const cy = wall.y + wall.h / 2
+  // 가로 · 세로 단위를 맞춘 거리 (세로는 사진 비율로 늘린다)
+  const dist = (a: Rect, b: Rect) => Math.hypot(a.x + a.w / 2 - (b.x + b.w / 2), (a.y + a.h / 2 - (b.y + b.h / 2)) / Aspect)
   for (const it of Items) {
     const k = it.weight === top ? 1 : 1 + (rand() * 2 - 1) * Jitter
     const w = wall.w * WidthOf[it.weight] * scale * k
     const h = w * Portrait * Aspect
-    let placed: Rect | null = null
-    for (let t = 0; t < Tries && !placed; t++) {
-      // 첫 시도는 정가운데, 실패할수록 더 멀리까지 흩어 본다
-      const spread = t / Tries
-      const x = cx - w / 2 + (rand() * 2 - 1) * spread * (wall.w - w) / 2
-      const yRange = it.weight === top ? wall.h * MidBand : (wall.h - h) / 2
-      const y = cy - h / 2 + (rand() * 2 - 1) * Math.min(1, spread * 1.6) * yRange
-      const R = { x, y, w, h }
-      const inside = x >= wall.x && y >= wall.y && x + w <= wall.x + wall.w && y + h <= wall.y + wall.h
-      if (inside && Out.every((o) => !tooClose(o.rect, R, wall))) placed = R
+    // 액자가 하나뿐이면 정가운데
+    if (Items.length === 1) {
+      Out.push({ id: it.id, weight: it.weight, rect: { x: cx - w / 2, y: cy - h / 2, w, h } })
+      continue
     }
-    if (!placed) return null
-    Out.push({ id: it.id, weight: it.weight, rect: placed })
+    const yRange = it.weight === top ? wall.h * MidBand : (wall.h - h) / 2
+    let best: Rect | null = null
+    let bestScore = -1
+    let found = 0
+    for (let t = 0; t < Tries && found < Candidates; t++) {
+      const R = { x: wall.x + rand() * (wall.w - w), y: cy - h / 2 + (rand() * 2 - 1) * yRange, w, h }
+      const inside = R.y >= wall.y && R.y + h <= wall.y + wall.h
+      if (!inside || Out.some((o) => tooClose(o.rect, R, wall))) continue
+      found++
+      // 이미 건 액자들과 가장 멀리, 벽 가장자리에는 너무 붙지 않게
+      const near = Out.length ? Math.min(...Out.map((o) => dist(o.rect, R))) : wall.w
+      const edge = Math.min(R.x - wall.x, wall.x + wall.w - (R.x + w))
+      const score = near + Math.min(edge, wall.w * 0.04)
+      if (score > bestScore) {
+        bestScore = score
+        best = R
+      }
+    }
+    if (!best) return null
+    Out.push({ id: it.id, weight: it.weight, rect: best })
   }
   return Out
 }

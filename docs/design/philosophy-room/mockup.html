@@ -23,15 +23,15 @@
   .arch .inner { position: absolute; inset: 4% 7% -22%; border-radius: 50% 50% 0 0 / 24% 24% 0 0; backdrop-filter: brightness(1) saturate(1); transition: backdrop-filter .8s var(--ease); }
   .arch .spill { position: absolute; inset: -30% -55% -40%; pointer-events: none; mix-blend-mode: screen; opacity: 0; transition: opacity .8s var(--ease);
     background: radial-gradient(ellipse 30% 38% at 50% 46%, rgba(255,206,140,.5), rgba(255,180,100,.22) 55%, transparent 80%),
-                radial-gradient(ellipse 46% 22% at 50% 75%, rgba(255,205,135,.95), rgba(255,180,100,.4) 50%, transparent 80%),
-                radial-gradient(ellipse 70% 34% at 50% 86%, rgba(255,190,110,.42), transparent 74%); }
-  .arch .inner { --m1: linear-gradient(to bottom, #000 72%, rgba(0,0,0,.5) 84%, transparent 100%); --m2: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+                radial-gradient(ellipse 46% 20% at 50% 75%, rgba(255,205,135,.5), rgba(255,180,100,.2) 50%, transparent 80%),
+                radial-gradient(ellipse 70% 30% at 50% 86%, rgba(255,190,110,.2), transparent 74%); }
+  .arch .inner { --m1: linear-gradient(to bottom, #000 66%, rgba(0,0,0,.28) 78%, transparent 92%); --m2: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
     -webkit-mask-image: var(--m1), var(--m2); mask-image: var(--m1), var(--m2); -webkit-mask-composite: source-in; mask-composite: intersect; }
-  .arch:hover .inner { backdrop-filter: brightness(1.85) saturate(1.12); }
+  .arch:hover .inner { backdrop-filter: brightness(1.7) saturate(1.1); }
   .arch:hover .spill { opacity: 1; }
 
   /* 문 */
-  .door { cursor: pointer; perspective: 1200px; overflow: hidden; }
+  .door { cursor: pointer; perspective: 1200px; overflow: hidden; container-type: inline-size; }
   .door .behind { position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(5px) brightness(.85); transform: scale(1.1); }
   .door .glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 95%, rgba(255,207,138,.55), rgba(255,180,90,.15) 45%, transparent 70%); opacity: 0; transition: opacity .6s var(--ease); }
   .door .leaf { position: absolute; top: 0; bottom: 0; width: 50%; background-repeat: no-repeat; transition: transform .6s var(--ease); }
@@ -48,9 +48,9 @@
 
   /* 문틈 너머 전시실 벽의 이름 : 문이 다 열린 뒤 떠오른다 */
   .door .title { position: absolute; left: 0; right: 0; top: 30%; text-align: center; color: rgba(52,36,20,.82); opacity: 0; transition: opacity .5s var(--ease) 0s; pointer-events: none; }
-  .door:hover .title { opacity: 1; transition-delay: .35s; }
-  .west .door .title { font-family: Cinzel, serif; font-weight: 600; letter-spacing: .08em; font-size: clamp(7px, 1vw, 13px); }
-  .east .door .title { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: clamp(14px, 2.4vw, 30px); }
+  .door:hover .title { opacity: 1; transition-delay: .12s; }
+  .west .door .title { font-family: Cinzel, serif; font-weight: 600; letter-spacing: 0; font-size: 6.4cqw; }
+  .east .door .title { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 20cqw; }
   /* 모바일 : 호버가 없으니 문 앞 바닥에 이름을 늘 보인다 */
   .floortitle { display: none; position: absolute; text-align: center; color: rgba(255,240,215,.75); text-shadow: 0 1px 6px rgba(0,0,0,.7); pointer-events: none; }
   .phone .floortitle { display: block; }
@@ -62,9 +62,9 @@
   .room { --sa: 0; transition: --sa .7s var(--ease); }
   .room.spot { transition: --sa .45s var(--ease); }
   .room .lit { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(1.08);
-    -webkit-mask-image: var(--cone), var(--pool), var(--fade); mask-image: var(--cone), var(--pool), var(--fade);
+    -webkit-mask-image: var(--cone), var(--fade); mask-image: var(--cone), var(--fade);
     -webkit-mask-composite: source-in; mask-composite: intersect; opacity: var(--sa); }
-  .room .beam { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: calc(var(--sa) * .3);
+  .room .beam { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: calc(var(--sa) * .22);
     -webkit-mask-image: var(--cone), var(--fade); mask-image: var(--cone), var(--fade); -webkit-mask-composite: source-in; mask-composite: intersect;
     background: linear-gradient(to bottom, rgba(255,226,176,.35), rgba(255,214,150,.08) 70%, transparent); }
   .frame { cursor: pointer; padding: .7%; border-radius: 1px; opacity: .3; transition: opacity .7s var(--ease); }
@@ -79,8 +79,9 @@
   .east .frame { --wood: #3a2416; --wood2: #24150c; --wood3: #4a2f1c; }
   .frame .canvas { width: 100%; height: 100%; background: radial-gradient(ellipse at 50% 38%, #b48a5c 0 16%, transparent 17%), radial-gradient(ellipse at 50% 92%, #5a3a22 0 38%, transparent 39%), linear-gradient(#3a2a1c, #1f150d); }
   .frame.empty .canvas { background: #d9d0bf; }
-  .label { position: absolute; left: 50%; top: calc(100% + 8px); transform: translateX(-50%); white-space: nowrap; color: rgba(40,28,16,.85); font-family: Cinzel, serif; font-weight: 600; letter-spacing: .1em; font-size: clamp(7px, .85vw, 12px); opacity: 0; transition: opacity .5s var(--ease); }
-  .east .label { font-family: 'Noto Serif KR', serif; font-weight: 700; letter-spacing: .05em; font-size: clamp(9px, 1.1vw, 15px); }
+  .frame { container-type: inline-size; }
+  .label { position: absolute; left: 0; right: 0; top: calc(100% + 3px); text-align: center; white-space: nowrap; color: rgba(255,244,226,.95); text-shadow: 0 1px 3px rgba(0,0,0,.85); font-family: Cinzel, serif; font-weight: 600; letter-spacing: 0; font-size: min(12px, 11cqw); opacity: 0; transition: opacity .4s var(--ease); }
+  .east .label { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: min(15px, 18cqw); }
   .frame.on .label { opacity: 1; }
 
   /* 모바일 */
@@ -162,12 +163,17 @@
       let ok = true
       for (const it of Items) {
         const k = it.wt === top ? 1 : 1 + (rand() * 2 - 1) * .08, w = ww * WidthOf[it.wt] * s * k, h = w * 1.25 * 16 / 9
-        let P = null
-        for (let t = 0; t < 400 && !P; t++) {
-          const sp = t / 400, x = cx - w / 2 + (rand() * 2 - 1) * sp * (ww - w) / 2
-          const yr = it.wt === top ? wh * .12 : (wh - h) / 2, y = cy - h / 2 + (rand() * 2 - 1) * Math.min(1, sp * 1.6) * yr
-          const R = { x, y, w, h }
-          if (x >= wx && y >= wy && x + w <= wx + ww && y + h <= wy + wh && Out.every((o) => !close(o, R))) P = R
+        if (Items.length === 1) { Out.push({ ...it, x: cx - w / 2, y: cy - h / 2, w, h }); continue }
+        const yr = it.wt === top ? wh * .12 : (wh - h) / 2
+        const dist = (a, b) => Math.hypot(a.x + a.w / 2 - b.x - b.w / 2, (a.y + a.h / 2 - b.y - b.h / 2) / (16 / 9))
+        let P = null, best = -1, found = 0
+        for (let t = 0; t < 400 && found < 48; t++) {
+          const R = { x: wx + rand() * (ww - w), y: cy - h / 2 + (rand() * 2 - 1) * yr, w, h }
+          if (R.y < wy || R.y + h > wy + wh || Out.some((o) => close(o, R))) continue
+          found++
+          const near = Out.length ? Math.min(...Out.map((o) => dist(o, R))) : ww
+          const sc = near + Math.min(Math.min(R.x - wx, wx + ww - R.x - w), ww * .04)
+          if (sc > best) { best = sc; P = R }
         }
         if (!P) { ok = false; break }
         Out.push({ ...it, ...P })
@@ -182,11 +188,11 @@
     const aim = (f) => {
       const R = S.getBoundingClientRect()
       const cx = (f.x + f.w / 2) / 100 * R.width, top = .03 * R.height
-      const bottom = (f.y + f.h) / 100 * R.height, half = (f.w / 100 * R.width) * 1.25
-      const a = Math.atan2(half, bottom - top) * 180 / Math.PI, soft = a * .35
+      const bottom = (f.y + f.h) / 100 * R.height, half = (f.w / 100 * R.width) * .64
+      const a = Math.atan2(half, bottom - top) * 180 / Math.PI, soft = .6
       S.style.setProperty('--cone', `conic-gradient(from ${180 - a}deg at ${cx}px ${top}px, transparent 0deg, #000 ${soft}deg, #000 ${a * 2 - soft}deg, transparent ${a * 2}deg)`)
-      const end = f.y + f.h * 1.35
-      S.style.setProperty('--fade', `linear-gradient(to bottom, #000 0%, #000 ${f.y + f.h * .7}%, transparent ${end}%)`)
+      const end = f.y + f.h + 5
+      S.style.setProperty('--fade', `linear-gradient(to bottom, rgba(0,0,0,.75) 0%, #000 ${f.y}%, #000 ${end - 3}%, transparent ${end}%)`)
       S.style.setProperty('--pool', `radial-gradient(ellipse ${f.w * 1.7}% ${f.h * 1.25}% at ${f.x + f.w / 2}% ${f.y + f.h * .45}%, #000 45%, rgba(0,0,0,.6) 70%, transparent 100%)`)
     }
     hang(People[room], Walls[room]).forEach((f) => {

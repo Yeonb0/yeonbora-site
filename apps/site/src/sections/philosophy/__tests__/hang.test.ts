@@ -55,6 +55,20 @@ describe('hangFrames', () => {
     expect(Ys.size).toBeGreaterThanOrEqual(5)
   })
 
+  it('벽 한가운데에 몰리지 않고 벽 가로의 70% 이상에 걸쳐 퍼진다', () => {
+    const Out = hangFrames(inRoom('ancient'), Wall)
+    const left = Math.min(...Out.map((h) => h.rect.x))
+    const right = Math.max(...Out.map((h) => h.rect.x + h.rect.w))
+    expect(right - left).toBeGreaterThanOrEqual(Wall.w * 0.7)
+  })
+
+  it('빈 방의 빈 액자 3개도 벽 가로의 50% 이상에 걸쳐 퍼진다', () => {
+    const Out = hangFrames([], Wall)
+    const left = Math.min(...Out.map((h) => h.rect.x))
+    const right = Math.max(...Out.map((h) => h.rect.x + h.rect.w))
+    expect(right - left).toBeGreaterThanOrEqual(Wall.w * 0.5)
+  })
+
   it('같은 철학자 목록이면 언제나 같은 자리에 건다', () => {
     expect(hangFrames(inRoom('ancient'), Wall)).toEqual(hangFrames(inRoom('ancient'), Wall))
   })

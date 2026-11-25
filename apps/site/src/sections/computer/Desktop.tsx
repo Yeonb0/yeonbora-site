@@ -167,6 +167,11 @@ export default function Desktop() {
     const y0 = e.clientY - Box.top
     setSelected([])
     const M = MarqueeRef.current
+    // 아이콘 중심은 누를 때 한 번만 잰다 : 끄는 동안 상자 크기를 쓴 직후 아이콘 위치를 읽으면 매번 레이아웃이 강제된다
+    const Centers = [...Screen.querySelectorAll<HTMLElement>('.icons .icon')].map((el) => {
+      const R = el.getBoundingClientRect()
+      return { id: el.dataset.icon ?? '', cx: R.left + R.width / 2 - Box.left, cy: R.top + R.height / 2 - Box.top }
+    })
     const onMove = (ev: PointerEvent) => {
       if (!M) return
       const x1 = ev.clientX - Box.left
@@ -177,13 +182,7 @@ export default function Desktop() {
       const w = Math.abs(x1 - x0)
       const h = Math.abs(y1 - y0)
       M.style.cssText = `display:block;left:${l}px;top:${t}px;width:${w}px;height:${h}px`
-      const Hit: string[] = []
-      document.querySelectorAll<HTMLElement>('.icons .icon').forEach((el) => {
-        const R = el.getBoundingClientRect()
-        const cx = R.left + R.width / 2 - Box.left
-        const cy = R.top + R.height / 2 - Box.top
-        if (cx >= l && cx <= l + w && cy >= t && cy <= t + h) Hit.push(el.dataset.icon ?? '')
-      })
+      const Hit = Centers.filter(({ cx, cy }) => cx >= l && cx <= l + w && cy >= t && cy <= t + h).map((c) => c.id)
       setSelected((cur) => (cur.join() === Hit.join() ? cur : Hit))
     }
     const onUp = () => {

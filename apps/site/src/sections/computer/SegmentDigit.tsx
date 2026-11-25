@@ -49,26 +49,31 @@ export const sideShift = (k: number): CSSProperties => ({
 
 export default function SegmentDigit({ value }: { value: number | null }) {
   const On = value === null ? '' : Masks[value]
+  // 옆면 겹마다 따로 된 svg : 기울기 (--mx, --my) 가 바뀌어도 겹을 다시 그리지 않고 합성기에서 옮기기만 한다
+  // (한 svg 안의 <g> 를 옮기면 마우스가 움직이는 동안 매 프레임 svg 전체를 drop-shadow 까지 다시 그린다)
+  // --clock-digit-w 가 viewBox 폭 (W) 과 같아 px 이동량이 예전과 같다
   return (
-    <svg className="seg-digit" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+    <span className="seg-digit" aria-hidden="true">
       {/* 가장 깊은 (어두운) 겹부터 그린다 */}
       {Side.map((fill, i) => (
-        <g key={i} fill={fill} style={sideShift(i + 1)}>
+        <svg key={i} className="seg-layer seg-side" viewBox={`0 0 ${W} ${H}`} fill={fill} style={sideShift(i + 1)}>
+          {Shapes.map((pts, s) => (
+            <polygon key={s} points={pts} />
+          ))}
+        </svg>
+      )).reverse()}
+      <svg className="seg-layer" viewBox={`0 0 ${W} ${H}`}>
+        <g className="seg-off">
           {Shapes.map((pts, s) => (
             <polygon key={s} points={pts} />
           ))}
         </g>
-      )).reverse()}
-      <g className="seg-off">
-        {Shapes.map((pts, s) => (
-          <polygon key={s} points={pts} />
-        ))}
-      </g>
-      <g className="seg-glow">
-        {Shapes.map((pts, s) => (
-          <polygon key={s} points={pts} className="seg-on" style={{ opacity: On.includes(Names[s]) ? 1 : 0 }} />
-        ))}
-      </g>
-    </svg>
+        <g className="seg-glow">
+          {Shapes.map((pts, s) => (
+            <polygon key={s} points={pts} className="seg-on" style={{ opacity: On.includes(Names[s]) ? 1 : 0 }} />
+          ))}
+        </g>
+      </svg>
+    </span>
   )
 }

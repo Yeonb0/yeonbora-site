@@ -35,6 +35,14 @@ const { title, description = '연보라의 실험장', showHome = true } = Astro
       )
     }
     <slot />
+    <script>
+      // 방 → 허브로 돌아갈 때 : 새 허브 문서에서 그 방의 칸에만 같은 이름을 붙여 줄어드는 전환의 짝이 되게 한다
+      document.addEventListener('astro:before-swap', (e) => {
+        const Id = [...(document.querySelector('main[class^="section-"]')?.classList ?? [])].find((c) => c.startsWith('section-'))?.slice(8)
+        if (!Id) return
+        e.newDocument.querySelector<HTMLElement>(`.cell[data-section="${Id}"]`)?.style.setProperty('view-transition-name', `section-${Id}`)
+      })
+    </script>
     <style is:global>
       *,
       *::before,
@@ -66,8 +74,14 @@ const { title, description = '연보라의 실험장', showHome = true } = Astro
         font-size: 22px;
         text-decoration: none;
         color: var(--home-fg, #e0e0e0);
-        background: var(--home-bg, rgba(255, 255, 255, 0.08));
-        backdrop-filter: blur(8px);
+        /* 흐림 효과 (backdrop-filter) 는 모든 화면 위에서 매 프레임 뒤 화면을 다시 흐려 느려진다 : 반투명 배경으로 대신한다 */
+        background: var(--home-bg, rgba(255, 255, 255, 0.1));
+      }
+      /* 바뀌는 페이지 전체 (root) 를 크로스페이드하지 않는다 : 전체 화면 합성이 한 겹 줄어 덜 끊긴다. 이름 붙은 방 (section-*) 만 움직인다 */
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation: none;
+        mix-blend-mode: normal;
       }
       @media (prefers-reduced-motion: reduce) {
         ::view-transition-group(*),

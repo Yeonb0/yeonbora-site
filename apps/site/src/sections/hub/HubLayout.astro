@@ -20,10 +20,11 @@ const Rows = [HubSections.slice(0, 3), HubSections.slice(3, 6)]
               class="cell"
               href={s.href}
               aria-label={s.label}
+              data-astro-prefetch="viewport"
               data-row={r}
               data-col={c}
               style={`--fill: ${s.fill}; --tint: ${s.tint}`}
-              transition:name={`section-${s.id}`}
+              data-section={s.id}
             >
               <span class="mark">
               <svg
@@ -51,7 +52,55 @@ const Rows = [HubSections.slice(0, 3), HubSections.slice(3, 6)]
   </nav>
 </Base>
 
+<script>
+  // 칸을 누르면 그 자리에서 칸 색이 화면 전체로 번지는 애니메이션을 먼저 재생하고, 그 사이 다음 방을 받아 둔다
+  // 방 페이지를 받아 오는 시간이 애니메이션 뒤에 숨어 클릭 직후 멈칫하는 느낌이 없다 (번지는 색 = 방이 처음 여는 색이라 이어서 바뀌어도 티가 안 난다)
+  // 전환 동안 호버 애니메이션 (칸이 넓어지는 flex-grow, 레이아웃을 매 프레임 다시 계산) 은 끈다
+  import { navigate } from 'astro:transitions/client'
+  import { prefetch } from 'astro:prefetch'
+
+  const Reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const Duration = 550
+
+  const bind = () => {
+    const Hub = document.querySelector<HTMLElement>('.hub')
+    if (!Hub || Hub.dataset.bound) return
+    Hub.dataset.bound = 'true'
+    Hub.classList.remove('leaving')
+    document.querySelector('.hub-wipe')?.remove()
+    Hub.addEventListener('click', (e) => {
+      const Cell = (e.target as HTMLElement).closest<HTMLAnchorElement>('.cell')
+      // 새 탭 · 보조키 클릭은 브라우저에 맡긴다
+      if (!Cell || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      e.preventDefault()
+      if (Hub.classList.contains('leaving')) return
+      Hub.classList.add('leaving')
+      const Href = Cell.href
+      prefetch(Href, { eagerness: 'immediate' })
+      if (Reduced()) {
+        navigate(Href)
+        return
+      }
+      const R = Cell.getBoundingClientRect()
+      const Wipe = document.createElement('div')
+      Wipe.className = 'hub-wipe'
+      Wipe.style.cssText = `position:fixed;inset:0;z-index:200;pointer-events:none;background:${Cell.style.getPropertyValue('--fill')}`
+      document.body.appendChild(Wipe)
+      const From = `inset(${R.top}px ${innerWidth - R.right}px ${innerHeight - R.bottom}px ${R.left}px)`
+      Wipe.animate({ clipPath: [From, 'inset(0px)'] }, { duration: Duration, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' }).finished.then(() => navigate(Href))
+    })
+  }
+  document.addEventListener('astro:page-load', bind)
+  bind()
+</script>
+
 <style>
+  /* 전환이 시작되면 호버 애니메이션을 멈춘다 */
+  .hub.leaving,
+  .hub.leaving * {
+    transition: none !important;
+    pointer-events: none;
+  }
   .hub {
     height: 100dvh;
     display: flex;

@@ -267,6 +267,9 @@ interface Held {
   size: number
 }
 
+// left · top 대신 transform 으로 옮겨 레이아웃을 다시 하지 않는다 (기울기는 school.css 의 rotate(-3deg) 와 같다)
+const heldTransform = (h: Held) => `translate3d(${h.x - h.offX}px, ${h.y - h.offY}px, 0) rotate(-3deg)`
+
 function Shelf({ year, activity, lock }: { year: Year; activity?: boolean; lock: (on: boolean) => void }) {
   const Source: { key: string; label: string; books: string[] }[] = activity
     ? ActivityCategories.map((c) => ({ ...c, books: Activities[c.key] }))
@@ -286,6 +289,8 @@ function Shelf({ year, activity, lock }: { year: Year; activity?: boolean; lock:
   const [shift, setShift] = useState<Record<string, number>>({})
   const [held, setHeld] = useState<Held | null>(null)
   const HeldRef = useRef<Held | null>(null)
+  // 들고 있는 책 : 끄는 동안 위치는 렌더 없이 이 요소의 transform 만 바꾼다
+  const HeldElRef = useRef<HTMLDivElement | null>(null)
   const OrderRef = useRef(order)
   const BookRefs = useRef(new Map<string, HTMLLIElement>())
   const PrevTops = useRef<Map<string, number> | null>(null)
@@ -320,12 +325,18 @@ function Shelf({ year, activity, lock }: { year: Year; activity?: boolean; lock:
     setHeld(Start)
     lock(true)
 
-    const move = (ev: PointerEvent) => {
+    // 성능 : pointermove 마다 렌더하지 않는다
+    // 마지막 커서 위치만 적어 두고 프레임마다 한 번, 먼저 책 위치를 다 읽은 뒤 (읽기) 들고 있는 책을 transform 으로 옮긴다 (쓰기)
+    let Pending: { x: number; y: number } | null = null
+    let Raf = 0
+    const step = () => {
+      Raf = 0
       const Cur = HeldRef.current
-      if (!Cur) return
-      const Next = { ...Cur, x: ev.clientX, y: ev.clientY }
+      const P = Pending
+      Pending = null
+      if (!Cur || !P) return
+      const Next = { ...Cur, x: P.x, y: P.y }
       HeldRef.current = Next
-      setHeld(Next)
       // 커서보다 아래에 중심이 있는 책 수 = 들고 있는 책이 들어갈 자리 (아래가 0번)
       const O = OrderRef.current[Cur.pile]
       const Others = O.filter((x) => x !== Cur.name)
@@ -333,7 +344,7 @@ function Shelf({ year, activity, lock }: { year: Year; activity?: boolean; lock:
         const El = BookRefs.current.get(x)
         if (!El) return false
         const R = El.getBoundingClientRect()
-        return R.top + R.height / 2 > ev.clientY
+        return R.top + R.height / 2 > P.y
       }).length
       const N = [...Others]
       N.splice(Idx, 0, Cur.name)
@@ -348,11 +359,22 @@ function Shelf({ year, activity, lock }: { year: Year; activity?: boolean; lock:
         SavedOrder.set(Cur.pile, N)
         setOrder((prev) => ({ ...prev, [Cur.pile]: N }))
       }
+      const H = HeldElRef.current
+      if (H) H.style.transform = heldTransform(Next)
     }
-    const up = () => {
+    const move = (ev: PointerEvent) => {
+      Pending = { x: ev.clientX, y: ev.clientY }
+      if (!Raf) Raf = requestAnimationFrame(step)
+    }
+    const up = (ev: PointerEvent) => {
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', up)
       window.removeEventListener('pointercancel', up)
+      cancelAnimationFrame(Raf)
+      Raf = 0
+      // 놓은 자리는 마지막 커서 위치 (아직 프레임에 반영 안 된 것까지)
+      if (HeldRef.current && ev.type === 'pointerup') HeldRef.current = { ...HeldRef.current, x: ev.clientX, y: ev.clientY }
+      Pending = null
       lock(false)
       const D = HeldRef.current
       HeldRef.current = null
@@ -409,7 +431,7 @@ function Shelf({ year, activity, lock }: { year: Year; activity?: boolean; lock:
         })}
       </div>
       {held && (
-        <div className="book held" aria-hidden="true" style={{ left: held.x - held.offX, top: held.y - held.offY, width: held.w, background: held.color, fontSize: held.size }}>
+        <div ref={HeldElRef} className="book held" aria-hidden="true" style={{ transform: heldTransform(held), width: held.w, background: held.color, fontSize: held.size }}>
           {held.name}
         </div>
       )}

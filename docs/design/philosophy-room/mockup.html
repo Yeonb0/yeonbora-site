@@ -34,8 +34,7 @@
   .door { cursor: pointer; perspective: 1200px; overflow: hidden; container-type: inline-size; }
   .door .behind { position: absolute; inset: 0; background:
       radial-gradient(ellipse 70% 32% at 50% 0%, rgba(255,214,160,.22), transparent 70%),
-      linear-gradient(#2b2118, #1d160f 70%, #2a1f15);
-    box-shadow: inset 0 0 0 3px rgba(214,160,96,.55), inset 0 0 22px 6px rgba(226,170,100,.45); }
+      linear-gradient(#2b2118, #1d160f 70%, #2a1f15); }
   .door .glow { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 18% at 50% 100%, rgba(255,207,138,.4), transparent 75%); opacity: 0; transition: opacity .6s var(--ease); }
   .door .leaf { position: absolute; top: 0; bottom: 0; width: 50%; background-repeat: no-repeat; transition: transform .6s var(--ease); }
   .door .leaf.l { left: 0; } .door .leaf.r { right: 0; }
@@ -66,10 +65,10 @@
   .room.spot { transition: --sa .45s var(--ease); }
   .room .lit { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(1.08);
     -webkit-mask-image: var(--beam), var(--pool); mask-image: var(--beam), var(--pool);
-    -webkit-mask-composite: source-over; mask-composite: add; opacity: var(--sa); }
-  .room .beam { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: calc(var(--sa) * .5);
-    -webkit-mask-image: var(--beam); mask-image: var(--beam);
-    background: linear-gradient(to bottom, rgba(255,232,190,.55), rgba(255,220,160,.2)); }
+    -webkit-mask-composite: source-in; mask-composite: intersect; opacity: var(--sa); }
+  .room .beam { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: calc(var(--sa) * .35);
+    -webkit-mask-image: var(--beam), var(--pool); mask-image: var(--beam), var(--pool); -webkit-mask-composite: source-in; mask-composite: intersect;
+    background: linear-gradient(to bottom, rgba(255,232,190,.4), rgba(255,220,160,.12)); }
   .frame { cursor: pointer; padding: .7%; border-radius: 1px; opacity: .3; transition: opacity .7s var(--ease); }
   .frame.on { opacity: 1; }
   .frame { --wood: #5a3a22; --wood2: #3e2615; --wood3: #6e4a2c;
@@ -191,11 +190,13 @@
     const aim = (f) => {
       const R = S.getBoundingClientRect()
       const cx = (f.x + f.w / 2) / 100 * R.width, top = .03 * R.height
-      const X = f.x + f.w / 2, Yc = f.y + f.h * .48, Top = 3
-      // 빛기둥 : 조명에서 액자까지 길고 좁은 타원 (가운데가 가장 밝고 가장자리는 부드럽게 사라진다)
-      S.style.setProperty('--beam', `radial-gradient(ellipse ${f.w * .42}% ${(Yc - Top) * .62}% at ${X}% ${(Top + Yc) / 2}%, rgba(0,0,0,.85) 0%, rgba(0,0,0,.45) 55%, transparent 100%)`)
-      // 빛 웅덩이 : 액자를 감싸는 둥근 빛, 위쪽이 조금 더 밝다
-      S.style.setProperty('--pool', `radial-gradient(ellipse ${f.w * .95}% ${f.h * .82}% at ${X}% ${Yc - f.h * .04}%, #000 0%, #000 52%, rgba(0,0,0,.55) 74%, transparent 100%)`)
+      const X = f.x + f.w / 2, Top = 3, End = Math.min(96, f.y + f.h * 1.9)
+      const cxp = X / 100 * R.width, topp = Top / 100 * R.height, midp = (f.y + f.h / 2) / 100 * R.height
+      // 원뿔 : 액자 높이에서 폭이 액자 폭의 1.5배가 되도록, 가장자리는 넓게 흐린다
+      const a = Math.atan2((f.w / 100 * R.width) * .75, midp - topp) * 180 / Math.PI, soft = a * .45
+      S.style.setProperty('--beam', `conic-gradient(from ${180 - a}deg at ${cxp}px ${topp}px, transparent 0deg, #000 ${soft}deg, #000 ${a * 2 - soft}deg, transparent ${a * 2}deg)`)
+      // 길이 : 조명에서 액자 아래까지 내려와 둥글게 사라지는 긴 타원
+      S.style.setProperty('--pool', `radial-gradient(ellipse ${f.w * 1.6}% ${(End - Top) / 2 + 2}% at ${X}% ${(Top + End) / 2}%, #000 0%, #000 62%, rgba(0,0,0,.45) 82%, transparent 100%)`)
     }
     hang(People[room], Walls[room]).forEach((f) => {
       const F = document.createElement('div')

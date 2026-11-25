@@ -19,8 +19,13 @@
   .btn.home { top: 16px; } .btn.back { top: 68px; }
 
   /* 갈림길 아치 */
-  .arch { cursor: pointer; border-radius: 48% 48% 0 0 / 26% 26% 0 0; transition: background .6s var(--ease); }
-  .arch:hover { background: radial-gradient(ellipse at 50% 70%, rgba(255,214,150,.16), transparent 70%); }
+  .arch { cursor: pointer; }
+  .arch .inner { position: absolute; inset: 4% 7% 0; border-radius: 50% 50% 0 0 / 24% 24% 0 0; backdrop-filter: brightness(1) saturate(1); transition: backdrop-filter .8s var(--ease); }
+  .arch .spill { position: absolute; inset: -22% -38% -6%; pointer-events: none; mix-blend-mode: screen; opacity: 0; transition: opacity .8s var(--ease);
+    background: radial-gradient(ellipse 40% 50% at 50% 50%, rgba(255,206,140,.55), rgba(255,180,100,.24) 55%, transparent 78%),
+                radial-gradient(ellipse 60% 22% at 50% 102%, rgba(255,200,130,.35), transparent 70%); }
+  .arch:hover .inner { backdrop-filter: brightness(1.85) saturate(1.12); }
+  .arch:hover .spill { opacity: 1; }
 
   /* 문 */
   .door { cursor: pointer; perspective: 1200px; overflow: hidden; }
@@ -39,22 +44,29 @@
   .floorglow { pointer-events: none; background: radial-gradient(ellipse at 50% 0%, rgba(255,200,120,.35), transparent 70%); opacity: 0; transition: opacity .6s var(--ease); }
 
   /* 명판 */
-  .plaque { pointer-events: none; overflow: hidden; display: grid; place-items: center; color: #fff; border-radius: 2px;
-    background: url(PLATE) center / cover; text-shadow: 0 1px 2px rgba(0,0,0,.75), 0 0 1px rgba(0,0,0,.6);
-    filter: brightness(.78); transition: filter .5s var(--ease); }
+  .plaque { pointer-events: none; overflow: hidden; display: grid; place-items: center; border-radius: 1.5px;
+    color: rgba(255,251,242,.94); background: url(PLATE) center / cover;
+    text-shadow: 0 -1px 0 rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.45), 0 3px 4px rgba(0,0,0,.5), 0 8px 14px rgba(0,0,0,.28);
+    transform: perspective(700px) rotateY(var(--tilt, 0deg)); filter: brightness(.78) sepia(.25) saturate(1.1); transition: filter .5s var(--ease); }
+  .plaque::before { content: ""; position: absolute; inset: 0; mix-blend-mode: soft-light; background: linear-gradient(to bottom, rgba(255,214,160,.7), rgba(40,25,10,.55)); }
   .plaque::after { content: ""; position: absolute; top: -40%; bottom: -40%; width: 40%; left: -60%; background: linear-gradient(105deg, transparent, rgba(255,255,255,.5), transparent); transform: skewX(-12deg); }
-  .plaque.lit { filter: brightness(1); } .plaque.lit::after { animation: sweep .9s var(--ease) forwards; }
-  .west .plaque { font-family: Cinzel, serif; font-weight: 600; letter-spacing: .08em; font-size: clamp(6px, .9vw, 12px); }
-  .east .plaque { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: clamp(12px, 2.2vw, 28px); }
+  .plaque.lit { filter: brightness(1) sepia(.12) saturate(1.05); } .plaque.lit::after { animation: sweep .9s var(--ease) forwards; }
+  .west .plaque { font-family: Cinzel, serif; font-weight: 600; letter-spacing: .05em; font-size: clamp(6px, .82vw, 11px); }
+  .east .plaque { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: clamp(11px, 1.9vw, 24px); }
   @keyframes sweep { to { left: 130%; } }
 
   /* 전시실 : 불 꺼진 방 + 스포트라이트 */
   .room .dark { filter: brightness(.22); }
-  .room .lit { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-    -webkit-mask-image: radial-gradient(circle at var(--sx) var(--sy), #000 var(--sr), transparent calc(var(--sr) + 14%));
-    mask-image: radial-gradient(circle at var(--sx) var(--sy), #000 var(--sr), transparent calc(var(--sr) + 14%));
-    transition: --sr .9s var(--ease); }
-  @property --sr { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+  @property --sa { syntax: '<number>'; inherits: true; initial-value: 0; }
+  .room { --sa: 0; transition: --sa .7s var(--ease); }
+  .room.spot { transition: --sa .45s var(--ease); }
+  .room .lit { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(1.08);
+    -webkit-mask-image: var(--cone), var(--pool), var(--fade); mask-image: var(--cone), var(--pool), var(--fade);
+    -webkit-mask-composite: source-in; mask-composite: intersect; opacity: var(--sa); }
+  .room .beam { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: calc(var(--sa) * .3);
+    -webkit-mask-image: var(--cone), var(--fade); mask-image: var(--cone), var(--fade); -webkit-mask-composite: source-in; mask-composite: intersect;
+    background: linear-gradient(to bottom, rgba(255,226,176,.35), rgba(255,214,150,.08) 70%, transparent); }
   .frame { cursor: pointer; padding: .45%; border-radius: 1px; opacity: .3; transition: opacity .7s var(--ease); }
   .frame.on { opacity: 1; }
   .west .frame { background: linear-gradient(135deg, #8a6a2a, #d8b15e 35%, #7a5a20 65%, #c9a14f); box-shadow: 0 6px 16px rgba(0,0,0,.6); }
@@ -69,7 +81,7 @@
   .phone .pan { position: relative; aspect-ratio: 16 / 9; height: 100%; }
   .phone .btn { position: sticky; float: left; margin: 16px 0 0 16px; }
   .phone .pan > img { width: 100%; height: 100%; object-fit: cover; }
-  .phone .plaque { filter: brightness(1); }
+  .phone .plaque { filter: brightness(.95) sepia(.15); }
 </style>
 </head>
 <body>
@@ -78,8 +90,8 @@
 <section class="screen">
   <img class="bg" src="IMG_01-crossroads" alt="" />
   <a class="btn home" aria-label="홈으로">⌂</a>
-  <div class="abs arch" style="left:10%;top:14%;width:22%;height:60%"></div>
-  <div class="abs arch" style="left:68%;top:14%;width:24%;height:60%"></div>
+  <div class="abs arch" style="left:10%;top:14%;width:22%;height:60%"><div class="spill"></div><div class="inner"></div></div>
+  <div class="abs arch" style="left:68%;top:14%;width:24%;height:60%"><div class="spill"></div><div class="inner"></div></div>
 </section>
 
 <!-- 2. 서양관 홀 / 3. 동양관 홀 : 문은 스크립트로 채운다 -->
@@ -87,9 +99,9 @@
 <section class="screen east" data-hall="east"><img class="bg" src="IMG_03-east-hall" alt="" /><a class="btn home">⌂</a><a class="btn back">←</a></section>
 
 <!-- 4. 고대 전시실 / 5. 중세 전시실 (빈 방) -->
-<section class="screen room west" data-room="ancient"><img class="bg dark" src="IMG_10-west-ancient" alt="" /><img class="lit" src="IMG_10-west-ancient" alt="" /><a class="btn home">⌂</a><a class="btn back">←</a></section>
-<section class="screen room west" data-room="medieval"><img class="bg dark" src="IMG_11-west-medieval" alt="" /><img class="lit" src="IMG_11-west-medieval" alt="" /><a class="btn home">⌂</a><a class="btn back">←</a></section>
-<section class="screen room east" data-room="confucian"><img class="bg dark" src="IMG_20-east-confucian" alt="" /><img class="lit" src="IMG_20-east-confucian" alt="" /><a class="btn home">⌂</a><a class="btn back">←</a></section>
+<section class="screen room west" data-room="ancient"><img class="bg dark" src="IMG_10-west-ancient" alt="" /><img class="lit" src="IMG_10-west-ancient" alt="" /><div class="beam"></div><a class="btn home">⌂</a><a class="btn back">←</a></section>
+<section class="screen room west" data-room="medieval"><img class="bg dark" src="IMG_11-west-medieval" alt="" /><img class="lit" src="IMG_11-west-medieval" alt="" /><div class="beam"></div><a class="btn home">⌂</a><a class="btn back">←</a></section>
+<section class="screen room east" data-room="confucian"><img class="bg dark" src="IMG_20-east-confucian" alt="" /><img class="lit" src="IMG_20-east-confucian" alt="" /><div class="beam"></div><a class="btn home">⌂</a><a class="btn back">←</a></section>
 
 <!-- 6. 모바일 : 동양관 홀, 가운데에서 시작해 좌우로 끌어 본다 -->
 <div class="phone" id="phone"><div class="pan east" data-hall="east" data-phone><img src="IMG_03-east-hall" alt="" /></div></div>
@@ -114,9 +126,10 @@
       D.innerHTML = `<div class="behind" style="background-image:url(${Rooms[wing][i]})"></div><div class="glow"></div>` + leaf('l', 0) + leaf('r', w / 2)
       const P = document.createElement('div')
       P.className = 'abs plaque'
-      const pw = wing === 'west' ? 11 : 4, ph = wing === 'west' ? 3.8 : 5.6, gap = wing === 'west' ? 6.4 : 7.6
+      const pw = wing === 'west' ? 9.6 : 3.6, ph = wing === 'west' ? 3.2 : 5, gap = wing === 'west' ? 4.8 : 6.8
       Object.assign(P.style, { left: x + w / 2 - pw / 2 + '%', top: y - gap + '%', width: pw + '%', height: ph + '%' })
       P.textContent = Labels[wing][i]
+      P.style.setProperty('--tilt', (-(x + w / 2 - 50) / 50) * 24 + 'deg')
       const F = document.createElement('div')
       F.className = 'abs floorglow'
       Object.assign(F.style, { left: x - w * 0.3 + '%', top: y + h + '%', width: w * 1.6 + '%', height: '18%' })
@@ -151,14 +164,24 @@
   }
   document.querySelectorAll('[data-room]').forEach((S) => {
     const room = S.dataset.room
-    S.style.setProperty('--sx', '50%'); S.style.setProperty('--sy', '40%')
+    // 천장 조명 (사진 위 3%) 에서 액자로 내려오는 원뿔과, 액자를 감싸는 벽의 빛 웅덩이
+    const aim = (f) => {
+      const R = S.getBoundingClientRect()
+      const cx = (f.x + f.w / 2) / 100 * R.width, top = .03 * R.height
+      const bottom = (f.y + f.h) / 100 * R.height, half = (f.w / 100 * R.width) * 1.25
+      const a = Math.atan2(half, bottom - top) * 180 / Math.PI, soft = a * .35
+      S.style.setProperty('--cone', `conic-gradient(from ${180 - a}deg at ${cx}px ${top}px, transparent 0deg, #000 ${soft}deg, #000 ${a * 2 - soft}deg, transparent ${a * 2}deg)`)
+      const end = f.y + f.h * 1.35
+      S.style.setProperty('--fade', `linear-gradient(to bottom, #000 0%, #000 ${f.y + f.h * .7}%, transparent ${end}%)`)
+      S.style.setProperty('--pool', `radial-gradient(ellipse ${f.w * 1.7}% ${f.h * 1.25}% at ${f.x + f.w / 2}% ${f.y + f.h * .45}%, #000 45%, rgba(0,0,0,.6) 70%, transparent 100%)`)
+    }
     hang(People[room], Walls[room]).forEach((f) => {
       const F = document.createElement('div')
       F.className = 'abs frame' + (f.l ? '' : ' empty')
       Object.assign(F.style, { left: f.x + '%', top: f.y + '%', width: f.w + '%', height: f.h + '%' })
       F.innerHTML = `<div class="canvas"></div>` + (f.l ? `<div class="label">${f.l}</div>` : '')
-      F.addEventListener('mouseenter', () => { S.style.setProperty('--sx', f.x + f.w / 2 + '%'); S.style.setProperty('--sy', f.y + f.h / 2 + '%'); S.style.setProperty('--sr', Math.max(f.w, f.h) * .9 + '%'); F.classList.add('on') })
-      F.addEventListener('mouseleave', () => { S.style.setProperty('--sr', '0%'); F.classList.remove('on') })
+      F.addEventListener('mouseenter', () => { aim(f); S.classList.add('spot'); S.style.setProperty('--sa', 1); F.classList.add('on') })
+      F.addEventListener('mouseleave', () => { S.classList.remove('spot'); S.style.setProperty('--sa', 0); F.classList.remove('on') })
       S.append(F)
     })
   })

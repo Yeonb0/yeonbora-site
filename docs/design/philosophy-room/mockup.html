@@ -17,14 +17,15 @@
   /* 공용 버튼 : 홈 + 뒤로가기 */
   .btn { position: absolute; left: 16px; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #e0e0e0; background: rgba(255,255,255,.08); backdrop-filter: blur(8px); font-size: 20px; z-index: 5; }
   .btn.home { top: 16px; }
-  /* 뒤로가기 : 화면 아래쪽에 마우스를 대면 밝아지고, 누르면 한 단계 뒤로 */
-  .backzone { position: absolute; left: 0; right: 0; bottom: 0; height: 16%; z-index: 4; cursor: pointer;
-    background: linear-gradient(to top, rgba(255,238,214,.42), transparent);
-    backdrop-filter: brightness(1.65);
-    -webkit-mask-image: linear-gradient(to top, #000, transparent); mask-image: linear-gradient(to top, #000, transparent);
-    opacity: 0; transition: opacity .5s var(--ease); }
-  .backzone:hover, .backzone:focus-visible { opacity: 1; outline: none; }
-  .phone .backzone { opacity: .45; }
+  /* 뒤로가기 : 화면 아래쪽에 마우스를 대면 바닥이 \__/ 모양으로 밝아지고, 누르면 한 단계 뒤로 (갈림길에서는 허브로) */
+  .backzone { position: absolute; left: 0; right: 0; bottom: 0; height: 16%; z-index: 4; cursor: pointer; }
+  .backglow { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity .5s var(--ease);
+    background: linear-gradient(to top, rgba(255,238,214,.42), rgba(255,238,214,.08) 40%, transparent 60%);
+    backdrop-filter: brightness(1.6);
+    -webkit-mask-image: radial-gradient(ellipse 82% 90% at 50% 0%, transparent 84%, rgba(0,0,0,.55) 94%, #000 100%);
+    mask-image: radial-gradient(ellipse 82% 90% at 50% 0%, transparent 84%, rgba(0,0,0,.55) 94%, #000 100%); }
+  .screen:has(.backzone:hover) .backglow, .screen:has(.backzone:focus-visible) .backglow { opacity: 1; }
+  .phone .backglow { opacity: .45; }
 
   /* 갈림길 아치 */
   .arch { cursor: pointer; }
@@ -107,18 +108,19 @@
 <section class="screen">
   <img class="bg" src="IMG_01-crossroads" alt="" />
   <a class="btn home" aria-label="홈으로">⌂</a>
+  <div class="backglow"></div><a class="backzone" aria-label="허브로"></a>
   <div class="abs arch" style="left:10%;top:14%;width:22%;height:60%"><div class="spill"></div><div class="inner"></div></div>
   <div class="abs arch" style="left:68%;top:14%;width:24%;height:60%"><div class="spill"></div><div class="inner"></div></div>
 </section>
 
 <!-- 2. 서양관 홀 / 3. 동양관 홀 : 문은 스크립트로 채운다 -->
-<section class="screen west" data-hall="west"><img class="bg" src="IMG_02-west-hall" alt="" /><a class="btn home">⌂</a><a class="backzone" aria-label="뒤로"></a></section>
-<section class="screen east" data-hall="east"><img class="bg" src="IMG_03-east-hall" alt="" /><a class="btn home">⌂</a><a class="backzone" aria-label="뒤로"></a></section>
+<section class="screen west" data-hall="west"><img class="bg" src="IMG_02-west-hall" alt="" /><a class="btn home">⌂</a><div class="backglow"></div><a class="backzone" aria-label="뒤로"></a></section>
+<section class="screen east" data-hall="east"><img class="bg" src="IMG_03-east-hall" alt="" /><a class="btn home">⌂</a><div class="backglow"></div><a class="backzone" aria-label="뒤로"></a></section>
 
 <!-- 4. 고대 전시실 / 5. 중세 전시실 (빈 방) -->
-<section class="screen room west" data-room="ancient"><img class="bg dark" src="IMG_10-west-ancient" alt="" /><img class="lit" src="IMG_10-west-ancient" alt="" /><div class="beam"></div><a class="btn home">⌂</a><a class="backzone" aria-label="뒤로"></a></section>
-<section class="screen room west" data-room="medieval"><img class="bg dark" src="IMG_11-west-medieval" alt="" /><img class="lit" src="IMG_11-west-medieval" alt="" /><div class="beam"></div><a class="btn home">⌂</a><a class="backzone" aria-label="뒤로"></a></section>
-<section class="screen room east" data-room="confucian"><img class="bg dark" src="IMG_20-east-confucian" alt="" /><img class="lit" src="IMG_20-east-confucian" alt="" /><div class="beam"></div><a class="btn home">⌂</a><a class="backzone" aria-label="뒤로"></a></section>
+<section class="screen room west" data-room="ancient"><img class="bg dark" src="IMG_10-west-ancient" alt="" /><img class="lit" src="IMG_10-west-ancient" alt="" /><div class="beam"></div><a class="btn home">⌂</a><div class="backglow"></div><a class="backzone" aria-label="뒤로"></a></section>
+<section class="screen room west" data-room="medieval"><img class="bg dark" src="IMG_11-west-medieval" alt="" /><img class="lit" src="IMG_11-west-medieval" alt="" /><div class="beam"></div><a class="btn home">⌂</a><div class="backglow"></div><a class="backzone" aria-label="뒤로"></a></section>
+<section class="screen room east" data-room="confucian"><img class="bg dark" src="IMG_20-east-confucian" alt="" /><img class="lit" src="IMG_20-east-confucian" alt="" /><div class="beam"></div><a class="btn home">⌂</a><div class="backglow"></div><a class="backzone" aria-label="뒤로"></a></section>
 
 <!-- 6. 모바일 : 동양관 홀, 가운데에서 시작해 좌우로 끌어 본다 -->
 <div class="phone" id="phone"><div class="pan east" data-hall="east" data-phone><img src="IMG_03-east-hall" alt="" /></div></div>

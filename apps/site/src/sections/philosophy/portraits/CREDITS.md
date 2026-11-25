@@ -16,6 +16,7 @@
 | confucius.jpg | 공자 | Konfuzius-1770.jpg (1770년경 중국 회화) | 위쪽 4 : 5 |
 | xunzi.jpg | 순자 | Portrait_of_Xun_Zi.jpg | |
 | zhuxi.jpg | 주희 | Zhu_Xi.jpg (목판 선화) | 어두운 방에서 흰 바탕이 튀지 않게 옛 종이색을 곱했다 |
+| zhuangzi.jpg | 장자 | images.jpg (관리자님이 장자 초상으로 확인) | 출처 페이지 미확인 |
 | laozi.jpg | 노자 | Zhang_Lu-Laozi_Riding_an_Ox.jpg (장로, 명대 「노자기우도」) | 소를 탄 노자 부분 |
 
 - 원본이 250 px 안팎이라 크게 걸면 흐리다. 커먼즈의 "Original file" 을 받으면 같은 자리로 다시 자른다.

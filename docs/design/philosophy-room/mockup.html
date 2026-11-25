@@ -19,13 +19,20 @@
   .btn.home { top: 16px; }
   /* 뒤로가기 : 화면 아래쪽에 마우스를 대면 바닥이 \__/ 모양으로 밝아지고, 누르면 한 단계 뒤로 (갈림길에서는 허브로) */
   .backzone { position: absolute; left: 0; right: 0; bottom: 0; height: 16%; z-index: 4; cursor: pointer; }
-  .backglow { position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity .5s var(--ease);
-    background: linear-gradient(to top, rgba(255,238,214,.42), rgba(255,238,214,.08) 40%, transparent 60%);
-    backdrop-filter: brightness(1.6);
-    -webkit-mask-image: radial-gradient(ellipse 82% 90% at 50% 0%, transparent 84%, rgba(0,0,0,.55) 94%, #000 100%);
-    mask-image: radial-gradient(ellipse 82% 90% at 50% 0%, transparent 84%, rgba(0,0,0,.55) 94%, #000 100%); }
+  /* 등 뒤의 문이 열린 것처럼 바닥에 문 모양 빛이 깔린다 (가까운 쪽이 좁고 먼 쪽이 넓은 \__/ 모양), 빛 색은 방마다 다르다 */
+  .backglow { position: absolute; left: 50%; bottom: -2%; width: 46%; height: 26%; transform: translateX(-50%); z-index: 3; pointer-events: none;
+    opacity: 0; transition: opacity .6s var(--ease); filter: blur(14px); mix-blend-mode: screen; }
+  .backglow::before { content: ""; position: absolute; inset: 0; clip-path: polygon(0% 0%, 100% 0%, 76% 100%, 24% 100%);
+    background: linear-gradient(to top, rgb(var(--glow) / .62), rgb(var(--glow) / .3) 70%, rgb(var(--glow) / .12)); }
   .screen:has(.backzone:hover) .backglow, .screen:has(.backzone:focus-visible) .backglow { opacity: 1; }
-  .phone .backglow { opacity: .45; }
+  .phone .backglow { opacity: .5; }
+  .phone { --glow: 255 196 128; }
+  .screen { --glow: 255 226 186; }
+  .screen.west[data-hall] { --glow: 255 222 176; }
+  .screen.east[data-hall], .phone .pan { --glow: 255 196 128; }
+  [data-room=ancient] { --glow: 255 214 160; }
+  [data-room=medieval] { --glow: 214 220 232; }
+  [data-room=confucian] { --glow: 255 204 150; }
 
   /* 갈림길 아치 */
   .arch { cursor: pointer; }

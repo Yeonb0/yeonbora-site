@@ -1,7 +1,13 @@
 ---
 import Layout from '@/sections/algo/Layout.astro'
+// 확장자를 붙인다 : 윈도우는 대소문자를 구분하지 않는다
+import Garden from '@/sections/algo/Garden.tsx'
+
+// 꽃 그림 (Figma AI 로 그린 파스텔 꽃) : 파일 이름 = 카테고리 코드
+const Files = import.meta.glob<{ default: ImageMetadata }>('../../sections/algo/assets/flowers/*.png', { eager: true })
+const Flowers = Object.fromEntries(Object.entries(Files).map(([path, mod]) => [path.split('/').pop()!.replace('.png', ''), mod.default.src]))
 ---
 
 <Layout>
-  <h1>준비 중</h1>
+  <Garden client:only="react" flowers={Flowers} />
 </Layout>

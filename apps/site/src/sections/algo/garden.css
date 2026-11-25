@@ -1,0 +1,535 @@
+/* 알고리즘 방 : 젤다풍 꽃밭 + Algoristro 목록 (Notion 다크) */
+@property --algo-r {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
+.algo-garden {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+  touch-action: manipulation;
+}
+
+/* 꽃밭 : 설계 크기 (가로 1280 x 800, 세로 720 x 1280) 를 화면에 꽉 차게 늘린다 */
+.algo-garden .field {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+.algo-garden .world {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  /* 목록에서 돌아올 때 : 목록이 먼저 옅어진 뒤 꽃밭이 줄어들며 나타난다 */
+  transition:
+    transform 0.85s cubic-bezier(0.6, 0, 0.2, 1) 0.25s,
+    opacity 0.45s ease 0.25s;
+}
+/* 꽃을 누르면 : 그 꽃으로 확대되며 꽃밭이 옅어진다 */
+.algo-garden.is-open .world {
+  opacity: 0;
+  transition:
+    transform 0.85s cubic-bezier(0.6, 0, 0.2, 1),
+    opacity 0.45s ease 0.3s;
+}
+.algo-garden.is-open:not(.is-zoomed) .world {
+  transition: none;
+}
+
+.algo-garden .layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* 살랑이는 풀 띠 · 맨 앞 흐린 풀 : 한 번 그린 캔버스를 CSS 로 살짝 기울였다 돌아온다 */
+.algo-garden .band {
+  position: absolute;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  will-change: transform;
+  animation: algo-sway 4.4s ease-in-out infinite alternate;
+}
+.algo-garden .fore {
+  transform-origin: 50% 100%;
+  will-change: transform;
+  animation: algo-sway 5.2s ease-in-out infinite alternate;
+}
+@keyframes algo-sway {
+  from {
+    transform: skewX(-1.1deg);
+  }
+  to {
+    transform: skewX(1.1deg);
+  }
+}
+
+/* 꽃 한 송이 : 땅에 닿는 자리를 기준으로 줄기째 살랑인다 */
+.algo-garden .flower {
+  position: absolute;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  animation: algo-nod ease-in-out infinite alternate;
+  transition: opacity 0.35s;
+}
+.algo-garden .flower.dim {
+  opacity: 0.7;
+}
+@keyframes algo-nod {
+  from {
+    transform: rotate(-1.6deg);
+  }
+  to {
+    transform: rotate(1.6deg);
+  }
+}
+.algo-garden .flower > span,
+.algo-garden .head,
+.algo-garden .face,
+.algo-garden .face img,
+.algo-garden .hit {
+  position: absolute;
+}
+.algo-garden .shadow {
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(20, 50, 10, 0.35), rgba(20, 50, 10, 0) 70%);
+}
+.algo-garden .stem {
+  border-radius: 6px;
+  transform-origin: 50% 100%;
+  box-shadow: 1px 0 2px rgba(10, 30, 5, 0.18);
+}
+.algo-garden .head {
+  width: 0;
+  height: 0;
+}
+.algo-garden .face {
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.algo-garden .face.hot {
+  transform: scale(1.08);
+}
+.algo-garden .face img {
+  max-width: none;
+  object-fit: contain;
+  user-select: none;
+}
+.algo-garden .hit {
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.algo-garden .hit:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.algo-garden .veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.algo-garden .vignette {
+  background: radial-gradient(ellipse 85% 95% at 50% 78%, rgba(0, 0, 0, 0) 62%, rgba(10, 30, 5, 0.16) 100%);
+}
+
+/* 호버한 꽃 이름 */
+.algo-garden .label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  align-items: baseline;
+  gap: 0.55em;
+  padding: 0.4em 0.85em;
+  border-radius: 8px;
+  background: rgba(25, 25, 25, 0.82);
+  color: #e6e6e5;
+  font-family: var(--font-base);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.algo-garden .label b {
+  font-family: var(--font-point);
+}
+.algo-garden .label small {
+  font-size: 0.8em;
+  color: #9b9b93;
+}
+
+/* 들어올 때 : 허브 칸 색 (자주) 에서 꽃밭이 가운데부터 드러난다 */
+.algo-garden .enter {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(162, 28, 175, 0) var(--algo-r), var(--enter-from) calc(var(--algo-r) + 45%));
+  animation: algo-enter 1.1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes algo-enter {
+  0% {
+    --algo-r: -45%;
+  }
+  78% {
+    --algo-r: 100%;
+    opacity: 1;
+  }
+  100% {
+    --algo-r: 100%;
+    opacity: 0;
+  }
+}
+
+/* ---------- 목록 화면 (Algoristro, Notion 다크) ---------- */
+.algo-garden .list {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  background: #191919;
+  color: #e6e6e5;
+  font-family: var(--font-base);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.4s ease,
+    visibility 0s linear 0.4s;
+}
+/* 확대가 끝난 뒤에 목록이 나타난다 */
+.algo-garden.is-open .list {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.4s ease 0.7s,
+    visibility 0s;
+}
+.algo-garden.is-open:not(.is-zoomed) .list {
+  transition:
+    opacity 0.3s ease 0.05s,
+    visibility 0s;
+}
+.algo-garden .list button {
+  font: inherit;
+  color: inherit;
+}
+.algo-garden .list :focus-visible {
+  outline: 2px solid #5e7ce2;
+  outline-offset: 2px;
+}
+.algo-garden .side {
+  width: 260px;
+  flex: none;
+  box-sizing: border-box;
+  padding: 76px 8px 16px;
+  background: #202020;
+  border-right: 1px solid #2e2e2e;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow-y: auto;
+}
+.algo-garden .row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #9b9b93 !important;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.algo-garden .row:hover {
+  background: #2f2f2f;
+  color: #e6e6e5 !important;
+}
+.algo-garden .row.on {
+  background: #1e2a4a;
+  color: #5e7ce2 !important;
+}
+.algo-garden .home-row {
+  margin-bottom: 10px;
+}
+.algo-garden .row .mark {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-point);
+  font-size: 11px;
+  background: #2a2a2a;
+}
+.algo-garden .row .grow {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.algo-garden .row .count {
+  font-size: 11px;
+  color: #7a7a72;
+}
+
+.algo-garden .body {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 72px 64px 0;
+  display: flex;
+  flex-direction: column;
+}
+.algo-garden .title {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 28px;
+}
+.algo-garden .title .badge {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #1e2a4a;
+  color: #5e7ce2;
+  font-family: var(--font-point);
+  font-size: 26px;
+}
+.algo-garden .title h1 {
+  margin: 0;
+  font-family: var(--font-point);
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.algo-garden .tabs {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: 20px;
+  background: #222222;
+  border-radius: 7px;
+}
+.algo-garden .tabs button {
+  height: 28px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #7a7a72 !important;
+  font-size: 12px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.algo-garden .tabs button.on {
+  background: #2e2e2e;
+  color: #e6e6e5 !important;
+}
+
+.algo-garden .board {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(140px, 1fr));
+  gap: 10px;
+  overflow-x: auto;
+  animation: algo-show 0.22s ease both;
+}
+.algo-garden .col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.algo-garden .col h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  margin: 0;
+  padding: 0 4px;
+  font-size: 13px;
+  font-family: var(--font-point);
+}
+.algo-garden .col h2 i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.algo-garden .col h2 small {
+  font-size: 11px;
+  color: #7a7a72;
+  font-family: var(--font-base);
+}
+.algo-garden .cards {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 4px 40px;
+  border-radius: 8px 8px 0 0;
+}
+.algo-garden .card {
+  display: block;
+  padding: 8px 10px;
+  border: 1px solid #373737;
+  border-radius: 6px;
+  background: #212121;
+  color: #e6e6e5;
+  font-size: 12.5px;
+  line-height: 1.4;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.algo-garden .card:hover {
+  background: #2f2f2f;
+  border-color: #444444;
+}
+.algo-garden .classes {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 40px;
+  animation: algo-show 0.22s ease both;
+}
+.algo-garden .class-row {
+  display: flex;
+  gap: 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid #2e2e2e;
+}
+.algo-garden .class-name {
+  width: 72px;
+  flex: none;
+  font-size: 13px;
+  font-family: var(--font-point);
+}
+.algo-garden .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.algo-garden .chip {
+  padding: 3px 8px;
+  border: 1px solid #373737;
+  border-radius: 4px;
+  color: #e6e6e5;
+  font-size: 12px;
+  text-decoration: none;
+}
+.algo-garden .chip:hover {
+  border-color: #555555;
+}
+@keyframes algo-show {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.algo-garden .cards::-webkit-scrollbar,
+.algo-garden .classes::-webkit-scrollbar,
+.algo-garden .side::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.algo-garden .cards::-webkit-scrollbar-thumb,
+.algo-garden .classes::-webkit-scrollbar-thumb,
+.algo-garden .side::-webkit-scrollbar-thumb {
+  background: #373737;
+  border-radius: 3px;
+}
+
+/* 좁은 화면 : 사이드바는 위쪽 가로 줄, 티어 보드는 옆으로 넘긴다 */
+@media (max-width: 760px) {
+  .algo-garden .list {
+    flex-direction: column;
+  }
+  .algo-garden .side {
+    width: auto;
+    flex-direction: row;
+    padding: 70px 12px 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: 0;
+    border-bottom: 1px solid #2e2e2e;
+    gap: 4px;
+  }
+  .algo-garden .row {
+    flex: none;
+  }
+  .algo-garden .row .grow {
+    flex: none;
+  }
+  .algo-garden .home-row {
+    margin-bottom: 0;
+  }
+  .algo-garden .body {
+    padding: 20px 16px 0;
+  }
+  .algo-garden .title {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .algo-garden .title .badge {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  .algo-garden .title h1 {
+    font-size: 26px;
+  }
+  .algo-garden .board {
+    grid-template-columns: repeat(6, 150px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .algo-garden .band,
+  .algo-garden .fore,
+  .algo-garden .flower {
+    animation: none;
+  }
+  .algo-garden .world,
+  .algo-garden.is-open .world,
+  .algo-garden .list,
+  .algo-garden.is-open .list {
+    transition-duration: 0.15s;
+    transition-delay: 0s;
+  }
+  .algo-garden .enter {
+    animation-duration: 0.25s;
+  }
+}

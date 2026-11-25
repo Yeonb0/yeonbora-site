@@ -1,6 +1,8 @@
-/* philosophy 섹션 임시 토큰 : 섹션 목업 승인 후 교체 */
+/* philosophy 섹션 토큰 : 실사풍 미술관. 바탕은 사진 둘레의 아주 어두운 밤색 */
 :root:has(.section-philosophy) {
-  --bg: #1a1a1a;
-  --fg: #e0e0e0;
-  --home-fg: #e0e0e0;
+  --bg: #0b0806;
+  --fg: #f2e8da;
+  --home-fg: #f2e8da;
+  /* 허브 철학 칸 색 : 들어올 때 이 색에서 장면이 번져 나온다 */
+  --enter-from: #6d28d9;
 }

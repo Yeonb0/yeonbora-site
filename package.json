@@ -7,6 +7,7 @@
     "dev": "pnpm --filter site dev",
     "build": "pnpm --filter site build",
     "preview": "pnpm --filter site preview",
-    "check": "pnpm --filter site check"
+    "check": "pnpm --filter site check",
+    "test": "pnpm --filter site test"
   }
 }

@@ -21,9 +21,11 @@
   /* 갈림길 아치 */
   .arch { cursor: pointer; }
   .arch .inner { position: absolute; inset: 4% 7% 0; border-radius: 50% 50% 0 0 / 24% 24% 0 0; backdrop-filter: brightness(1) saturate(1); transition: backdrop-filter .8s var(--ease); }
-  .arch .spill { position: absolute; inset: -22% -38% -6%; pointer-events: none; mix-blend-mode: screen; opacity: 0; transition: opacity .8s var(--ease);
-    background: radial-gradient(ellipse 40% 50% at 50% 50%, rgba(255,206,140,.55), rgba(255,180,100,.24) 55%, transparent 78%),
-                radial-gradient(ellipse 60% 22% at 50% 102%, rgba(255,200,130,.35), transparent 70%); }
+  .arch .spill { position: absolute; inset: -30% -55% -40%; pointer-events: none; mix-blend-mode: screen; opacity: 0; transition: opacity .8s var(--ease);
+    background: radial-gradient(ellipse 30% 38% at 50% 46%, rgba(255,206,140,.5), rgba(255,180,100,.22) 55%, transparent 80%),
+                radial-gradient(ellipse 46% 22% at 50% 75%, rgba(255,205,135,.95), rgba(255,180,100,.4) 50%, transparent 80%),
+                radial-gradient(ellipse 70% 34% at 50% 86%, rgba(255,190,110,.42), transparent 74%); }
+  .arch .inner { -webkit-mask-image: linear-gradient(to bottom, #000 80%, rgba(0,0,0,.6)); mask-image: linear-gradient(to bottom, #000 80%, rgba(0,0,0,.6)); }
   .arch:hover .inner { backdrop-filter: brightness(1.85) saturate(1.12); }
   .arch:hover .spill { opacity: 1; }
 
@@ -43,18 +45,15 @@
   .door:hover .glow { opacity: 1; }
   .floorglow { pointer-events: none; background: radial-gradient(ellipse at 50% 0%, rgba(255,200,120,.35), transparent 70%); opacity: 0; transition: opacity .6s var(--ease); }
 
-  /* 명판 */
-  .plaque { pointer-events: none; overflow: hidden; display: grid; place-items: center; border-radius: 1.5px;
-    color: rgba(255,251,242,.94); background: url(PLATE) center / cover;
-    text-shadow: 0 -1px 0 rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.18);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.45), 0 3px 4px rgba(0,0,0,.5), 0 8px 14px rgba(0,0,0,.28);
-    transform: perspective(700px) rotateY(var(--tilt, 0deg)); filter: brightness(.78) sepia(.25) saturate(1.1); transition: filter .5s var(--ease); }
-  .plaque::before { content: ""; position: absolute; inset: 0; mix-blend-mode: soft-light; background: linear-gradient(to bottom, rgba(255,214,160,.7), rgba(40,25,10,.55)); }
-  .plaque::after { content: ""; position: absolute; top: -40%; bottom: -40%; width: 40%; left: -60%; background: linear-gradient(105deg, transparent, rgba(255,255,255,.5), transparent); transform: skewX(-12deg); }
-  .plaque.lit { filter: brightness(1) sepia(.12) saturate(1.05); } .plaque.lit::after { animation: sweep .9s var(--ease) forwards; }
-  .west .plaque { font-family: Cinzel, serif; font-weight: 600; letter-spacing: .05em; font-size: clamp(6px, .82vw, 11px); }
-  .east .plaque { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: clamp(11px, 1.9vw, 24px); }
-  @keyframes sweep { to { left: 130%; } }
+  /* 문틈 너머 전시실 벽의 이름 : 문이 다 열린 뒤 떠오른다 */
+  .door .title { position: absolute; left: 0; right: 0; top: 30%; text-align: center; color: rgba(52,36,20,.82); opacity: 0; transition: opacity .5s var(--ease) 0s; pointer-events: none; }
+  .door:hover .title { opacity: 1; transition-delay: .35s; }
+  .west .door .title { font-family: Cinzel, serif; font-weight: 600; letter-spacing: .08em; font-size: clamp(7px, 1vw, 13px); }
+  .east .door .title { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: clamp(14px, 2.4vw, 30px); }
+  /* 모바일 : 호버가 없으니 문 앞 바닥에 이름을 늘 보인다 */
+  .floortitle { display: none; position: absolute; text-align: center; color: rgba(255,240,215,.75); text-shadow: 0 1px 6px rgba(0,0,0,.7); pointer-events: none; }
+  .phone .floortitle { display: block; }
+  .east .floortitle { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 22px; }
 
   /* 전시실 : 불 꺼진 방 + 스포트라이트 */
   .room .dark { filter: brightness(.22); }
@@ -67,13 +66,20 @@
   .room .beam { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: calc(var(--sa) * .3);
     -webkit-mask-image: var(--cone), var(--fade); mask-image: var(--cone), var(--fade); -webkit-mask-composite: source-in; mask-composite: intersect;
     background: linear-gradient(to bottom, rgba(255,226,176,.35), rgba(255,214,150,.08) 70%, transparent); }
-  .frame { cursor: pointer; padding: .45%; border-radius: 1px; opacity: .3; transition: opacity .7s var(--ease); }
+  .frame { cursor: pointer; padding: .7%; border-radius: 1px; opacity: .3; transition: opacity .7s var(--ease); }
   .frame.on { opacity: 1; }
-  .west .frame { background: linear-gradient(135deg, #8a6a2a, #d8b15e 35%, #7a5a20 65%, #c9a14f); box-shadow: 0 6px 16px rgba(0,0,0,.6); }
-  .east .frame { background: #2a1a10; box-shadow: 0 6px 16px rgba(0,0,0,.6); }
+  .frame { --wood: #5a3a22; --wood2: #3e2615; --wood3: #6e4a2c;
+    background:
+      repeating-linear-gradient(92deg, rgba(0,0,0,.18) 0 1px, transparent 1px 4px),
+      repeating-linear-gradient(88deg, rgba(255,230,200,.06) 0 2px, transparent 2px 9px),
+      linear-gradient(90deg, var(--wood2), var(--wood3) 30%, var(--wood) 55%, var(--wood2) 80%, var(--wood3));
+    box-shadow: inset 0 1px 0 rgba(255,220,180,.25), inset 0 -2px 2px rgba(0,0,0,.5), 0 6px 16px rgba(0,0,0,.6); }
+  .frame .canvas { box-shadow: inset 0 0 0 1px rgba(0,0,0,.6), inset 0 2px 6px rgba(0,0,0,.55); }
+  .east .frame { --wood: #3a2416; --wood2: #24150c; --wood3: #4a2f1c; }
   .frame .canvas { width: 100%; height: 100%; background: radial-gradient(ellipse at 50% 38%, #b48a5c 0 16%, transparent 17%), radial-gradient(ellipse at 50% 92%, #5a3a22 0 38%, transparent 39%), linear-gradient(#3a2a1c, #1f150d); }
   .frame.empty .canvas { background: #d9d0bf; }
-  .label { position: absolute; left: 50%; top: calc(100% + 6px); transform: translateX(-50%); padding: 2px 10px; white-space: nowrap; color: #fff; background: url(PLATE) center / cover; text-shadow: 0 1px 2px rgba(0,0,0,.75); font-family: Cinzel, serif; font-weight: 600; letter-spacing: .1em; font-size: clamp(7px, .9vw, 12px); opacity: 0; transition: opacity .4s var(--ease); }
+  .label { position: absolute; left: 50%; top: calc(100% + 8px); transform: translateX(-50%); white-space: nowrap; color: rgba(40,28,16,.85); font-family: Cinzel, serif; font-weight: 600; letter-spacing: .1em; font-size: clamp(7px, .85vw, 12px); opacity: 0; transition: opacity .5s var(--ease); }
+  .east .label { font-family: 'Noto Serif KR', serif; font-weight: 700; letter-spacing: .05em; font-size: clamp(9px, 1.1vw, 15px); }
   .frame.on .label { opacity: 1; }
 
   /* 모바일 */
@@ -81,7 +87,6 @@
   .phone .pan { position: relative; aspect-ratio: 16 / 9; height: 100%; }
   .phone .btn { position: sticky; float: left; margin: 16px 0 0 16px; }
   .phone .pan > img { width: 100%; height: 100%; object-fit: cover; }
-  .phone .plaque { filter: brightness(.95) sepia(.15); }
 </style>
 </head>
 <body>
@@ -123,18 +128,16 @@
       Object.assign(D.style, { left: x + '%', top: y + '%', width: w + '%', height: h + '%' })
       const bgSize = `${(100 / w) * 100}% ${(100 / h) * 100}%`
       const leaf = (side, offX) => `<div class="leaf ${side}" style="background-image:url(${hallSrc});background-size:${(100 / (w / 2)) * 100}% ${(100 / h) * 100}%;background-position:${((x + offX) / (100 - w / 2)) * 100}% ${(y / (100 - h)) * 100}%"></div>`
-      D.innerHTML = `<div class="behind" style="background-image:url(${Rooms[wing][i]})"></div><div class="glow"></div>` + leaf('l', 0) + leaf('r', w / 2)
+      D.innerHTML = `<div class="behind" style="background-image:url(${Rooms[wing][i]})"></div><div class="glow"></div><div class="title">${Labels[wing][i]}</div>` + leaf('l', 0) + leaf('r', w / 2)
       const P = document.createElement('div')
-      P.className = 'abs plaque'
-      const pw = wing === 'west' ? 9.6 : 3.6, ph = wing === 'west' ? 3.2 : 5, gap = wing === 'west' ? 4.8 : 6.8
-      Object.assign(P.style, { left: x + w / 2 - pw / 2 + '%', top: y - gap + '%', width: pw + '%', height: ph + '%' })
+      P.className = 'floortitle'
+      Object.assign(P.style, { left: x + '%', top: y + h + 3 + '%', width: w + '%' })
       P.textContent = Labels[wing][i]
-      P.style.setProperty('--tilt', (-(x + w / 2 - 50) / 50) * 24 + 'deg')
       const F = document.createElement('div')
       F.className = 'abs floorglow'
       Object.assign(F.style, { left: x - w * 0.3 + '%', top: y + h + '%', width: w * 1.6 + '%', height: '18%' })
-      D.addEventListener('mouseenter', () => { P.classList.remove('lit'); void P.offsetWidth; P.classList.add('lit'); F.style.opacity = 1 })
-      D.addEventListener('mouseleave', () => { P.classList.remove('lit'); F.style.opacity = 0 })
+      D.addEventListener('mouseenter', () => { F.style.opacity = 1 })
+      D.addEventListener('mouseleave', () => { F.style.opacity = 0 })
       S.append(F, D, P)
     })
   })
@@ -147,20 +150,30 @@
     confucian: [['孔子',3],['孟子',3],['荀子',3],['朱熹',2],['李滉',2],['李珥',2]],
   }
   const WidthOf = { 3: .16, 2: .11, 1: .07 }
+  const rng = (seed) => () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 }
+  const seedOf = (It) => { let h = 2166136261; for (const c of It.map((i) => i.id ?? '_').join('|')) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0 }
   const hang = (list, [wx, wy, ww, wh]) => {
-    const Items = list.length ? list.map(([l, wt]) => ({ l, wt })) : [{ l: null, wt: 2 }, { l: null, wt: 2 }, { l: null, wt: 2 }]
-    const top = Math.max(...Items.map((i) => i.wt))
-    const Mid = Items.filter((i) => i.wt === top), Rest = Items.filter((i) => i.wt !== top).sort((a, b) => b.wt - a.wt)
-    const Up = [], Down = []; Rest.forEach((it, i) => (i % 2 ? Down : Up).push(it))
-    const Rows = [Up, Mid, Down]
-    let s = 1
-    const lay = (r) => { const Sz = r.map((i) => { const w = ww * WidthOf[i.wt] * s; return { w, h: w * 1.25 * 16 / 9 } }); const g = Math.max(0, ...Sz.map((z) => z.w)) * .25; return { Sz, g, W: Sz.reduce((a, z) => a + z.w, 0) + g * Math.max(0, r.length - 1), H: Math.max(0, ...Sz.map((z) => z.h)) } }
-    let L
-    for (;;) { L = Rows.map(lay); const fy = L[1].H + 2 * Math.max(L[0].H + (Up.length ? 5.5 : 0), L[2].H + (Down.length ? 5.5 : 0)) <= wh; if ((L.every((l) => l.W <= ww) && fy) || s < .05) break; s *= .95 }
-    const my = wy + wh / 2, T = [my - L[1].H / 2 - 5.5 - L[0].H, my - L[1].H / 2, my + L[1].H / 2 + 5.5]
-    const Out = []
-    Rows.forEach((r, ri) => { let x = wx + (ww - L[ri].W) / 2; r.forEach((it, i) => { const z = L[ri].Sz[i]; const y = ri === 0 ? T[0] + L[0].H - z.h : ri === 1 ? T[1] + (L[1].H - z.h) / 2 : T[2]; Out.push({ ...it, x, y, w: z.w, h: z.h }); x += z.w + L[ri].g }) })
-    return Out
+    const Items = (list.length ? list.map(([l, wt]) => ({ id: l, l, wt })) : [{ id: null, l: null, wt: 2 }, { id: null, l: null, wt: 2 }, { id: null, l: null, wt: 2 }]).sort((a, b) => b.wt - a.wt)
+    const seed = seedOf(Items), top = Math.max(...Items.map((i) => i.wt)), cx = wx + ww / 2, cy = wy + wh / 2
+    const close = (a, b) => { const gx = Math.min(a.w, b.w) * .22, gy = wh * .05; return a.x < b.x + b.w + gx && b.x < a.x + a.w + gx && a.y < b.y + b.h + gy && b.y < a.y + a.h + gy }
+    for (let s = 1; s > .05; s *= .93) {
+      const rand = rng(seed), Out = []
+      let ok = true
+      for (const it of Items) {
+        const k = it.wt === top ? 1 : 1 + (rand() * 2 - 1) * .08, w = ww * WidthOf[it.wt] * s * k, h = w * 1.25 * 16 / 9
+        let P = null
+        for (let t = 0; t < 400 && !P; t++) {
+          const sp = t / 400, x = cx - w / 2 + (rand() * 2 - 1) * sp * (ww - w) / 2
+          const yr = it.wt === top ? wh * .12 : (wh - h) / 2, y = cy - h / 2 + (rand() * 2 - 1) * Math.min(1, sp * 1.6) * yr
+          const R = { x, y, w, h }
+          if (x >= wx && y >= wy && x + w <= wx + ww && y + h <= wy + wh && Out.every((o) => !close(o, R))) P = R
+        }
+        if (!P) { ok = false; break }
+        Out.push({ ...it, ...P })
+      }
+      if (ok) return Out
+    }
+    return []
   }
   document.querySelectorAll('[data-room]').forEach((S) => {
     const room = S.dataset.room

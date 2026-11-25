@@ -49,6 +49,27 @@ describe('hangFrames', () => {
     expect(centerX(Out[0].rect)).toBeCloseTo(Wall.x + Wall.w / 2, 5)
   })
 
+  it('줄 맞춰 늘어서지 않고 흩어져 걸린다 : 고대 8명의 세로 위치가 5가지 이상', () => {
+    const Out = hangFrames(inRoom('ancient'), Wall)
+    const Ys = new Set(Out.map((h) => Math.round(h.rect.y * 10)))
+    expect(Ys.size).toBeGreaterThanOrEqual(5)
+  })
+
+  it('같은 철학자 목록이면 언제나 같은 자리에 건다', () => {
+    expect(hangFrames(inRoom('ancient'), Wall)).toEqual(hangFrames(inRoom('ancient'), Wall))
+  })
+
+  it('액자 아래에 이름이 들어갈 틈 (벽 높이의 4% 이상) 을 남긴다', () => {
+    const Out = hangFrames(inRoom('ancient'), Wall)
+    for (const A of Out)
+      for (const B of Out) {
+        if (A === B) continue
+        const below = B.rect.y >= A.rect.y + A.rect.h
+        const sideBySide = B.rect.x >= A.rect.x + A.rect.w || A.rect.x >= B.rect.x + B.rect.w
+        if (below && !sideBySide) expect(B.rect.y - (A.rect.y + A.rect.h)).toBeGreaterThanOrEqual(Wall.h * 0.04)
+      }
+  })
+
   it('유가 6명도 겹치지 않는다', () => {
     const Out = hangFrames(inRoom('confucian'), Wall)
     expect(Out).toHaveLength(6)

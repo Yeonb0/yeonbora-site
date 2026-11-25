@@ -396,12 +396,14 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, var(--icon-cell-w));
+  grid-template-columns: repeat(auto-fill, calc(var(--icon-cell-w) * 1.2));
   gap: var(--icon-gap-y) var(--icon-gap-x);
   justify-content: start;
-  font-size: var(--icon-label);
+  font-size: calc(var(--icon-label) * 1.15);
 }
-.folder li { height: var(--icon-cell-h); }
+.folder li { height: calc(var(--icon-cell-h) * 1.2); }
+/* 폴더 안 아이콘은 바탕화면보다 살짝 크게 */
+.folder .icon img { width: calc(var(--icon-size) * 1.2); height: calc(var(--icon-size) * 1.2); }
 .list ul { list-style: none; margin: 0; padding: 0; }
 .list a { color: var(--icon); text-decoration: none; }
 .list li a {

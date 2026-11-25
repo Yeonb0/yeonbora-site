@@ -404,7 +404,7 @@ function Window({ win, z, screen, reg, originRect, onFront, onClose, onRemoved, 
       data-closing={win.closing}
       tabIndex={-1}
       aria-label={win.title}
-      style={{ left: win.x, top: win.y, width: win.w, height: win.h, zIndex: z + 1, '--c': win.color } as CSSProperties}
+      style={{ left: win.x, top: win.y, width: win.w, height: win.h, zIndex: z + 10, '--c': win.color } as CSSProperties}
       onPointerDown={onFront}
     >
       <div className="titlebar" onPointerDown={onDown} onPointerMove={onMoveEv} onPointerUp={() => (Drag.current = null)} onPointerCancel={() => (Drag.current = null)}>

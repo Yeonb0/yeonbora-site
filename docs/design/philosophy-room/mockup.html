@@ -20,7 +20,7 @@
   /* 뒤로가기 : 화면 아래쪽에 마우스를 대면 바닥이 \__/ 모양으로 밝아지고, 누르면 한 단계 뒤로 (갈림길에서는 허브로) */
   .backzone { position: absolute; left: 0; right: 0; bottom: 0; height: 16%; z-index: 4; cursor: pointer; }
   /* 등 뒤의 문이 열린 것처럼 바닥에 문 모양 빛이 깔린다 (가까운 쪽이 좁고 먼 쪽이 넓은 \__/ 모양), 빛 색은 방마다 다르다 */
-  .backglow { position: absolute; left: 50%; bottom: -2%; width: 46%; height: 26%; transform: translateX(-50%); z-index: 3; pointer-events: none;
+  .backglow { position: absolute; left: 50%; bottom: -2%; width: 62%; height: 34%; transform: translateX(-50%); z-index: 3; pointer-events: none;
     opacity: 0; transition: opacity .6s var(--ease); filter: blur(14px); mix-blend-mode: screen; }
   .backglow::before { content: ""; position: absolute; inset: 0; clip-path: polygon(0% 0%, 100% 0%, 76% 100%, 24% 100%);
     background: linear-gradient(to top, rgb(var(--glow) / .62), rgb(var(--glow) / .3) 70%, rgb(var(--glow) / .12)); }

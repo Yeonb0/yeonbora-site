@@ -1,0 +1,9 @@
+// Cloudflare Workers 정적 배포 설정
+// 저장소 루트가 pnpm workspace 라 올릴 폴더를 직접 지정한다
+{
+  "name": "yeonbora-site",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./apps/site/dist"
+  }
+}

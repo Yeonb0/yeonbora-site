@@ -1,6 +1,6 @@
 // 프로젝트 방 : 도트로 그린 방 한 장. Room.tsx 가 그린 골격 (root) 위에서 TV 속 CD 고르기, 창밖 하늘 · 날씨, 방 연출을 돌린다
 import type { TransitionBeforePreparationEvent } from 'astro:transitions/client'
-import { makeArts } from './art'
+import { blankArt, loadArt } from './art'
 import { DiscSize, drawDisc } from './disc'
 import { drawText } from './font'
 import { canvas2d } from './pixel'
@@ -88,7 +88,6 @@ export const mountRoom = ({ root, projects, scene, fromHub }: RoomOptions): (() 
   let Base: Base = { k: 1, ox: 0, oy: 0 }
 
   // ---------- CD ----------
-  const Arts = makeArts()
   const Cds: Cd[] = projects.map((g, i) => {
     const El = document.createElement('div')
     El.className = 'cd'
@@ -103,8 +102,19 @@ export const mountRoom = ({ root, projects, scene, fromHub }: RoomOptions): (() 
       Hover = false
     })
     const Ctx = Cv.getContext('2d')!
-    return { el: El, ctx: Ctx, img: Ctx.createImageData(DiscSize, DiscSize), art: Arts[g.id], a: Math.random() * 360, v: 0, key: '' }
+    return { el: El, ctx: Ctx, img: Ctx.createImageData(DiscSize, DiscSize), art: blankArt(g.color), a: Math.random() * 360, v: 0, key: '' }
   })
+  // 그림이 오면 바꿔 끼우고 다시 그린다 (멈춰 있어도 다음 프레임에 한 번 그리게 한다)
+  projects.forEach((g, i) =>
+    loadArt(g.id)
+      .then((A) => {
+        if (!Alive) return
+        Cds[i].art = A
+        Cds[i].key = ''
+        LastPos = NaN
+      })
+      .catch(() => {}),
+  )
   const go = (i: number) => {
     Target = Math.max(0, Math.min(N - 1, i))
   }

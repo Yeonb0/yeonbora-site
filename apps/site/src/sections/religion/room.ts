@@ -72,7 +72,19 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
     Off.push(() => t.removeEventListener(type, fn as EventListener, opt))
   }
   let Alive = true
-  const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, Reduce ? Math.min(ms, 60) : ms))
+  // 기다리는 타이머 : 방을 떠나면 모두 취소한다. 기다리던 연출은 이어지지 않고 (promise 가 끝나지 않음) 떨어져 나간 DOM 을 붙잡지 않는다
+  const Timers = new Set<number>()
+  const wait = (ms: number) =>
+    new Promise<void>((r) => {
+      const T = window.setTimeout(
+        () => {
+          Timers.delete(T)
+          r()
+        },
+        Reduce ? Math.min(ms, 60) : ms,
+      )
+      Timers.add(T)
+    })
 
   // ---------- 장면 ----------
   const Mats = makeMaterials()
@@ -635,6 +647,8 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
   return () => {
     Alive = false
     cancelAnimationFrame(Raf)
+    Timers.forEach((T) => clearTimeout(T))
+    Timers.clear()
     RO.disconnect()
     Off.forEach((f) => f())
     for (const S of Slots) {
@@ -648,7 +662,10 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
     Mats.dispose()
     Scene.environment?.dispose()
     LiftScene.environment?.dispose()
+    // dispose 만으로는 WebGL 컨텍스트가 GC 전까지 남는다 : 방을 오갈수록 쌓여 브라우저 한도 (약 16개) 에 닿지 않게 바로 놓는다
     Tray.dispose()
+    Tray.forceContextLoss()
     LiftR.dispose()
+    LiftR.forceContextLoss()
   }
 }

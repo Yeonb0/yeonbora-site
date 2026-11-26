@@ -72,6 +72,3 @@ export const Palettes: Record<TimeOfDay, Palette> = {
 // 새벽 5 ~ 8시, 낮 8 ~ 17시, 노을 17 ~ 20시, 밤 20 ~ 5시
 export const timeOfDay = (hour: number): TimeOfDay => (hour >= 5 && hour < 8 ? 'dawn' : hour >= 8 && hour < 17 ? 'day' : hour >= 17 && hour < 20 ? 'sunset' : 'night')
 
-// 줄기 · 잎 : 지금 시간대의 풀 색에서 뽑는다 (풀과 톤을 맞춘다)
-export const stemPaint = (P: Palette) => `linear-gradient(90deg, ${P.shade}, ${P.mids[2]} 35%, ${P.tips[1]} 55%, ${P.mids[0]})`
-export const leafPaint = (P: Palette) => `linear-gradient(180deg, ${P.tips[3]}, ${P.mids[1]})`

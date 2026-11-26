@@ -30,18 +30,28 @@ export interface FlowerSpot {
   delay: number
 }
 
-// 가로 화면 (1280 x 800) 과 세로 화면 (720 x 1280) 의 꽃 머리 자리 (0 ~ 1 비율)
-const LANDSCAPE: Record<string, [number, number]> = {
-  H: [300, 280], D: [690, 195], I: [1020, 300], K: [540, 470], A: [150, 505], B: [880, 490],
-  C: [1160, 515], E: [470, 140], F: [1170, 130], G: [250, 400], J: [730, 365], L: [930, 110],
+// 꽃 머리 자리 : 세 줄 x 네 칸. 아래 줄 ABCD → 가운데 EFGH → 위 줄 IJKL
+// 위 줄로 갈수록 오른쪽으로 밀어 칸마다 / 모양으로 기운다
+// 넓은 화면은 위아래가 잘리므로 (가로 2.2 : 1 까지 1280 x 800 에서 y 110 ~ 690 이 보인다) 그 안에 둔다
+const grid = (xs: number[], ys: number[], shift: number, wobble: number[]): Record<string, [number, number]> => {
+  const Out: Record<string, [number, number]> = {}
+  'ABCDEFGHIJKL'.split('').forEach((l, i) => {
+    const row = Math.floor(i / 4)
+    const col = i % 4
+    Out[l] = [xs[col] + shift * row, ys[row] + wobble[i]]
+  })
+  return Out
 }
-const PORTRAIT: Record<string, [number, number]> = {
-  L: [520, 150], F: [190, 190], E: [380, 300], D: [590, 380], H: [170, 460], J: [430, 540],
-  I: [600, 680], G: [150, 720], K: [380, 830], A: [140, 960], B: [420, 1010], C: [610, 1080],
-}
+// 반듯한 격자처럼 보이지 않게 칸마다 조금씩 위아래로 흔든다
+const Wobble = [6, -8, 10, -4, -6, 8, -10, 4, 6, -6, 8, -8]
+const LANDSCAPE = grid([210, 460, 710, 960], [540, 395, 255], 70, Wobble)
+const PORTRAIT = grid([130, 265, 400, 535], [960, 690, 420], 40, Wobble.map((v) => v * 1.6))
 
 // 세로가 가로의 0.85배보다 길면 세로 배치
-export const pickStage = (vw: number, vh: number): Stage => (vw / vh < 0.85 ? { W: 720, H: 1280, portrait: true } : { W: 1280, H: 800, portrait: false })
+// 늘 같은 객체를 돌려준다 : 화면 크기가 조금 바뀔 때마다 새 객체가 되면 풀밭을 통째로 다시 만든다 (캔버스 수십 MB)
+const StagePortrait: Stage = { W: 720, H: 1280, portrait: true }
+const StageLandscape: Stage = { W: 1280, H: 800, portrait: false }
+export const pickStage = (vw: number, vh: number): Stage => (vw / vh < 0.85 ? StagePortrait : StageLandscape)
 
 export const placeFlowers = (S: Stage): FlowerSpot[] => {
   const Spots = S.portrait ? PORTRAIT : LANDSCAPE
@@ -82,4 +92,4 @@ export const placeFlowers = (S: Stage): FlowerSpot[] => {
 
 // 풀밭 엔진에 넘기는 자리 : 줄기 밑동 둘레와 꽃 머리
 export const fieldFlowers = (Spots: FlowerSpot[]): FieldFlower[] =>
-  Spots.map((F) => ({ x: F.x, y: F.gy - 30 * F.persp, r: 40 * F.persp, hx: F.x + F.headX, hy: F.gy + F.headY, hr: F.r }))
+  Spots.map((F) => ({ x: F.x, y: F.gy - 30 * F.persp, r: 40 * F.persp, hx: F.x + F.headX, hy: F.gy + F.headY, hr: F.r, gx: F.x, gy: F.gy, stem: F.stem, persp: F.persp }))

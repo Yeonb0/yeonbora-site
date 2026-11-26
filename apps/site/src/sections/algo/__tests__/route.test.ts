@@ -36,7 +36,7 @@ describe('꽃밭 배치', () => {
   it('먼 꽃이 가까운 꽃보다 작다', () => {
     const Spots = placeFlowers(pickStage(1440, 900))
     const Far = Spots.find((f) => f.letter === 'L')!
-    const Near = Spots.find((f) => f.letter === 'K')!
+    const Near = Spots.find((f) => f.letter === 'A')!
     expect(Far.r).toBeLessThan(Near.r)
   })
 })

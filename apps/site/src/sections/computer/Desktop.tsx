@@ -68,6 +68,9 @@ export default function Desktop() {
   KickTilt.current = useTilt(RoomRef, Locked)
   const WinRefs = useRef(new Map<string, HTMLElement>())
   const Opened = useRef(0)
+  // 끄는 중인 선택 사각형의 window 리스너 정리 : 끄는 도중 방을 떠나도 남지 않게 한다
+  const DragOff = useRef<(() => void) | null>(null)
+  useEffect(() => () => DragOff.current?.(), [])
 
   const originRect = (origins: string[]): DOMRect | null => {
     for (const id of origins) {
@@ -190,7 +193,10 @@ export default function Desktop() {
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerup', onUp)
       window.removeEventListener('pointercancel', onUp)
+      if (DragOff.current === onUp) DragOff.current = null
     }
+    DragOff.current?.()
+    DragOff.current = onUp
     window.addEventListener('pointermove', onMove)
     window.addEventListener('pointerup', onUp)
     window.addEventListener('pointercancel', onUp)

@@ -3,11 +3,11 @@
 import type { Project, ProjectId } from './types'
 
 export const Projects: Project[] = [
-  { id: 'ppugi-saju', en: 'Ppugi Saju', color: '#e0a92e', href: 'https://ppugi-saju.kr' },
-  { id: 'skinteller', en: 'SkinTeller', color: '#f472b6', href: 'https://github.com/Yeonb0/hackerthon-team-ildangbaek' },
+  { id: 'ppugi-saju', en: 'Ppugi Saju', color: '#8cc06a', href: 'https://ppugi-saju.kr' },
+  { id: 'skinteller', en: 'SkinTeller', color: '#9b8cf5', href: 'https://github.com/Yeonb0/hackerthon-team-ildangbaek' },
   { id: 'pintos', en: 'Pintos', color: '#22c55e', href: 'https://github.com/Yeonb0/2026-Operating-System' },
-  { id: 'carorie-war', en: 'CarorieWar', color: '#f97316', href: 'https://github.com/channi3714/CarorieWar' },
-  { id: 'layered-wiki', en: 'Layered Wiki', color: '#4361ee', href: 'https://github.com/Yeonb0/layered-wiki-harness' },
+  { id: 'carorie-war', en: 'CarorieWar', color: '#e1272e', href: 'https://github.com/channi3714/CarorieWar' },
+  { id: 'layered-wiki', en: 'Layered Wiki', color: '#a88bfa', href: 'https://github.com/Yeonb0/layered-wiki-harness' },
 ]
 
 export const ProjectIds = Projects.map((p) => p.id) as ProjectId[]

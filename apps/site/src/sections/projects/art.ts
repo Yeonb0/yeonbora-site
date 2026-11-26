@@ -1,4 +1,4 @@
-// CD 인쇄면 : 프로젝트 저장소 README 를 바탕으로 Figma AI 가 도트로 그린 그림을 32 x 32 칸으로 읽고, 방 그림의 색 (밤 보라 · 따뜻한 불빛) 으로만 다시 칠해 64 x 64 로 키운 것 (assets/cd/<id>.png)
+// CD 인쇄면 : 프로젝트마다 실제 서비스의 메인 색 · 캐릭터 · 로고를 바탕으로 Figma AI 가 도트로 그린 그림을 CD 와 같은 64 x 64 칸으로 읽은 것 (assets/cd/<id>.png, 한 칸 = CD 한 칸)
 // 돌릴 때 칸을 직접 읽으므로 그림을 칸 배열로 돌려준다
 import { canvas2d } from './pixel'
 import { hex } from './sky'

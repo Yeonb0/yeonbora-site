@@ -35,7 +35,19 @@ export const makeView = () => {
     const Top = lerpc(S.top, '#5a6070', Gray * (1 - S.night * 0.7))
     const Bot = lerpc(S.bot, '#8a90a0', Gray * (1 - S.night * 0.7))
     Vp.vgrad(0, 0, ViewW, ViewH, [Top, lerpc(Top, Bot, 0.5), Bot])
-    const SkyAt = (y: number) => lerpc(Top, Bot, Math.min(1, Math.max(0, y / 89)))
+    // 줄마다 하늘색 · 둘레 섞은 색을 한 번만 만든다 : 해 · 달 둘레를 칸마다 섞으면 한 번 그릴 때 색 문자열이 수백 개 생긴다
+    // (한 번 그리는 동안 고리마다 섞는 색 · 비율은 같으므로 줄 y 와 고리 번호 ring 만으로 기억한다)
+    const Rows = new Map<number, string>()
+    const SkyAt = (y: number) => {
+      let C = Rows.get(y * 4)
+      if (C === undefined) Rows.set(y * 4, (C = lerpc(Top, Bot, Math.min(1, Math.max(0, y / 89)))))
+      return C
+    }
+    const ring = (y: number, n: 1 | 2 | 3, To: string, k: number) => {
+      let C = Rows.get(y * 4 + n)
+      if (C === undefined) Rows.set(y * 4 + n, (C = lerpc(SkyAt(y), To, k)))
+      return C
+    }
 
     // 별 : 밤이고 맑을 때 반짝인다
     const StarA = S.night * (Wt === 'clear' ? 1 : 0.15)
@@ -53,8 +65,8 @@ export const makeView = () => {
           const D = Math.hypot(xx + 0.5 - X, yy + 0.5 - Y)
           if (D <= Rr - 1.2) Vp.px('#fffbe8', xx, yy)
           else if (D <= Rr) Vp.px('#ffe9a6', xx, yy)
-          else if (D <= Rr + 1.6) Vp.px(lerpc(SkyAt(yy), Halo, 0.5), xx, yy)
-          else if (D <= Rr + 3.6) Vp.px(lerpc(SkyAt(yy), Halo, 0.22), xx, yy)
+          else if (D <= Rr + 1.6) Vp.px(ring(yy, 1, Halo, 0.5), xx, yy)
+          else if (D <= Rr + 3.6) Vp.px(ring(yy, 2, Halo, 0.22), xx, yy)
         }
     } else if (Hidden < 1) {
       // 달 : 해보다 조금 큰 정도로, 오늘의 위상만큼만 밝다 (안 보이는 쪽은 하늘에 살짝 비치는 어두운 면)
@@ -72,9 +84,9 @@ export const makeView = () => {
             // 차는 달 (0 ~ 0.5) 은 오른쪽부터, 기우는 달 (0.5 ~ 1) 은 왼쪽만 남는다
             const On = phase < 0.5 ? U > W * Math.cos(2 * Math.PI * phase) : U < W * Math.cos(2 * Math.PI * (phase - 0.5))
             const Crater = (Math.abs(Dx - 1.5) < 1 && Math.abs(Dy - 1.2) < 1) || (Math.abs(Dx + 2) < 0.8 && Math.abs(Dy + 1.5) < 0.8)
-            Vp.px(On ? (Crater ? '#e2d8b8' : D > Rr - 1 ? '#e8e0c4' : '#f4efd8') : lerpc(SkyAt(yy), '#3a3a58', 0.55), xx, yy)
-          } else if (D <= Rr + 1.6) Vp.px(lerpc(SkyAt(yy), '#9a9ac8', 0.5 * Lit), xx, yy)
-          else if (D <= Rr + 3.6) Vp.px(lerpc(SkyAt(yy), '#9a9ac8', 0.22 * Lit), xx, yy)
+            Vp.px(On ? (Crater ? '#e2d8b8' : D > Rr - 1 ? '#e8e0c4' : '#f4efd8') : ring(yy, 3, '#3a3a58', 0.55), xx, yy)
+          } else if (D <= Rr + 1.6) Vp.px(ring(yy, 1, '#9a9ac8', 0.5 * Lit), xx, yy)
+          else if (D <= Rr + 3.6) Vp.px(ring(yy, 2, '#9a9ac8', 0.22 * Lit), xx, yy)
         }
     }
 

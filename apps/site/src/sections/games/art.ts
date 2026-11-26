@@ -136,12 +136,16 @@ const Draws: Record<GameId, Draw> = {
   },
 }
 
+// 씨앗이 고정이라 늘 같은 그림이다 : 방에 다시 들어올 때마다 캔버스를 만들어 그리지 않고 처음 그린 칸 배열을 다시 쓴다 (읽기만 한다)
+let Cache: Record<GameId, Uint8ClampedArray> | null = null
 export const makeArts = (): Record<GameId, Uint8ClampedArray> => {
+  if (Cache) return Cache
   const Out = {} as Record<GameId, Uint8ClampedArray>
   for (const id of Object.keys(Draws) as GameId[]) {
-    const [, X] = canvas2d(64, 64)
+    const [Cv, X] = canvas2d(64, 64)
     Draws[id](pen(X), rnd(7))
     Out[id] = X.getImageData(0, 0, 64, 64).data
+    Cv.width = Cv.height = 0
   }
-  return Out
+  return (Cache = Out)
 }

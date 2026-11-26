@@ -61,6 +61,11 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
     Timers.add(Id)
     return Id
   }
+  // 미리 취소한 타이머도 목록에서 뺀다 : clearTimeout 만 하면 TV 에 마우스를 넣었다 뺄 때마다 id 가 쌓인다
+  const cancel = (Id: number) => {
+    clearTimeout(Id)
+    Timers.delete(Id)
+  }
   const wait = (ms: number) => new Promise<void>((r) => later(r, Reduce ? Math.min(ms, 60) : ms))
   // CSS 변수는 값이 바뀔 때만 쓴다 : 매 프레임 같은 값을 쓰면 스타일을 다시 계산한다
   const Vars = new Map<string, string>()
@@ -184,10 +189,28 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
   on(NextB, 'click', () => go(Math.round(Target) + 1))
 
   const Spin = Reduce ? SpinMaxReduce : SpinMax
-  const place = () => {
+  // 방 그림이 옮겨지는 동안 (확대 · 화면 크기 전환 0.9s) 은 CD 가 멈춰 있어도 빛 방향을 다시 잰다
+  let MoveUntil = 0
+  let LastPos = NaN
+  // CD 마다 마지막으로 쓴 스타일 : 같은 값이면 다시 쓰지 않는다 (스타일 재계산을 줄인다)
+  const Written = Cds.map(() => ({ tf: '', op: '', z: '' }))
+  const Rects: (DOMRect | null)[] = Cds.map(() => null)
+  const place = (t: number) => {
     const Before = Pos
-    if (!Drag) Pos += (Target - Pos) * 0.12
+    if (!Drag) {
+      Pos += (Target - Pos) * 0.12
+      // 거의 다 왔으면 딱 맞춘다 : 끝없이 조금씩 다가가며 매 프레임 다시 그리지 않게
+      if (Math.abs(Target - Pos) < 5e-4) Pos = Target
+    }
+    // 다 멈췄으면 (끌지 않음 · 제자리 · 돌지 않음 · 방이 옮겨지는 중이 아님) 아무것도 읽거나 쓰지 않는다
+    const Moving = Drag || Hover || Pos !== LastPos || t < MoveUntil || Cds.some((c) => c.v !== 0)
+    LastPos = Pos
+    if (!Moving) return
+    // 읽기를 먼저 몰아서 한다 : 쓰기 사이에 위치를 읽으면 CD 마다 레이아웃이 강제된다
+    // (읽는 위치는 지난 프레임 것이라 빛 방향이 한 프레임 늦지만 눈에 띄지 않는다)
     const Sp = Dsize() * Gap
+    const [Lx, Ly] = lightAt()
+    Cds.forEach((c, i) => (Rects[i] = Math.abs(i - Pos) < 2.5 ? c.el.getBoundingClientRect() : null))
     // 옆으로 굴러가는 만큼 인쇄면도 돈다
     const Roll = (Pos - Before) * Sp * -0.5
     const Ni = Math.max(0, Math.min(N - 1, Math.round(Pos)))
@@ -195,23 +218,29 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
       Index = Ni
       Hover = false
     }
-    PrevB.disabled = Math.round(Target) <= 0
-    NextB.disabled = Math.round(Target) >= N - 1
-    const [Lx, Ly] = lightAt()
+    const PrevOff = Math.round(Target) <= 0
+    const NextOff = Math.round(Target) >= N - 1
+    if (PrevB.disabled !== PrevOff) PrevB.disabled = PrevOff
+    if (NextB.disabled !== NextOff) NextB.disabled = NextOff
     Cds.forEach((c, i) => {
       const d = i - Pos
       const Ad = Math.abs(d)
       const Sc = 1 - 0.4 * Math.min(Ad, 1) - 0.1 * Math.max(0, Math.min(Ad - 1, 2))
       const Ry = Math.max(-38, Math.min(38, -d * 30))
       const X = Math.sign(d) * (Math.min(Ad, 1) * Sp + Math.max(0, Ad - 1) * Sp * 0.55)
-      c.el.style.transform = `translateX(${X.toFixed(2)}px) rotateY(${Ry.toFixed(2)}deg) scale(${Sc.toFixed(4)})`
-      c.el.style.opacity = String(Math.max(0, 1 - 0.28 * Math.max(0, Ad - 0.4)))
-      c.el.style.zIndex = String(100 - Math.round(Ad * 10))
+      const W = Written[i]
+      const Tf = `translateX(${X.toFixed(2)}px) rotateY(${Ry.toFixed(2)}deg) scale(${Sc.toFixed(4)})`
+      const Op = String(Math.max(0, 1 - 0.28 * Math.max(0, Ad - 0.4)))
+      const Z = String(100 - Math.round(Ad * 10))
+      if (W.tf !== Tf) c.el.style.transform = W.tf = Tf
+      if (W.op !== Op) c.el.style.opacity = W.op = Op
+      if (W.z !== Z) c.el.style.zIndex = W.z = Z
       const On = Hover && i === Index && !Drag
       c.v += ((On ? Spin : 0) - c.v) * (On ? 0.035 : 0.025)
+      if (!On && Math.abs(c.v) < 1e-3) c.v = 0
       c.a += c.v + Roll
-      if (Ad >= 2.5) return
-      const B = c.el.getBoundingClientRect()
+      const B = Rects[i]
+      if (!B) return
       const Light = Math.atan2(Ly - (B.top + B.height / 2), Lx - (B.left + B.width / 2))
       const Key = `${c.a.toFixed(1)}:${Light.toFixed(3)}`
       if (Key === c.key) return
@@ -227,6 +256,8 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
     Zs = Z.s
     World.style.transform = `translate(${Z.tx}px, ${Z.ty}px) scale(${Z.s})`
     root.classList.toggle('zoom', Zoomed)
+    // 방 그림 전환 (0.9s) 이 끝날 때까지 CD 빛 방향을 따라 잰다
+    MoveUntil = performance.now() + 1000
   }
   const layoutWorld = () => {
     Base = baseLayout(innerWidth, innerHeight)
@@ -244,11 +275,11 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
   let Dwell = 0
   on(Screen, 'pointerenter', (e: PointerEvent) => {
     if (e.pointerType !== 'mouse') return
-    clearTimeout(Dwell)
+    cancel(Dwell)
     Dwell = later(() => zoom(true), 220)
   })
   on(Screen, 'pointerleave', (e: PointerEvent) => {
-    clearTimeout(Dwell)
+    cancel(Dwell)
     if (e.pointerType === 'mouse' && !Drag) zoom(false)
   })
   // 터치 : TV 를 누르면 확대, 확대된 화면 밖을 누르면 원래대로
@@ -318,6 +349,8 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
   const setCircle = (o: Record<string, string>) => Object.entries(o).forEach(([k, v]) => Page.style.setProperty('--' + k, v))
   const St = (): HistoryState => (history.state ?? {}) as HistoryState
   let PageTimer = 0
+  let CoverTimer = 0
+  let Covered = false
   const openPage = (i: number, record = true) => {
     if (Open >= 0) return
     Open = i
@@ -338,13 +371,18 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
         root.classList.add('open')
       }),
     )
-    clearTimeout(PageTimer)
+    cancel(PageTimer)
     PageTimer = later(() => Page.classList.add('shown'), Reduce ? 150 : 700)
+    // 원이 화면을 다 덮으면 (0.75s 전환 뒤) 가려진 방은 그리지 않는다
+    cancel(CoverTimer)
+    CoverTimer = later(() => Open === i && (Covered = true), Reduce ? 200 : 800)
   }
   const closePage = async () => {
     if (Open < 0) return
     const I = Open
-    clearTimeout(PageTimer)
+    cancel(PageTimer)
+    cancel(CoverTimer)
+    Covered = false
     Page.classList.remove('shown')
     root.classList.remove('open')
     await wait(260)
@@ -413,7 +451,7 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
   const Im = new Image()
   Im.onload = () => {
     if (!Alive) return
-    const [, Tx] = canvas2d(Iw, Ih)
+    const [TxCv, Tx] = canvas2d(Iw, Ih)
     Tx.drawImage(Im, 0, 0)
     // 유리 칸은 모두 다시 그리고, 화분 잎만 그대로 둔다
     const Md = WmCtx.createImageData(Win.w, Win.h)
@@ -458,6 +496,8 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
       TailPix.push([i % Tail.w, (i / Tail.w) | 0, `rgb(${Td[K]},${Td[K + 1]},${Td[K + 2]})`])
     }
     CoverCtx.putImageData(Cover, 0, 0)
+    // 그림 전체 크기 (1536 x 864) 의 읽기용 캔버스는 여기서 다 썼다 : GC 를 기다리지 않고 바로 비운다
+    TxCv.width = TxCv.height = 0
     bendTail(0)
   }
   Im.src = scene
@@ -504,17 +544,34 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
   const Rain = Array.from({ length: 120 }, () => [Math.random() * Win.w, Math.random() * Win.h, 7 + Math.random() * 4, 8 + Math.random() * 7])
   let NextBolt = 0
   let SkyAt = -1e9
+  // 하늘 · 방 색은 시각 · 날씨가 바뀔 때만 다시 계산한다 (매 프레임 색 문자열을 새로 만들지 않게)
+  let LookHour = NaN
+  let LookWeather: Weather | '' = ''
+  let S = atHour(Hour)
+  let LightOf = -1
+  let TvLight = 0
   const drawSky = (t: number) => {
-    const S = atHour(Hour)
-    const L = roomLook(S, Weather)
-    setVar('--roomf', L.filter)
-    setVar('--tint', L.tint)
-    setVar('--tinta', L.tintA.toFixed(3))
-    setVar('--aura', L.aura.toFixed(3))
-    // 방으로 퍼지는 TV 빛 : 아주 미세하게 깜빡이고, 색은 보라에 지금 CD 색을 섞는다
+    if (Hour !== LookHour || Weather !== LookWeather) {
+      LookHour = Hour
+      LookWeather = Weather
+      S = atHour(Hour)
+      const L = roomLook(S, Weather)
+      setVar('--roomf', L.filter)
+      setVar('--tint', L.tint)
+      setVar('--tinta', L.tintA.toFixed(3))
+      setVar('--aura', L.aura.toFixed(3))
+      TvLight = L.tvLight
+    }
+    // 방으로 퍼지는 TV 빛 : 아주 미세하게 깜빡인다 (setVar 가 같은 값은 다시 쓰지 않는다)
+    // CSS @property 애니메이션으로 옮겨 재 보니 오히려 스타일 재계산이 매 프레임 늘어 더 무거웠다
     const Flick = Reduce ? 1 : 1 + Math.sin(t / 90) * 0.02 + Math.sin(t / 37) * 0.015
-    setVar('--tvl', (L.tvLight * Flick).toFixed(2))
-    setVar('--lightc', lerpc('#8b5cf6', games[Open >= 0 ? Open : Index].color, 0.35))
+    setVar('--tvl', (TvLight * Flick).toFixed(2))
+    // 색은 보라에 지금 CD 색을 섞는다
+    const Lit = Open >= 0 ? Open : Index
+    if (Lit !== LightOf) {
+      LightOf = Lit
+      setVar('--lightc', lerpc('#8b5cf6', games[Lit].color, 0.35))
+    }
     // 맑음 · 흐림은 천천히 변하므로 자주 그리지 않는다. 비 · 눈은 매 프레임
     const Busy = Weather === 'rain' || Weather === 'snow'
     if (!MaskReady || (!Busy && t - SkyAt < 120)) return
@@ -599,9 +656,12 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
   // ---------- 매 프레임 ----------
   let Raf = 0
   const frame = (t: number) => {
-    place()
-    showLabel()
-    drawSky(t)
+    // 게임 페이지가 방을 다 덮고 있으면 CD · 창밖을 그리지 않는다 (닫기 시작하면 바로 다시 그린다)
+    if (!Covered) {
+      place(t)
+      showLabel()
+      drawSky(t)
+    }
     Raf = requestAnimationFrame(frame)
   }
 
@@ -665,5 +725,7 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
     Im.onload = null
     Off.forEach((f) => f())
     Cds.forEach((c) => c.el.remove())
+    // 화면 밖 캔버스 : Safari 는 캔버스 메모리를 GC 전까지 한도에 센다
+    for (const Cv of [WinMask, PatchMask, View.canvas]) Cv.width = Cv.height = 0
   }
 }

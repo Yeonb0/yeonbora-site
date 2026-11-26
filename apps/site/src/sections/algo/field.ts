@@ -508,6 +508,9 @@ export function mountField(C: FieldCanvases, W: number, H: number, Flowers: Fiel
     setPalette(Q) {
       if (Stopped) return
       Pal = Q
+      // 옛 그림 캔버스는 바로 비운다 (Safari 는 캔버스 메모리를 GC 전까지 한도에 센다)
+      for (const c of Spr) c.width = c.height = 0
+      for (const B of LeafBlades) if (B.img) B.img.width = B.img.height = 0
       Spr = makeSprites(Q)
       paintLeaves(Q)
       HazeG = new Map()
@@ -533,6 +536,9 @@ export function mountField(C: FieldCanvases, W: number, H: number, Flowers: Fiel
       // 화면 밖 그림 캔버스를 바로 비운다 (Safari 는 캔버스 메모리를 GC 전까지 한도에 센다)
       for (const c of Spr) c.width = c.height = 0
       for (const B of LeafBlades) if (B.img) B.img.width = B.img.height = 0
+      // 화면에 붙은 풀밭 캔버스 (설계 크기 6 장, 1280 x 800 이면 약 24MB) 도 비운다
+      // 방을 떠나면 React 가 떼어 내고, 설계 크기가 바뀌어 다시 심을 때는 mountField 가 크기를 다시 정한다
+      for (const c of [C.back, C.front, C.fore, ...C.bands]) c.width = c.height = 0
     },
   }
 }

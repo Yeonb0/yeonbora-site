@@ -1,0 +1,11 @@
+---
+import Layout from '@/sections/projects/Layout.astro'
+// 확장자를 붙인다 : 윈도우는 대소문자를 구분하지 않는다
+import Room from '@/sections/projects/Room.tsx'
+import { Projects } from '@/sections/projects/data'
+import Scene from '@/sections/projects/assets/room.webp'
+---
+
+<Layout>
+  <Room client:only="react" projects={Projects} scene={Scene.src} />
+</Layout>

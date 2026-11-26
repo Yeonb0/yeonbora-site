@@ -92,14 +92,15 @@ export const Sections: Section[] = [
     ],
   },
   {
-    id: 'games',
-    label: '게임',
-    en: 'Game',
-    href: '/games/',
+    id: 'projects',
+    label: '프로젝트',
+    en: 'Project',
+    href: '/projects/',
     hub: true,
     fill: '#86198f',
     tint: '#e7a3f5',
-    icon: ['M7 7h10a5 5 0 0 1 0 10H7a5 5 0 0 1 0-10z', 'M7 10v4', 'M5 12h4', 'M16 11h.01', 'M18 13h.01'],
+    // CD : 원판 + 가운데 구멍 + 빛 받은 호
+    icon: ['M21 12a9 9 0 1 1-18 0a9 9 0 1 1 18 0', 'M14.5 12a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0', 'M12 6.5a5.5 5.5 0 0 1 5.5 5.5'],
   },
   {
     // 서재 : 모든 글의 공통 목록. 허브 입구 위치는 미정

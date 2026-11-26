@@ -1,13 +1,15 @@
-// 게임 방에서 함께 쓰는 타입
+// 프로젝트 방에서 함께 쓰는 타입
 
-export type GameId = 'exorcism-school' | 'factory' | 'fake-mmo' | 'cheer-typing'
+export type ProjectId = 'ppugi-saju' | 'skinteller' | 'pintos' | 'carorie-war' | 'layered-wiki'
 
-export interface Game {
-  id: GameId
-  // CD 아래 도트 글씨 · 게임 페이지 제목
+export interface Project {
+  id: ProjectId
+  // CD 아래 도트 글씨
   en: string
-  // CD 대표 색 : TV 빛과 게임 페이지 바탕에 섞인다
+  // CD 대표 색 : TV 빛에 섞인다
   color: string
+  // 가운데 CD 를 누르면 새 탭으로 여는 곳 (깃허브 저장소 또는 서비스 주소)
+  href: string
 }
 
 export type Weather = 'clear' | 'cloudy' | 'rain' | 'snow'

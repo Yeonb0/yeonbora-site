@@ -1,0 +1,9 @@
+/* projects 섹션 토큰 : 밤에 TV 불빛만 켜진 도트 방 */
+:root:has(.section-projects) {
+  --bg: #120e17;
+  --fg: #e0e0e0;
+  --home-fg: #e0e0e0;
+  --home-bg: rgba(20, 16, 28, 0.6);
+  /* 허브 프로젝트 칸 색 : 들어올 때 이 색에서 방이 가라앉으며 드러난다 */
+  --enter-from: #86198f;
+}

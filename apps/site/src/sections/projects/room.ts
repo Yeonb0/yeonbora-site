@@ -1,28 +1,22 @@
-// 게임 방 : 도트로 그린 방 한 장. Room.tsx 가 그린 골격 (root) 위에서 TV 속 CD 고르기, 창밖 하늘 · 날씨, 방 연출을 돌린다
+// 프로젝트 방 : 도트로 그린 방 한 장. Room.tsx 가 그린 골격 (root) 위에서 TV 속 CD 고르기, 창밖 하늘 · 날씨, 방 연출을 돌린다
 import type { TransitionBeforePreparationEvent } from 'astro:transitions/client'
-import { makeArts } from './art'
+import { blankArt, loadArt } from './art'
 import { DiscSize, drawDisc } from './disc'
 import { drawText } from './font'
 import { canvas2d } from './pixel'
-import { gameSearch, parseGame } from './route'
 import { Ih, Iw, Pad, Patch, Tail, Tvr, Win, baseLayout, isSky, tvClip, zoomLayout } from './scene'
 import type { Base } from './scene'
 import { atHour, hourOf, lerpc, moonPhase, roomLook, weatherOf } from './sky'
-import type { Game, GameId, Weather } from './types'
+import type { Project, Weather } from './types'
 import { makeView } from './view'
 
 export interface RoomOptions {
   root: HTMLElement
-  games: Game[]
+  projects: Project[]
   // 방 그림 주소
   scene: string
-  // 허브에서 막 들어왔는지 : 아니면 (게임 페이지에서 돌아오기 · 새로고침) 방을 바로 보인다
+  // 허브에서 막 들어왔는지 : 아니면 (뒤로가기 · 새로고침) 방을 바로 보인다
   fromHub: boolean
-}
-
-interface HistoryState {
-  gamesDepth?: number
-  gamesOpen?: GameId
 }
 
 interface Cd {
@@ -43,7 +37,7 @@ const SpinMaxReduce = 0.375
 const Gap = 0.72
 const SeoulWeather = 'https://api.open-meteo.com/v1/forecast?latitude=37.5665&longitude=126.978&current=weather_code'
 
-export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => void) => {
+export const mountRoom = ({ root, projects, scene, fromHub }: RoomOptions): (() => void) => {
   const Reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
   const $ = <T extends Element>(sel: string) => root.querySelector<T>(sel)!
   const Off: (() => void)[] = []
@@ -80,24 +74,21 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
   const Stage = $<HTMLElement>('.stage')
   const PrevB = $<HTMLButtonElement>('.arrow.prev')
   const NextB = $<HTMLButtonElement>('.arrow.next')
-  const Page = $<HTMLElement>('.page')
   const Flash = $<HTMLElement>('.flash')
-  const N = games.length
+  const N = projects.length
   setVar('--tvclip', tvClip())
 
   let Interactive = false
   let Pos = 0
   let Target = 0
   let Index = 0
-  let Open = -1
   let Hover = false
   let Zoomed = false
   let Zs = 1
   let Base: Base = { k: 1, ox: 0, oy: 0 }
 
   // ---------- CD ----------
-  const Arts = makeArts()
-  const Cds: Cd[] = games.map((g, i) => {
+  const Cds: Cd[] = projects.map((g, i) => {
     const El = document.createElement('div')
     El.className = 'cd'
     const Cv = document.createElement('canvas')
@@ -111,8 +102,19 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
       Hover = false
     })
     const Ctx = Cv.getContext('2d')!
-    return { el: El, ctx: Ctx, img: Ctx.createImageData(DiscSize, DiscSize), art: Arts[g.id], a: Math.random() * 360, v: 0, key: '' }
+    return { el: El, ctx: Ctx, img: Ctx.createImageData(DiscSize, DiscSize), art: blankArt(g.color), a: Math.random() * 360, v: 0, key: '' }
   })
+  // 그림이 오면 바꿔 끼우고 다시 그린다 (멈춰 있어도 다음 프레임에 한 번 그리게 한다)
+  projects.forEach((g, i) =>
+    loadArt(g.id)
+      .then((A) => {
+        if (!Alive) return
+        Cds[i].art = A
+        Cds[i].key = ''
+        LastPos = NaN
+      })
+      .catch(() => {}),
+  )
   const go = (i: number) => {
     Target = Math.max(0, Math.min(N - 1, i))
   }
@@ -121,7 +123,7 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
   const showLabel = () => {
     if (LabelOf === Index) return
     LabelOf = Index
-    drawText(Label, games[Index].en)
+    drawText(Label, projects[Index].en)
   }
 
   // 빛은 마우스를 따라가지 않고 TV 왼쪽 위 (창문 쪽) 한 자리에 고정
@@ -140,7 +142,7 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
     if (!Zoomed) e.stopImmediatePropagation()
   }, true)
   on(Stage, 'pointerdown', (e: PointerEvent) => {
-    if (Open >= 0 || !Interactive) return
+    if (!Interactive) return
     Drag = { x: e.clientX, last: e.clientX, start: Pos, t: performance.now() }
     Moved = false
     Vel = 0
@@ -179,7 +181,7 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
     (e: WheelEvent) => {
       const Now = performance.now()
       const Dl = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
-      if (!Zoomed || Open >= 0 || Now - WheelAt < 180 || Math.abs(Dl) < 6) return
+      if (!Zoomed || Now - WheelAt < 180 || Math.abs(Dl) < 6) return
       WheelAt = Now
       go(Math.round(Target) + Math.sign(Dl))
     },
@@ -267,7 +269,7 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
     apply()
   }
   const zoom = (On: boolean) => {
-    if (Zoomed === On || Open >= 0 || (On && !Interactive)) return
+    if (Zoomed === On || (On && !Interactive)) return
     Zoomed = On
     apply()
   }
@@ -285,7 +287,7 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
   // 터치 : TV 를 누르면 확대, 확대된 화면 밖을 누르면 원래대로
   on(Screen, 'click', () => zoom(true))
   on(window, 'pointerdown', (e: PointerEvent) => {
-    if (Zoomed && e.pointerType !== 'mouse' && !Screen.contains(e.target as Node) && Open < 0) zoom(false)
+    if (Zoomed && e.pointerType !== 'mouse' && !Screen.contains(e.target as Node)) zoom(false)
   })
   // 키보드 : Tab 으로 TV 에 오면 확대, TV 밖으로 나가면 원래대로
   on(Screen, 'focusin', () => {
@@ -327,10 +329,6 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
     if (!Interactive || e.altKey || e.ctrlKey || e.metaKey) return
     const T = e.target as HTMLElement
     if (T.closest('input, textarea, select')) return
-    if (Open >= 0) {
-      if (e.key === 'Escape') askClose()
-      return
-    }
     if (e.key === 'Escape') zoom(false)
     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
       e.preventDefault()
@@ -341,77 +339,11 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
     if (e.key === 'Enter' && !T.closest('a, button')) openPage(Index)
   })
 
-  // ---------- 게임 페이지 : 디스크 자리에서 원으로 번지고, 디스크 자리로 줄어든다 ----------
-  const discCircle = (i: number) => {
-    const R = Cds[i].el.getBoundingClientRect()
-    return { px: R.left + R.width / 2 + 'px', py: R.top + R.height / 2 + 'px', pr: R.width / 2 + 'px' }
+  // ---------- 프로젝트 열기 : 가운데 CD 를 누르면 한 바퀴 힘차게 돌고, 저장소 · 서비스를 새 탭으로 연다 ----------
+  const openPage = (i: number) => {
+    Cds[i].v = Spin * 3
+    window.open(projects[i].href, '_blank', 'noopener')
   }
-  const setCircle = (o: Record<string, string>) => Object.entries(o).forEach(([k, v]) => Page.style.setProperty('--' + k, v))
-  const St = (): HistoryState => (history.state ?? {}) as HistoryState
-  let PageTimer = 0
-  let CoverTimer = 0
-  let Covered = false
-  const openPage = (i: number, record = true) => {
-    if (Open >= 0) return
-    Open = i
-    Hover = false
-    const G = games[i]
-    if (record) history.pushState({ ...history.state, gamesDepth: (St().gamesDepth ?? 0) + 1, gamesOpen: G.id }, '', location.pathname + gameSearch(G.id))
-    Page.style.setProperty('--page', `linear-gradient(160deg, ${G.color}, #140f18 70%)`)
-    $<HTMLElement>('.page h1').textContent = G.en
-    Page.classList.remove('anim', 'shown')
-    setCircle(discCircle(i))
-    Page.style.visibility = 'visible'
-    Page.style.pointerEvents = 'auto'
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => {
-        if (!Alive || Open !== i) return
-        Page.classList.add('anim')
-        setCircle({ pr: Math.hypot(innerWidth, innerHeight) + 'px' })
-        root.classList.add('open')
-      }),
-    )
-    cancel(PageTimer)
-    PageTimer = later(() => Page.classList.add('shown'), Reduce ? 150 : 700)
-    // 원이 화면을 다 덮으면 (0.75s 전환 뒤) 가려진 방은 그리지 않는다
-    cancel(CoverTimer)
-    CoverTimer = later(() => Open === i && (Covered = true), Reduce ? 200 : 800)
-  }
-  const closePage = async () => {
-    if (Open < 0) return
-    const I = Open
-    cancel(PageTimer)
-    cancel(CoverTimer)
-    Covered = false
-    Page.classList.remove('shown')
-    root.classList.remove('open')
-    await wait(260)
-    if (Open !== I) return
-    setCircle(discCircle(I))
-    await wait(760)
-    if (Open !== I) return
-    Page.style.visibility = 'hidden'
-    Page.style.pointerEvents = 'none'
-    Open = -1
-  }
-  // 돌아가기 : 이 방 안에서 쌓은 기록이 있으면 뒤로, 게임 주소로 바로 들어왔으면 기록을 늘리지 않고 방으로
-  const askClose = () => {
-    if (Open < 0) return
-    if ((St().gamesDepth ?? 0) > 0) return history.back()
-    history.replaceState({ ...history.state, gamesOpen: undefined }, '', location.pathname)
-    closePage()
-  }
-  on($<HTMLElement>('.back'), 'click', askClose)
-  on(window, 'popstate', (e: PopStateEvent) => {
-    if (!root.isConnected || !location.pathname.startsWith('/games')) return
-    const Id = ((e.state ?? {}) as HistoryState).gamesOpen
-    const I = games.findIndex((g) => g.id === Id)
-    if (I < 0 && Open >= 0) closePage()
-    if (I >= 0 && Open < 0) {
-      Pos = Target = I
-      openPage(I, false)
-    }
-  })
 
   // ---------- 시간 · 날씨 ----------
   let Hour = hourOf(new Date())
@@ -567,10 +499,9 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
     const Flick = Reduce ? 1 : 1 + Math.sin(t / 90) * 0.02 + Math.sin(t / 37) * 0.015
     setVar('--tvl', (TvLight * Flick).toFixed(2))
     // 색은 보라에 지금 CD 색을 섞는다
-    const Lit = Open >= 0 ? Open : Index
-    if (Lit !== LightOf) {
-      LightOf = Lit
-      setVar('--lightc', lerpc('#8b5cf6', games[Lit].color, 0.35))
+    if (Index !== LightOf) {
+      LightOf = Index
+      setVar('--lightc', lerpc('#8b5cf6', projects[Index].color, 0.35))
     }
     // 맑음 · 흐림은 천천히 변하므로 자주 그리지 않는다. 비 · 눈은 매 프레임
     const Busy = Weather === 'rain' || Weather === 'snow'
@@ -656,12 +587,9 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
   // ---------- 매 프레임 ----------
   let Raf = 0
   const frame = (t: number) => {
-    // 게임 페이지가 방을 다 덮고 있으면 CD · 창밖을 그리지 않는다 (닫기 시작하면 바로 다시 그린다)
-    if (!Covered) {
-      place(t)
-      showLabel()
-      drawSky(t)
-    }
+    place(t)
+    showLabel()
+    drawSky(t)
     Raf = requestAnimationFrame(frame)
   }
 
@@ -679,24 +607,19 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
     }
     Interactive = true
   }
-  // 방을 나갈 때 : 게임 페이지면 글이 옅어지고, 확대 중이면 원래대로 물러난 뒤 방이 어두워지며 넘어간다
+  // 방을 나갈 때 : 확대 중이면 원래대로 물러난 뒤 방이 어두워지며 넘어간다
   on(document, 'astro:before-preparation', (e: TransitionBeforePreparationEvent) => {
     if (e.to.pathname === location.pathname) return
     const Orig = e.loader
     e.loader = async () => {
       Interactive = false
-      if (Open >= 0) {
-        Page.classList.remove('shown')
-        await wait(200)
-      } else {
-        if (Zoomed) {
-          Zoomed = false
-          apply()
-          await wait(450)
-        }
-        root.classList.remove('ready')
+      if (Zoomed) {
+        Zoomed = false
+        apply()
         await wait(450)
       }
+      root.classList.remove('ready')
+      await wait(450)
       await Orig()
     }
   })
@@ -705,14 +628,9 @@ export const mountRoom = ({ root, games, scene, fromHub }: RoomOptions): (() => 
   // ---------- 시작 ----------
   layoutWorld()
   Raf = requestAnimationFrame(frame)
-  const { id: DeepId, canonical } = parseGame(location.search)
-  history.replaceState({ ...history.state, gamesDepth: St().gamesDepth ?? 0, gamesOpen: DeepId ?? undefined }, '', location.pathname + canonical)
-  const DeepI = games.findIndex((g) => g.id === DeepId)
-  if (DeepI >= 0) Pos = Target = Index = DeepI
-  enter().then(() => {
-    // 게임 주소로 바로 들어오면 : 그 CD 에서 게임 페이지를 연다
-    if (Alive && DeepI >= 0) openPage(DeepI, false)
-  })
+  // 한 번 들어온 기록 : 뒤로가기 · 새로고침으로 돌아오면 허브 색 연출 없이 방을 바로 보인다 (Layout.astro 가 읽는다)
+  history.replaceState({ ...history.state, projectsSeen: true }, '', location.pathname)
+  enter()
 
   return () => {
     Alive = false

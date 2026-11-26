@@ -185,16 +185,16 @@ function Flood({
 }) {
   // 책을 들고 있는 동안에는 테두리로 가도 닫지 않는다
   const Locked = useRef(false)
-  // 펼친 화면 색에 맞춰 공용 홈 버튼 색을 바꾼다 (노랑 · 하늘색 위에서도 보이게)
+  // 펼친 화면 색에 맞춰 홈 버튼 원 색을 바꾼다 : 원은 글자색, 집 아이콘은 학년 색 (노란 1학년 위에서도 보이게)
   useEffect(() => {
     const Root = document.documentElement.style
-    Root.setProperty('--home-fg', ink)
-    Root.setProperty('--home-bg', ink === '#000' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.12)')
+    Root.setProperty('--home-circle', ink)
+    Root.setProperty('--home-icon', color)
     return () => {
-      Root.removeProperty('--home-fg')
-      Root.removeProperty('--home-bg')
+      Root.removeProperty('--home-circle')
+      Root.removeProperty('--home-icon')
     }
-  }, [ink])
+  }, [ink, color])
   const leave = () => {
     if (!Locked.current) onClose()
   }

@@ -1,0 +1,71 @@
+/* algo 홈 버튼 : 꽃밭에서는 파스텔 꽃 한 송이, 목록 (Notion 다크) 을 열면 Notion 버튼으로 바뀐다 */
+:root:has(.section-algo) .home-button {
+  background: none;
+}
+:root:has(.section-algo) .home-flower,
+:root:has(.section-algo) .home-notion {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+:root:has(.section-algo) .home-flower svg {
+  width: 120%;
+  height: 120%;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
+}
+:root:has(.section-algo) .home-flower .petals {
+  transform-origin: 38px 38px;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+:root:has(.section-algo) .home-notion {
+  border-radius: 8px;
+  color: #9b9b9b;
+  background: #191919;
+  opacity: 0;
+  transform: scale(0.85);
+  pointer-events: none;
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.15s,
+    color 0.15s;
+}
+:root:has(.section-algo) .home-notion svg {
+  width: 46%;
+  height: 46%;
+}
+:root:has(.section-algo) .home-button:focus-visible .petals {
+  transform: rotate(45deg) scale(1.08);
+}
+/* 목록이 열려 있으면 꽃 → Notion 버튼 */
+:root:has(.algo-garden.is-open) .home-flower {
+  opacity: 0;
+  transform: scale(0.6) rotate(-30deg);
+}
+:root:has(.algo-garden.is-open) .home-notion {
+  opacity: 1;
+  transform: none;
+}
+:root:has(.algo-garden.is-open) .home-button:focus-visible .home-notion {
+  color: #fff;
+  background: #2f2f2f;
+}
+:root:has(.algo-garden.is-open) .home-button:focus-visible {
+  outline-color: #9b9b9b;
+}
+@media (hover: hover) {
+  :root:has(.section-algo) .home-button:hover {
+    background: none;
+  }
+  :root:has(.section-algo) .home-button:hover .petals {
+    transform: rotate(45deg) scale(1.08);
+  }
+  :root:has(.algo-garden.is-open) .home-button:hover .home-notion {
+    color: #fff;
+    background: #2f2f2f;
+  }
+}

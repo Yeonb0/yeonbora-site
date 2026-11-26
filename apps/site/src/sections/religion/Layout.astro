@@ -3,11 +3,15 @@
 import Base from '@/shared/Base.astro'
 import { findSection } from '@/sections/registry'
 import './tokens.css'
+import './home.css'
 
 const Me = findSection('religion')
 ---
 
 <Base title={`${Me.label} · 연보라`}>
+  <Fragment slot="home">
+    <span class="home-pin"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7" /><path d="M5.5 9.5V20h13V9.5" /><path d="M10 20v-5h4v5" /></svg><span class="home-pin-shine"></span></span>
+  </Fragment>
   <!-- 허브에서 막 들어왔는지 (이 방의 기록 깊이가 아직 없음) : 글에서 돌아오거나 뒤로가기면 상자를 연 채로 바로 보인다 -->
   <script is:inline>
     document.documentElement.toggleAttribute('data-enter-hub', history.state?.religionDepth === undefined)
@@ -16,6 +20,16 @@ const Me = findSection('religion')
     <slot />
   </main>
 </Base>
+
+<script>
+  // 홈 버튼 핀 : 마우스 x 를 따라 세로 빛줄기를 옮긴다 (문서에 한 번만 걸어 두고 방을 오가도 그대로 쓴다)
+  document.addEventListener('pointermove', (e) => {
+    const Pin = (e.target as Element | null)?.closest?.<HTMLElement>('.home-pin')
+    if (!Pin) return
+    const B = Pin.getBoundingClientRect()
+    Pin.style.setProperty('--shine-x', `${((e.clientX - B.left) / B.width) * 100}%`)
+  })
+</script>
 
 <style>
   main {

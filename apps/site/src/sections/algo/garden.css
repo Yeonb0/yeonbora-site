@@ -255,7 +255,7 @@
   width: 260px;
   flex: none;
   box-sizing: border-box;
-  padding: 76px 8px 16px;
+  padding: 96px 8px 16px;
   background: #202020;
   border-right: 1px solid #2e2e2e;
   display: flex;
@@ -499,7 +499,7 @@
   .algo-garden .side {
     width: auto;
     flex-direction: row;
-    padding: 70px 12px 10px;
+    padding: 84px 12px 10px;
     overflow-x: auto;
     overflow-y: hidden;
     border-right: 0;

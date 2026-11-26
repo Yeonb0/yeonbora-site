@@ -3,11 +3,15 @@
 import Base from '@/shared/Base.astro'
 import { findSection } from '@/sections/registry'
 import './tokens.css'
+import './home.css'
 
 const Me = findSection('philosophy')
 ---
 
 <Base title={`${Me.label} · 연보라`}>
+  <Fragment slot="home">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7" /><path d="M5.5 9.5V20h13V9.5" /><path d="M10 20v-5h4v5" /></svg>
+  </Fragment>
   <Fragment slot="head">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

@@ -3,11 +3,15 @@
 import Base from '@/shared/Base.astro'
 import { findSection } from '@/sections/registry'
 import './tokens.css'
+import './home.css'
 
 const Me = findSection('school')
 ---
 
 <Base title={`${Me.label} · 연보라`}>
+  <Fragment slot="home">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7" /><path d="M5.5 9.5V20h13V9.5" /><path d="M10 20v-5h4v5" /></svg>
+  </Fragment>
   <main class="section-school" transition:name={`section-${Me.id}`}>
     <slot />
   </main>

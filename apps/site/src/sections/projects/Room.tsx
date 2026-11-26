@@ -1,11 +1,11 @@
-// 게임 방 섬 : 방 그림 · TV · 게임 페이지 골격만 그리고, 장면과 연출은 room.ts 가 맡는다
+// 프로젝트 방 섬 : 방 그림 · TV 골격만 그리고, 장면과 연출은 room.ts 가 맡는다
 import { useEffect, useRef } from 'react'
 import { mountRoom } from './room'
-import type { Game } from './types'
+import type { Project } from './types'
 import './room.css'
 
 interface Props {
-  games: Game[]
+  projects: Project[]
   scene: string
 }
 
@@ -31,16 +31,16 @@ const Arrow = ({ dir }: { dir: 'prev' | 'next' }) => {
   )
 }
 
-export default function Room({ games, scene }: Props) {
+export default function Room({ projects, scene }: Props) {
   const RootRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const Root = RootRef.current
     if (!Root) return
-    return mountRoom({ root: Root, games, scene, fromHub: document.documentElement.hasAttribute('data-enter-hub') })
-  }, [games, scene])
+    return mountRoom({ root: Root, projects, scene, fromHub: document.documentElement.hasAttribute('data-enter-hub') })
+  }, [projects, scene])
 
   return (
-    <div className="games-room" ref={RootRef}>
+    <div className="projects-room" ref={RootRef}>
       <div className="world">
         <div className="bg" style={{ backgroundImage: `url(${scene})` }} />
         <canvas className="win" width={247} height={360} />
@@ -61,22 +61,6 @@ export default function Room({ games, scene }: Props) {
           <div className="glass" />
         </div>
       </div>
-      <button className="back" type="button" aria-label="돌아가기">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M15 5l-7 7 7 7" />
-        </svg>
-      </button>
-      <section className="page" aria-live="polite">
-        <div className="inner">
-          <h1 />
-          <div className="blocks">
-            <div className="blk" />
-            <div className="blk" />
-            <div className="blk s" />
-            <div className="blk s" />
-          </div>
-        </div>
-      </section>
       {import.meta.env.DEV && (
         <div className="ctl">
           <input type="range" className="hour" min={0} max={24} step={0.25} aria-label="시각" />

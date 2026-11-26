@@ -1,0 +1,18 @@
+/* 프로필 토큰 : 짙은 보라 바탕 + 노랑 포인트 */
+/* 행성 그림에만 쓰는 D2Coding : 그림 문자 13개만 남긴 subset (public/fonts) */
+@font-face {
+  font-family: 'D2CodingPlanet';
+  src: url('/fonts/d2coding-planet.woff2') format('woff2');
+  font-display: block;
+}
+:root:has(.section-profile) {
+  --bg: #2a2140;
+  --fg: #f1ecff;
+  --profile-dim: #a99cc9;
+  --profile-rule: rgba(241, 236, 255, 0.14);
+  --profile-row: rgba(241, 236, 255, 0.07);
+  --profile-accent: #ffc53d;
+  --profile-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --home-fg: #f1ecff;
+  --home-bg: rgba(241, 236, 255, 0.1);
+}

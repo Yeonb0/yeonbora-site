@@ -3,10 +3,12 @@
 // 호버한 칸은 그 섹션의 색으로 칠해지고 같은 행 · 열이 함께 부드럽게 넓어진다
 // grid 트랙 보간은 브라우저마다 지원이 달라 flex-grow 전환으로 구현한다
 import Base from '@/shared/Base.astro'
-import { HubSections } from '@/sections/registry'
+import { HubSections, findSection } from '@/sections/registry'
 import './tokens.css'
 
 const Rows = [HubSections.slice(0, 3), HubSections.slice(3, 6)]
+// 가장자리 입구 : 아래는 프로필
+const Profile = findSection('profile')
 ---
 
 <Base title="연보라" showHome={false}>
@@ -50,6 +52,15 @@ const Rows = [HubSections.slice(0, 3), HubSections.slice(3, 6)]
       ))
     }
   </nav>
+  <a
+    class="edge edge-bottom"
+    href={Profile.href}
+    aria-label={Profile.label}
+    data-astro-prefetch="hover"
+    style={`--fill: ${Profile.fill}`}
+  >
+    <span class="edge-band" aria-hidden="true"></span>
+  </a>
 </Base>
 
 <script>
@@ -89,6 +100,53 @@ const Rows = [HubSections.slice(0, 3), HubSections.slice(3, 6)]
       const From = `inset(${R.top}px ${innerWidth - R.right}px ${innerHeight - R.bottom}px ${R.left}px)`
       Wipe.animate({ clipPath: [From, 'inset(0px)'] }, { duration: Duration, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' }).finished.then(() => navigate(Href))
     })
+    bindEdges(Hub)
+  }
+
+  // 가장자리 입구 : 마우스가 가장자리에 머물면 (또는 누르면) 그 쪽에서 방 색이 차올라 화면을 채운 뒤 넘어간다
+  // 터치는 가장자리 근처에서 화면 안쪽으로 쓸면 들어간다
+  const Hold = 450
+  const EdgeDuration = 700
+  const enterEdge = (Hub: HTMLElement, Edge: HTMLAnchorElement) => {
+    if (Hub.classList.contains('leaving')) return
+    Hub.classList.add('leaving')
+    Edge.classList.add('leaving')
+    const Href = Edge.href
+    prefetch(Href, { eagerness: 'immediate' })
+    if (Reduced()) {
+      navigate(Href)
+      return
+    }
+    const Wipe = document.createElement('div')
+    Wipe.className = 'hub-wipe'
+    Wipe.style.cssText = `position:fixed;inset:0;z-index:200;pointer-events:none;background:${Edge.style.getPropertyValue('--fill')}`
+    document.body.appendChild(Wipe)
+    Wipe.animate({ clipPath: ['inset(100% 0 0 0)', 'inset(0 0 0 0)'] }, { duration: EdgeDuration, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' }).finished.then(() => navigate(Href))
+  }
+  const bindEdges = (Hub: HTMLElement) => {
+    const Bottom = document.querySelector<HTMLAnchorElement>('.edge-bottom')
+    if (!Bottom) return
+    Bottom.classList.remove('leaving')
+    let Timer = 0
+    Bottom.addEventListener('pointerenter', (e) => {
+      if (e.pointerType === 'mouse') Timer = window.setTimeout(() => enterEdge(Hub, Bottom), Hold)
+    })
+    Bottom.addEventListener('pointerleave', () => clearTimeout(Timer))
+    Bottom.addEventListener('click', (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+      e.preventDefault()
+      clearTimeout(Timer)
+      enterEdge(Hub, Bottom)
+    })
+    let TouchY: number | null = null
+    Hub.addEventListener('touchstart', (e) => {
+      const Y = e.touches[0].clientY
+      TouchY = Y > window.innerHeight - 90 ? Y : null
+    }, { passive: true })
+    Hub.addEventListener('touchend', (e) => {
+      if (TouchY !== null && TouchY - e.changedTouches[0].clientY > 40) enterEdge(Hub, Bottom)
+      TouchY = null
+    }, { passive: true })
   }
   document.addEventListener('astro:page-load', bind)
   bind()
@@ -206,6 +264,36 @@ const Rows = [HubSections.slice(0, 3), HubSections.slice(3, 6)]
       color: var(--hub-icon-active);
     }
   }
+  /* 아래 가장자리 입구 : 투명한 띠 위에 마우스가 닿으면 방 색 띠가 살짝 차오른다 */
+  .edge {
+    position: fixed;
+    z-index: 50;
+    outline: none;
+  }
+  .edge-bottom {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 28px;
+  }
+  .edge-band {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 0;
+    background: var(--fill);
+    transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .edge-bottom:is(:hover, :focus-visible) .edge-band {
+    height: 14px;
+  }
+  /* 터치 기기에서는 띠를 보이지 않고 쓸어 올리기만 받는다 */
+  @media (hover: none) {
+    .edge {
+      pointer-events: none;
+    }
+  }
   .sr-only {
     position: absolute;
     width: 1px;
@@ -218,7 +306,8 @@ const Rows = [HubSections.slice(0, 3), HubSections.slice(3, 6)]
     .row,
     .cell,
     .cell svg,
-    .en {
+    .en,
+    .edge-band {
       transition: none;
     }
   }

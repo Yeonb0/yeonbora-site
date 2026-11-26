@@ -1,6 +1,9 @@
-/* games 섹션 임시 토큰 : 섹션 목업 승인 후 교체 */
+/* games 섹션 토큰 : 밤에 TV 불빛만 켜진 도트 방 */
 :root:has(.section-games) {
-  --bg: #1b1430;
-  --fg: #f0e6ff;
-  --home-fg: #f0e6ff;
+  --bg: #120e17;
+  --fg: #e0e0e0;
+  --home-fg: #e0e0e0;
+  --home-bg: rgba(20, 16, 28, 0.6);
+  /* 허브 게임 칸 색 : 들어올 때 이 색에서 방이 가라앉으며 드러난다 */
+  --enter-from: #86198f;
 }

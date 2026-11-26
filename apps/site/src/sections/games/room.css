@@ -1,0 +1,444 @@
+/* 게임 방 : 도트로 그린 방 한 장. 가운데 TV 화면 속에서 도트 CD 를 고른다 */
+.games-room {
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --fill: #86198f;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  background: var(--bg);
+}
+
+/* 방 그림 (1536 x 864) 한 장 = 세계. TV 에 손을 대면 이 세계가 TV 화면 쪽으로 확대된다 */
+.games-room .world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--ww);
+  height: var(--wh);
+  transform-origin: 0 0;
+  opacity: 0;
+  transition:
+    transform 0.9s var(--ease),
+    opacity 1s var(--ease);
+}
+.games-room.ready .world {
+  opacity: 1;
+}
+.games-room.instant .world {
+  transition: none;
+}
+
+/* 방 그림 : 시간 · 날씨에 따라 밝기와 색이 바뀐다 */
+.games-room .bg {
+  position: absolute;
+  inset: 0;
+  background: 0 0 / 100% 100% no-repeat;
+  image-rendering: pixelated;
+  filter: var(--roomf, none);
+}
+.games-room .tint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  background: var(--tint, transparent);
+  opacity: var(--tinta, 0);
+}
+.games-room canvas {
+  image-rendering: pixelated;
+}
+/* 창밖 : 그림 속 유리 네 칸만 다시 그린다 (47, 31, 247 x 360) */
+.games-room .win {
+  position: absolute;
+  left: calc(47 / 1536 * 100%);
+  top: calc(31 / 864 * 100%);
+  width: calc(247 / 1536 * 100%);
+  height: calc(360 / 864 * 100%);
+  pointer-events: none;
+}
+/* 바닥 창빛 : 달빛 / 햇빛 색 (160, 635, 400 x 105) */
+.games-room .patch {
+  position: absolute;
+  left: calc(160 / 1536 * 100%);
+  top: calc(635 / 864 * 100%);
+  width: calc(400 / 1536 * 100%);
+  height: calc(105 / 864 * 100%);
+  pointer-events: none;
+  mix-blend-mode: color;
+}
+/* 고양이 꼬리 : 몸 쪽은 붙어 있고 끝만 휘어 올라간다. 방 그림과 같은 필터를 입는다 */
+.games-room .tailcv {
+  position: absolute;
+  left: calc(1478 / 1536 * 100%);
+  top: calc(620 / 864 * 100%);
+  width: calc(58 / 1536 * 100%);
+  height: calc(34 / 864 * 100%);
+  pointer-events: none;
+  filter: var(--roomf, none);
+}
+/* 여자애 패드 버튼 반짝임 자리 */
+.games-room .padcv {
+  position: absolute;
+  left: calc(1092 / 1536 * 100%);
+  top: calc(586 / 864 * 100%);
+  width: calc(96 / 1536 * 100%);
+  height: calc(72 / 864 * 100%);
+  pointer-events: none;
+}
+.games-room .flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: #e8eeff;
+  opacity: 0;
+  mix-blend-mode: soft-light;
+}
+
+/* TV 화면 둘레 보랏빛 : 화면과 같은 계단 모양을 흐리게 번지게. 밤에 진하고 낮에는 거의 없다 */
+.games-room .tvaura {
+  position: absolute;
+  left: calc(546 / 1536 * 100%);
+  top: calc(137 / 864 * 100%);
+  width: calc(449 / 1536 * 100%);
+  height: calc(307 / 864 * 100%);
+  filter: blur(calc(var(--ww) * 0.012));
+  opacity: var(--aura, 0.6);
+  pointer-events: none;
+  transition: opacity 1s;
+}
+.games-room .tvaura::before {
+  content: '';
+  position: absolute;
+  inset: -4%;
+  clip-path: var(--tvclip, none);
+  background: #8b5cf6;
+}
+
+/* TV 에서 나오는 빛 : 화면 가운데에서 방 쪽으로 퍼지고, 바닥에는 앞으로 길게 떨어진다. 색은 보라 + 지금 CD 색 */
+.games-room .tvlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: var(--tvl, 0.8);
+  transition: opacity 1s;
+}
+.games-room .tvlight::before,
+.games-room .tvlight::after {
+  content: '';
+  position: absolute;
+  transition: background 0.8s;
+}
+.games-room .tvlight::before {
+  left: calc(770 / 1536 * 100% - 60%);
+  top: calc(290 / 864 * 100% - 55%);
+  width: 120%;
+  height: 110%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--lightc, #8b5cf6) 60%, transparent) 0%,
+    color-mix(in srgb, var(--lightc, #8b5cf6) 22%, transparent) 45%,
+    transparent 100%
+  );
+}
+.games-room .tvlight::after {
+  left: calc(770 / 1536 * 100% - 32%);
+  top: calc(640 / 864 * 100%);
+  width: 64%;
+  height: 40%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--lightc, #8b5cf6) 45%, transparent) 0%, transparent 100%);
+}
+
+/* TV 화면 : 그림 속 보라색 화면 자리 (546, 137, 449 x 307) */
+.games-room .screen {
+  position: absolute;
+  left: calc(546 / 1536 * 100%);
+  top: calc(137 / 864 * 100%);
+  width: calc(449 / 1536 * 100%);
+  height: calc(307 / 864 * 100%);
+  clip-path: var(--tvclip, none);
+  overflow: hidden;
+  cursor: pointer;
+  outline: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at 50% 45%, #3a2a5a 0%, #1d1530 65%, #0f0b18 100%);
+}
+.games-room.zoom .screen {
+  cursor: default;
+}
+/* 키보드로 TV 에 왔을 때 : 화면 안쪽 테두리를 밝힌다 */
+.games-room .screen:focus-visible .glass {
+  box-shadow:
+    inset 0 0 0 3px #d9c8ff,
+    inset 0 0 30px rgba(0, 0, 0, 0.7);
+}
+.games-room .screenglow {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--lightc, #8b5cf6) 28%, transparent), transparent 70%);
+}
+.games-room .glass {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, 0.16) 2px 3px),
+    linear-gradient(150deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 22%, transparent 40%),
+    radial-gradient(ellipse at 50% 50%, transparent 56%, rgba(0, 0, 0, 0.6) 100%);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7);
+}
+.games-room .stage {
+  position: absolute;
+  inset: 0;
+  perspective: 900px;
+  perspective-origin: 50% 50%;
+  touch-action: none;
+}
+.games-room.zoom .stage {
+  cursor: grab;
+}
+.games-room.zoom .stage.drag {
+  cursor: grabbing;
+}
+
+/* 도트 CD : 72 x 72 칸 캔버스 */
+.games-room .cd {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--d);
+  height: var(--d);
+  margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.games-room .cd canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.5));
+}
+
+/* 화면 안 좌우 화살표 : 확대했을 때만. 12 x 12 도트 버튼 */
+.games-room .arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 11;
+  width: 9%;
+  aspect-ratio: 1;
+  margin-top: -4.5%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.5s var(--ease),
+    transform 0.2s steps(2);
+}
+.games-room.zoom .arrow {
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0.5s, 0s;
+}
+.games-room.zoom .arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.games-room .arrow svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.games-room .arrow .ol {
+  fill: #0e0a14;
+}
+.games-room .arrow .face {
+  fill: #2a1f42;
+  transition: fill 0.2s steps(2);
+}
+.games-room .arrow .hi {
+  fill: #3d2f5c;
+  transition: fill 0.2s steps(2);
+}
+.games-room .arrow .ic {
+  fill: #d9c8ff;
+}
+.games-room .arrow:not(:disabled):hover .face,
+.games-room .arrow:focus-visible .face {
+  fill: var(--fill);
+}
+.games-room .arrow:not(:disabled):hover .hi,
+.games-room .arrow:focus-visible .hi {
+  fill: #a83ab3;
+}
+.games-room .arrow:focus-visible {
+  outline: none;
+}
+.games-room .arrow:not(:disabled):active {
+  transform: translateY(6%);
+}
+.games-room .arrow.prev {
+  left: 3%;
+}
+.games-room .arrow.next {
+  right: 3%;
+}
+
+/* CD 이름 : 확대했을 때만, 가운데 CD 아래에 도트 글씨로 */
+.games-room .label {
+  position: absolute;
+  left: 0;
+  top: 88%;
+  z-index: 9;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s steps(3);
+}
+.games-room.zoom .label {
+  opacity: 1;
+  transition-delay: 0.45s;
+}
+
+/* 게임 페이지 : 디스크 자리에서 원으로 번지고, 디스크 자리로 줄어든다 */
+.games-room .page {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow-y: auto;
+  pointer-events: none;
+  visibility: hidden;
+  color: var(--fg);
+  background: var(--page);
+  clip-path: circle(var(--pr) at var(--px) var(--py));
+}
+.games-room .page.anim {
+  transition: clip-path 0.75s var(--ease);
+}
+.games-room .page .inner {
+  padding: 110px 8vw 48px;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease);
+}
+.games-room .page.shown .inner {
+  opacity: 1;
+}
+.games-room .page h1 {
+  margin: 0 0 36px;
+  font-family: var(--font-point);
+  font-size: clamp(32px, 5vw, 60px);
+  font-weight: normal;
+  color: #fff;
+}
+.games-room .page .blocks {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 18px;
+  max-width: 760px;
+}
+.games-room .page .blk {
+  height: 220px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.games-room .page .blk.s {
+  height: 100px;
+}
+
+/* 돌아가기 : 홈 버튼 옆. 게임 페이지가 열렸을 때만 */
+.games-room .back {
+  position: fixed;
+  top: 16px;
+  left: 68px;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  color: var(--home-fg, #e0e0e0);
+  background: var(--home-bg, rgba(255, 255, 255, 0.1));
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease);
+}
+.games-room.open .back {
+  opacity: 1;
+  pointer-events: auto;
+}
+.games-room .back svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 개발 서버 전용 : 시간 · 날씨 확인용 조절기 */
+.games-room .ctl {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 60;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 10px 12px;
+  border: 1px solid #333333;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--fg);
+  background: rgba(20, 16, 28, 0.78);
+}
+.games-room .ctl input[type='range'] {
+  width: 120px;
+  accent-color: #a855f7;
+}
+.games-room .ctl .clock {
+  width: 42px;
+  font-family: var(--font-point);
+  color: #fff;
+}
+.games-room .ctl button {
+  padding: 5px 9px;
+  border: 1px solid #333333;
+  border-radius: 6px;
+  font-family: inherit;
+  color: #aaaaaa;
+  background: #1a1a1a;
+  cursor: pointer;
+}
+.games-room .ctl button[aria-pressed='true'] {
+  border-color: var(--fill);
+  color: #fff;
+  background: var(--fill);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .games-room .world,
+  .games-room .page.anim,
+  .games-room .page .inner,
+  .games-room .arrow,
+  .games-room .label,
+  .games-room .back {
+    transition-duration: 0.15s;
+  }
+}

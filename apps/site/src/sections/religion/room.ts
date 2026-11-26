@@ -39,6 +39,13 @@ const CamD = 2.4
 
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k
 
+// 면 조명 (RectAreaLight) 계산표 : 전역 UniformsLib 에 한 번만 넣는다 (init 은 부를 때마다 큰 표로 텍스처를 새로 만든다)
+// 텍스처의 GPU 사본은 렌더러마다 따로 올라가므로 방을 다시 열어 새 렌더러가 생겨도 그대로 쓸 수 있다
+// 단, 텍스처를 올린 렌더러는 그 텍스처에 dispose 리스너를 걸어 둔다 : 방을 떠날 때 dispose 해서 떼지 않으면
+// 전역 텍스처가 지난 렌더러 (WebGL 컨텍스트 · 장면 전체) 를 계속 붙잡는다
+let LtcReady = false
+const LtcKeys = ['LTC_FLOAT_1', 'LTC_FLOAT_2', 'LTC_HALF_1', 'LTC_HALF_2'] as const
+
 interface Slot {
   r: Religion
   i: number
@@ -61,7 +68,10 @@ interface HistoryState {
 }
 
 export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): (() => void) => {
-  RectAreaLightUniformsLib.init()
+  if (!LtcReady) {
+    RectAreaLightUniformsLib.init()
+    LtcReady = true
+  }
   const Reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
   const NoHover = matchMedia('(hover: none)').matches
   const Small = () => innerWidth <= 700
@@ -139,7 +149,11 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
   let Aspect = 1
   let Size = 0.2
   const Velvet = $<HTMLImageElement>('.velvet')
+  // 방석 장면을 다시 그릴지 : 크기가 바뀌었거나 (setSize 가 캔버스를 비운다) 빛 · 뱃지 들림 값이 지난번 그린 것과 다를 때만
+  // 아무것도 움직이지 않으면 WebGL 캔버스는 마지막 그림을 그대로 보여 준다
+  let TrayDirty = true
   const layout = () => {
+    TrayDirty = true
     const w = TrayCanvas.clientWidth
     const h = TrayCanvas.clientHeight
     if (!w || !h) return
@@ -225,6 +239,10 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
   const U = { q: new THREE.Quaternion(), px: 0, py: 0, zoom: 1, vx: 0, vy: 0, drag: false, reset: false }
   const resetUser = () => Object.assign(U, { q: new THREE.Quaternion(), px: 0, py: 0, zoom: 1, vx: 0, vy: 0, drag: false, reset: false })
   const Identity = new THREE.Quaternion()
+  // 매 프레임 · 끌 때마다 쓰는 임시 회전 : 새로 만들지 않고 다시 쓴다 (GC 를 줄인다)
+  const TmpQ = new THREE.Quaternion()
+  const TmpE = new THREE.Euler()
+  const turnBy = (x: number, y: number, z = 0) => TmpQ.setFromEuler(TmpE.set(x, y, z))
   const sizeLift = () => {
     LiftR.setSize(innerWidth, innerHeight, false)
     // 화면 1px = 장면 1 단위가 되도록 카메라 거리를 맞춘다
@@ -247,7 +265,7 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
     const s = lerp(Lift.from.s, Lift.to.s, e)
     // 손을 놓으면 돌던 힘이 서서히 줄어든다. 제자리로 돌아갈 때는 사용자가 바꾼 것을 풀어 준다
     if (!U.drag) {
-      U.q.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(U.vy, U.vx, 0)))
+      U.q.premultiply(turnBy(U.vy, U.vx))
       U.vx *= 0.92
       U.vy *= 0.92
     }
@@ -263,7 +281,7 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
     G.scale.setScalar((s * lerp(1, U.zoom, e)) / 100)
     // 자리만 옮길 때 (문서 화면 오가기) 는 기울기를 처음부터 다시 잡지 않는다
     const er = Lift.settled ? 1 : e
-    G.quaternion.copy(U.q).multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0.18 * er, 0, Lift.rot * (1 - er))))
+    G.quaternion.copy(U.q).multiply(turnBy(0.18 * er, 0, Lift.rot * (1 - er)))
     // 마우스 쪽에 세로로 긴 가는 조명 (마우스가 없으면 뱃지 위를 천천히 오간다)
     const HasMouse = Torch.mx > -1e3 && !NoHover
     const lx = HasMouse ? Torch.mx : x + Math.sin(t / 1800) * s * 0.35
@@ -287,6 +305,8 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
 
   // ---------- 그리기 ----------
   let Raf = 0
+  const Sig = new Float64Array(4 + Slots.length * 2)
+  const Drawn = new Float64Array(Sig.length).fill(NaN)
   const frame = (t: number) => {
     if (!Alive) return
     let tx: number
@@ -336,7 +356,21 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
       S.Shade.scale.setScalar(Size * 1.4 * (1 + S.lift * 0.08))
       S.Shade.material.opacity = 0.75 - S.lift * 0.25
     }
-    Tray.render(Scene, Cam)
+    Sig[0] = Torch.x
+    Sig[1] = Torch.y
+    Sig[2] = lit
+    Sig[3] = Size
+    for (const S of Slots) {
+      Sig[4 + S.i * 2] = S.lift
+      Sig[5 + S.i * 2] = S.hidden ? 1 : 0
+    }
+    let Changed = TrayDirty
+    for (let i = 0; !Changed && i < Sig.length; i++) Changed = !(Math.abs(Sig[i] - Drawn[i]) < 1e-4)
+    if (Changed) {
+      TrayDirty = false
+      Drawn.set(Sig)
+      Tray.render(Scene, Cam)
+    }
     if (Lift.on) drawLift(t)
     Raf = requestAnimationFrame(frame)
   }
@@ -383,7 +417,7 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
       // 끈 방향으로 굴린다 : 가로로 끌면 세로축, 세로로 끌면 가로축
       U.vx = dx * 0.01
       U.vy = dy * 0.01
-      U.q.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(U.vy, U.vx, 0)))
+      U.q.premultiply(turnBy(U.vy, U.vx))
     }
   })
   const up = (e: PointerEvent) => {
@@ -424,7 +458,7 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
     const Turn = ({ ArrowLeft: [0, -0.25], ArrowRight: [0, 0.25], ArrowUp: [-0.25, 0], ArrowDown: [0.25, 0] } as Record<string, number[]>)[e.key]
     if (Turn) {
       e.preventDefault()
-      U.q.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(Turn[0], Turn[1], 0)))
+      U.q.premultiply(turnBy(Turn[0], Turn[1]))
     } else if (e.key === '+' || e.key === '=') U.zoom = clampZoom(U.zoom * 1.2)
     else if (e.key === '-') U.zoom = clampZoom(U.zoom / 1.2)
     else if (e.key === '0') U.reset = true
@@ -660,6 +694,8 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
     Geo.forEach((P) => P.forEach(({ g }) => g.dispose()))
     ShadowGeo.dispose()
     Mats.dispose()
+    const Ltc = THREE.UniformsLib as unknown as Partial<Record<(typeof LtcKeys)[number], THREE.Texture>>
+    for (const K of LtcKeys) Ltc[K]?.dispose()
     Scene.environment?.dispose()
     LiftScene.environment?.dispose()
     // dispose 만으로는 WebGL 컨텍스트가 GC 전까지 남는다 : 방을 오갈수록 쌓여 브라우저 한도 (약 16개) 에 닿지 않게 바로 놓는다

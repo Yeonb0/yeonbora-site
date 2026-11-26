@@ -296,6 +296,16 @@ function Shelf({ year, activity, lock }: { year: Year; activity?: boolean; lock:
   const PrevTops = useRef<Map<string, number> | null>(null)
   const LockUntil = useRef(0)
   OrderRef.current = order
+  // 끄는 중인 책의 window 리스너 · 프레임 정리 : 끄는 도중 방을 떠나도 남지 않게 한다
+  const DragOff = useRef<(() => void) | null>(null)
+  useEffect(
+    () => () => {
+      DragOff.current?.()
+      lock(false)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
 
   // 순서가 바뀌면 다른 책들이 원래 자리에서 새 자리로 미끄러진다 (FLIP)
   useLayoutEffect(() => {
@@ -366,12 +376,16 @@ function Shelf({ year, activity, lock }: { year: Year; activity?: boolean; lock:
       Pending = { x: ev.clientX, y: ev.clientY }
       if (!Raf) Raf = requestAnimationFrame(step)
     }
-    const up = (ev: PointerEvent) => {
+    const off = () => {
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', up)
       window.removeEventListener('pointercancel', up)
       cancelAnimationFrame(Raf)
       Raf = 0
+      if (DragOff.current === off) DragOff.current = null
+    }
+    const up = (ev: PointerEvent) => {
+      off()
       // 놓은 자리는 마지막 커서 위치 (아직 프레임에 반영 안 된 것까지)
       if (HeldRef.current && ev.type === 'pointerup') HeldRef.current = { ...HeldRef.current, x: ev.clientX, y: ev.clientY }
       Pending = null
@@ -385,6 +399,8 @@ function Shelf({ year, activity, lock }: { year: Year; activity?: boolean; lock:
       SavedShift.set(D.name, Pct)
       setShift((prev) => ({ ...prev, [D.name]: Pct }))
     }
+    DragOff.current?.()
+    DragOff.current = off
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
     window.addEventListener('pointercancel', up)

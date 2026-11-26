@@ -127,6 +127,26 @@ const { title, description = '연보라의 실험장', showHome = true } = Astro
         animation: none;
         mix-blend-mode: normal;
       }
+      /* 프로필 → 다른 화면 : 프로필이 위에서부터 걷히며 아래로 내려가고, 그 밑에 새 화면이 드러난다 */
+      /* view transition 의사 요소는 바뀐 뒤 문서의 CSS 로 그려져 프로필 레이아웃이 아니라 공유 골격에 둔다 */
+      /* 들어올 때는 허브에서 번진 색이 이미 화면을 채우고 있어 따로 움직이지 않는다 */
+      ::view-transition-new(profile-sheet) {
+        animation: none;
+      }
+      ::view-transition-old(profile-sheet) {
+        animation: profile-sheet-down 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+      ::view-transition-group(profile-sheet) {
+        animation-duration: 0.7s;
+      }
+      @keyframes profile-sheet-down {
+        from {
+          clip-path: inset(0 0 0 0);
+        }
+        to {
+          clip-path: inset(100% 0 0 0);
+        }
+      }
       @media (prefers-reduced-motion: reduce) {
         .home-button,
         .home-button *,

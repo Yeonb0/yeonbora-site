@@ -3,11 +3,20 @@
 import Base from '@/shared/Base.astro'
 import { findSection } from '@/sections/registry'
 import './tokens.css'
+import './home.css'
 
 const Me = findSection('projects')
 ---
 
 <Base title={`${Me.label} · 연보라`}>
+  <Fragment slot="home">
+    <svg class="home-pixel" viewBox="0 0 20 20" shape-rendering="crispEdges" aria-hidden="true">
+      <path class="ol" d="M2 0h16v1h-16zM1 1h1v1h-1zM18 1h1v1h-1zM0 2h1v16h-1zM19 2h1v16h-1zM1 18h1v1h-1zM18 18h1v1h-1zM2 19h16v1h-16z" />
+      <path class="hi" d="M2 1h16v1h-16zM1 2h18v1h-18z" />
+      <path class="face" d="M1 3h18v1h-18zM1 4h18v1h-18zM1 5h18v1h-18zM1 6h8v1h-8zM11 6h8v1h-8zM1 7h7v1h-7zM12 7h7v1h-7zM1 8h6v1h-6zM13 8h6v1h-6zM1 9h5v1h-5zM14 9h5v1h-5zM1 10h4v1h-4zM15 10h4v1h-4zM1 11h5v1h-5zM8 11h4v1h-4zM14 11h5v1h-5zM1 12h5v1h-5zM8 12h1v1h-1zM11 12h1v1h-1zM14 12h5v1h-5zM1 13h5v1h-5zM8 13h1v1h-1zM11 13h1v1h-1zM14 13h5v1h-5zM1 14h5v1h-5zM14 14h5v1h-5zM1 15h18v1h-18zM1 16h18v1h-18zM1 17h18v1h-18zM2 18h16v1h-16z" />
+      <path class="ic" d="M9 6h2v1h-2zM8 7h4v1h-4zM7 8h6v1h-6zM6 9h8v1h-8zM5 10h10v1h-10zM6 11h2v3h-2zM12 11h2v3h-2zM9 12h2v2h-2zM8 14h4v1h-4z" />
+    </svg>
+  </Fragment>
   <!-- 허브에서 막 들어왔는지 (이 방에 들어온 기록이 아직 없음) : 뒤로가기 · 새로고침이면 방이 바로 보인다 -->
   <script is:inline>
     document.documentElement.toggleAttribute('data-enter-hub', history.state?.projectsSeen === undefined)

@@ -1,0 +1,27 @@
+/* school 홈 버튼 : 5학년 계단 위 노란 원과 같은 노란 원
+   학년을 펼치면 SchoolRoom 이 --home-circle (글자색) · --home-icon (학년 색) 으로 바꿔 어느 학년 색 위에서도 보이게 한다 */
+:root:has(.section-school) .home-button {
+  border-radius: 50%;
+  color: var(--home-icon, #0f0830);
+  background: var(--home-circle, #ffb400);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--home-circle, #ffb400) 15%, transparent);
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+:root:has(.section-school) .home-button svg {
+  width: 46%;
+  height: 46%;
+}
+:root:has(.section-school) .home-button:focus-visible {
+  outline-color: var(--home-circle, #ffb400);
+}
+@media (hover: hover) {
+  :root:has(.section-school) .home-button:hover {
+    background: var(--home-circle, #ffb400);
+    transform: scale(1.1);
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--home-circle, #ffb400) 15%, transparent);
+  }
+}

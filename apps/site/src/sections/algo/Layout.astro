@@ -3,11 +3,31 @@
 import Base from '@/shared/Base.astro'
 import { findSection } from '@/sections/registry'
 import './tokens.css'
+import './home.css'
 
 const Me = findSection('algo')
 ---
 
 <Base title={`${Me.label} · 연보라`}>
+  <Fragment slot="home">
+    <span class="home-flower" aria-hidden="true">
+      <svg viewBox="0 0 76 76">
+        <g class="petals">
+          <ellipse cx="38" cy="18" rx="9" ry="15" fill="#f7a8c8" />
+          <ellipse cx="38" cy="18" rx="9" ry="15" fill="#c9b3ff" transform="rotate(45 38 38)" />
+          <ellipse cx="38" cy="18" rx="9" ry="15" fill="#a8d8ff" transform="rotate(90 38 38)" />
+          <ellipse cx="38" cy="18" rx="9" ry="15" fill="#ffd1a8" transform="rotate(135 38 38)" />
+          <ellipse cx="38" cy="18" rx="9" ry="15" fill="#f7a8c8" transform="rotate(180 38 38)" />
+          <ellipse cx="38" cy="18" rx="9" ry="15" fill="#c9b3ff" transform="rotate(225 38 38)" />
+          <ellipse cx="38" cy="18" rx="9" ry="15" fill="#a8d8ff" transform="rotate(270 38 38)" />
+          <ellipse cx="38" cy="18" rx="9" ry="15" fill="#ffd1a8" transform="rotate(315 38 38)" />
+        </g>
+        <circle cx="38" cy="38" r="14" fill="#ffe7a3" />
+        <g transform="translate(29 29) scale(0.75)" fill="none" stroke="#6a4a1a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 11l9-7 9 7" /><path d="M5.5 9.5V20h13V9.5" /></g>
+      </svg>
+    </span>
+    <span class="home-notion"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7" /><path d="M5.5 9.5V20h13V9.5" /><path d="M10 20v-5h4v5" /></svg></span>
+  </Fragment>
   <!-- 허브에서 막 들어왔는지 (이 방의 기록 깊이가 아직 없음) : 목록에서 돌아오거나 뒤로가기면 꽃밭을 바로 보인다 -->
   <script is:inline>
     document.documentElement.toggleAttribute('data-enter-hub', history.state?.algoDepth === undefined)

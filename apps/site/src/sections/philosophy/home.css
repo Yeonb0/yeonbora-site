@@ -1,0 +1,50 @@
+/* philosophy 홈 버튼 : 금색 액자. 평소엔 불 꺼진 전시실처럼 어둡고, 호버하면 초상화처럼 위에서 빛이 비친다 */
+:root:has(.section-philosophy) .home-button {
+  width: calc(var(--home-size) * 0.9);
+  height: calc(var(--home-size) * 1.08);
+  border-radius: 0;
+  border: 5px solid #8a6a3a;
+  outline: 1px solid #4a3418;
+  color: #f2e8da;
+  background: #15100c;
+  box-shadow:
+    inset 0 0 0 2px #c9a465,
+    0 4px 10px rgba(0, 0, 0, 0.6);
+}
+/* 위에서 떨어지는 빛 : 액자 밖까지 번진다 */
+:root:has(.section-philosophy) .home-button::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -130%;
+  width: 240%;
+  height: 260%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at 50% 100%, rgba(255, 226, 170, 0.35), transparent 60%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+:root:has(.section-philosophy) .home-button svg {
+  position: relative;
+  width: 48%;
+  height: 48%;
+  opacity: 0.45;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+:root:has(.section-philosophy) .home-button:focus-visible {
+  outline: 1px solid #4a3418;
+}
+:root:has(.section-philosophy) .home-button:focus-visible::before,
+:root:has(.section-philosophy) .home-button:focus-visible svg {
+  opacity: 1;
+}
+@media (hover: hover) {
+  :root:has(.section-philosophy) .home-button:hover {
+    background: #15100c;
+  }
+  :root:has(.section-philosophy) .home-button:hover::before,
+  :root:has(.section-philosophy) .home-button:hover svg {
+    opacity: 1;
+  }
+}

@@ -1,0 +1,46 @@
+/* projects 홈 버튼 : CD 좌우 화살표와 같은 도트 버튼 (테두리 ol · 면 face · 윗빛 hi · 아이콘 ic) */
+:root:has(.section-projects) .home-button {
+  border-radius: 0;
+  background: none;
+}
+:root:has(.section-projects) .home-pixel {
+  width: 100%;
+  height: 100%;
+}
+:root:has(.section-projects) .home-pixel .ol {
+  fill: #0e0a14;
+}
+:root:has(.section-projects) .home-pixel .face {
+  fill: #2a1f42;
+  transition: fill 0.2s steps(2);
+}
+:root:has(.section-projects) .home-pixel .hi {
+  fill: #3d2f5c;
+  transition: fill 0.2s steps(2);
+}
+:root:has(.section-projects) .home-pixel .ic {
+  fill: #d9c8ff;
+}
+:root:has(.section-projects) .home-button:focus-visible {
+  outline: none;
+}
+:root:has(.section-projects) .home-button:focus-visible .face {
+  fill: #86198f;
+}
+:root:has(.section-projects) .home-button:focus-visible .hi {
+  fill: #a83ab3;
+}
+:root:has(.section-projects) .home-button:active {
+  transform: translateY(6%);
+}
+@media (hover: hover) {
+  :root:has(.section-projects) .home-button:hover {
+    background: none;
+  }
+  :root:has(.section-projects) .home-button:hover .face {
+    fill: #86198f;
+  }
+  :root:has(.section-projects) .home-button:hover .hi {
+    fill: #a83ab3;
+  }
+}

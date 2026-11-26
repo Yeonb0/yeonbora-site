@@ -245,7 +245,7 @@
   pointer-events: none;
   transform-origin: 0 0;
   left: clamp(20px, 4.4vw, 56px);
-  top: clamp(64px, 6vh, 80px);
+  top: clamp(92px, 9vh, 104px);
   font-family: var(--font-point);
   font-size: clamp(80px, 10vw, 130px);
   font-weight: 800;

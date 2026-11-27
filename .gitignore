@@ -4,3 +4,6 @@ dist/
 .env
 .env.*
 .DS_Store
+
+# 시안 작업대 묶음 (아티팩트로만 올림)
+.drafts-dist/

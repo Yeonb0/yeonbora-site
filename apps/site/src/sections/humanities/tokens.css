@@ -1,0 +1,15 @@
+/* 인문 블로그 (도서관) 토큰 : 어두운 나무 서가, 금박 강조, 종이 위 먹색 */
+:root:has(.section-humanities) {
+  --bg: #1a1a1a;
+  --fg: #e0e0e0;
+  --home-fg: #e3c27a;
+  --text: #e0e0e0;
+  --room: #110d0a;
+  --line: #333333;
+  --muted: #8a8580;
+  --gilt: #c9a45c;
+  --ink: #24170b;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --font-page: 'NanumMyeongjo', 'Nanum Myeongjo', 'AppleMyungjo', serif;
+  --font-book-title: 'MaruBuri', var(--font-page);
+}

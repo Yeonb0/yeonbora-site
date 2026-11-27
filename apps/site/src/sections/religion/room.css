@@ -282,6 +282,24 @@
   opacity: 1;
   pointer-events: auto;
 }
+/* 문서 화면에서 나가기 : 왼쪽 위 버튼, 또는 글 목록 밖 빈 곳 누르기 */
+.religion-room .docs-back {
+  position: fixed;
+  top: 20px;
+  left: 16px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e9e2ea;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.religion-room .docs-back:hover,
+.religion-room .docs-back:focus-visible {
+  background: rgba(255, 255, 255, 0.09);
+}
 .religion-room .docs-inner {
   width: min(90vw, 640px);
   margin: 0 auto;

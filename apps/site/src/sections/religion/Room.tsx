@@ -39,6 +39,9 @@ export default function Room({ religions, velvet }: Props) {
       <div className="dimmer" />
       <canvas className="lift3d" />
       <section className="docs" aria-live="polite">
+        <button className="docs-back" type="button" aria-label="뱃지로 돌아가기">
+          ← 돌아가기
+        </button>
         <div className="docs-inner">
           <h1 />
           <ol className="docs-list" />

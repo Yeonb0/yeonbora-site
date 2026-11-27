@@ -5,7 +5,10 @@
   --fg: #e0e0e0;
   --dim: #8a8a8a;
   --line: #333333;
-  --accent: #9d7bff;
+  /* 아래 세 색은 main.tsx 가 src/viz/palette.ts 값으로 덮어쓴다 */
+  --accent: #a688b7;
+  --point: #ffd94d;
+  --navy: #a8d4ea;
   --ok: #5fbf77;
   --bad: #e06c6c;
   color-scheme: dark;
@@ -71,7 +74,7 @@ textarea:disabled {
   color: var(--dim);
 }
 .conn.ready {
-  color: var(--ok);
+  color: var(--navy);
 }
 .tabs {
   display: flex;

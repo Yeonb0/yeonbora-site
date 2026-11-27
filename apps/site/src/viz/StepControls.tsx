@@ -1,5 +1,6 @@
 // 단계형 시각화 조작 막대 : 다시보기 · 이전 · 재생 / 일시정지 · 다음 + 지금 위치
 import type { Dispatch } from 'react'
+import { Role } from './palette'
 import type { StepAction } from './steps'
 
 interface Props {
@@ -11,9 +12,7 @@ interface Props {
   accent?: string
 }
 
-const Fg = '#e0e0e0'
-const Dim = '#8a8a8a'
-const Line = '#3a3a3a'
+const { fg: Fg, dim: Dim, line: Line } = Role
 
 // 모든 아이콘은 24 x 24 칸의 가운데 (12, 12) 에 맞춘다
 // 재생 삼각형만 무게중심이 왼쪽이라 0.5 오른쪽에 둔다

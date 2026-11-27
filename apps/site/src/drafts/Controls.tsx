@@ -1,5 +1,6 @@
 // config.json 으로 그리는 조절판 : 입력 중에는 미리보기만 바꾸고, 놓았을 때 (change) 한 건만 기록한다
 import { useEffect, useRef, useState } from 'react'
+import { AllSwatches } from '../viz/palette'
 import { validateValue, type ConfigField, type FieldValue, type Values, type VizConfig } from '../viz/types'
 
 interface Props {
@@ -57,7 +58,7 @@ function Field({ name, field, value, onCommit, onPreview, readOnly }: { name: st
       return (
         <label className="ctl">
           <span>{field.label}</span>
-          <input ref={Ref} type="color" value={String(draft)} disabled={readOnly} onChange={(e) => change(e.currentTarget.value)} />
+          <input ref={Ref} type="color" list="palette" value={String(draft)} disabled={readOnly} onChange={(e) => change(e.currentTarget.value)} />
           <output>{String(draft)}</output>
         </label>
       )
@@ -131,6 +132,12 @@ function TextKey({ name, k, draft, readOnly, change, commit }: { name: string; k
 export function Controls({ config, values, ...rest }: Props) {
   return (
     <div className="controls">
+      {/* 색 고르기에 프로젝트 팔레트를 먼저 보여 준다 */}
+      <datalist id="palette">
+        {AllSwatches.map((c) => (
+          <option key={c} value={c.toLowerCase()} />
+        ))}
+      </datalist>
       {Object.entries(config).map(([k, f]) => (
         <Field key={k} name={k} field={f} value={values[k] ?? f.value} {...rest} />
       ))}

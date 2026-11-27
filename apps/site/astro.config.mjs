@@ -42,7 +42,9 @@ export default defineConfig({
   integrations: [react(), mdx(), brokenLinks],
   // Astro 7 기본 처리기 (Sätteri) 대신 remark 파이프라인 : 주석 → viz → 콜아웃 → 형광펜 → 수식 → 링크 순서 (content-rules)
   markdown: {
+    // smartypants 는 ' " -- ... 를 바꿔 원문을 해치고 링크 대상도 어긋나게 한다 : 끈다
     processor: unified({
+      smartypants: false,
       remarkPlugins: [
         [remarkStripComments, { onWarn: warn }],
         [remarkViz, { onWarn: warn }],

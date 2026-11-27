@@ -71,3 +71,25 @@ describe('path-style targets', () => {
     expect(G.resolve('!important')).toBeUndefined()
   })
 })
+
+describe('typographic apostrophes', () => {
+  const Prim: Node = { collection: 'wiki', slug: 'prims-algorithm', title: "Prim's Algorithm", aliases: [], body: '' }
+  const Pg = buildGraph([Prim])
+
+  it.each(['\u2018', '\u2019', '\u02BC'])('resolve and href treat %s as a straight apostrophe', (Q) => {
+    expect(Pg.resolve(`Prim${Q}s Algorithm`)).toBe(Prim)
+    expect(Pg.href({ raw: '', target: `Prim${Q}s Algorithm` })).toBe('/wiki/prims-algorithm')
+  })
+
+  it('a note title with a curly apostrophe is found by the straight one', () => {
+    const Curly: Node = { collection: 'wiki', slug: 'x', title: 'Kruskal\u2019s', aliases: ['Johnson\u2019s'], body: '' }
+    const G2 = buildGraph([Curly])
+    expect(G2.resolve("Kruskal's")).toBe(Curly)
+    expect(G2.resolve("Johnson's")).toBe(Curly)
+  })
+
+  it('a target with no note stays unresolved', () => {
+    expect(Pg.resolve('Jensen\u2019s Device')).toBeUndefined()
+    expect(Pg.href({ raw: '', target: 'Jensen\u2019s Device' })).toBeUndefined()
+  })
+})

@@ -39,6 +39,10 @@ export const parseWikilinks = (md: string): Wikilink[] => {
   return Links
 }
 
+// 링크 비교 키 : 곡선 따옴표 (‘ ’ ʼ) 를 곧은 ' 로, 앞뒤 공백 제거, 소문자
+// Astro 의 smartypants 가 remark 플러그인보다 먼저 본문의 ' 를 ’ 로 바꾸므로 빌드와 CLI 가 같은 키를 써야 한다
+export const linkKey = (s: string): string => s.replace(/[\u2018\u2019\u02BC]/g, "'").trim().toLowerCase()
+
 // 주소용 slug : 폴더는 버리고 파일명만 쓴다 (제목 중복 금지라 겹치지 않는다)
 export const slugFromPath = (path: string): string => {
   const Name = path.split('/').pop() ?? path

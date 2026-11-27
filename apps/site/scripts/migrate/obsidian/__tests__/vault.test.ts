@@ -107,6 +107,17 @@ describe('computeBacklog', () => {
   })
 })
 
+describe('computeBacklog typographic apostrophes', () => {
+  it('curly and straight forms agree', () => {
+    const Dir = makeVault({
+      "a/Prim's Algorithm.md": 'x',
+      'a/A.md': '[[Prim\u2019s Algorithm]] [[Prim\u02BCs Algorithm]] [[Jensen\u2019s Device]] [[Jensen\u2018s Device]]',
+      'a/B.md': "[[Prim's Algorithm]] [[Jensen's Device]]",
+    })
+    expect(computeBacklog(listVault(Dir).Notes)).toEqual(["jensen's device"])
+  })
+})
+
 describe('computeBacklog path and table links', () => {
   it('treats path targets by Main path match', () => {
     const Dir = makeVault({

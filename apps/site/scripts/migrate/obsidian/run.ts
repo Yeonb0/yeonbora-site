@@ -2,7 +2,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { parse } from 'yaml'
-import { loadBacklog } from '../../../src/lib/content/backlog'
+import { backlogKey, loadBacklog } from '../../../src/lib/content/backlog'
 import { buildGraph, type Node } from '../../../src/lib/content/graph'
 import { loadNodes } from '../../../src/lib/content/index-fs'
 import { WikiSchema } from '../../../src/lib/content/schemas'
@@ -189,7 +189,7 @@ export const runBatch = (vaultDir: string, folder: string, contentDir: string, O
       const T = L.target.trim()
       if (!T) continue
       if (SiteGraph.resolve(T)) continue
-      if (Backlog.has(T.toLowerCase())) Links.backlog++
+      if (Backlog.has(backlogKey(T))) Links.backlog++
       else if (VaultGraph.resolve(T)) Links.notYetMigrated++
       else {
         Links.broken++

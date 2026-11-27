@@ -111,6 +111,13 @@ describe('backlog', () => {
     expect([...loadBacklog(File)]).toEqual(['tcp', '아직 없음'])
   })
 
+  it('loadBacklog and isBacklog normalise typographic apostrophes', () => {
+    const { Dir, File } = withBacklog(['Jensen\u2019s Device'])
+    expect([...loadBacklog(File)]).toEqual(["jensen's device"])
+    expect(isBacklog(Dir, "Jensen's Device")).toBe(true)
+    expect(isBacklog(Dir, 'Jensen\u2019s Device')).toBe(true)
+  })
+
   it('backlog target is classified as backlog', () => {
     const { Dir } = withBacklog(['아직 없음'])
     expect(findBrokenLinks(Dir).find((l) => l.target === '아직 없음' && l.file.endsWith('ACK.md'))).toMatchObject({ kind: 'backlog' })

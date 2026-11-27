@@ -2,6 +2,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'yaml'
+import { backlogKey } from '../../../src/lib/content/backlog'
 import { buildGraph, type Node } from '../../../src/lib/content/graph'
 import { parseWikilinks, slugFromPath } from '../../../src/lib/content/wikilink'
 
@@ -134,9 +135,9 @@ const toNode = (N: VaultNote): Node => ({
 
 // 경로형 대상 (a/b/c) 이 Main 노트 경로와 맞는지 : 대소문자 무시, 전체 경로 또는 / 경계의 뒷부분
 const pathMatcher = (Notes: VaultNote[]) => {
-  const Paths = Notes.map((n) => '/' + n.relPath.replace(/\.md$/, '').toLowerCase())
+  const Paths = Notes.map((n) => '/' + backlogKey(n.relPath.replace(/\.md$/, '')))
   return (target: string) => {
-    const T = '/' + target.toLowerCase().replace(/\.md$/, '')
+    const T = '/' + backlogKey(target).replace(/\.md$/, '')
     return Paths.some((p) => p.endsWith(T))
   }
 }
@@ -152,7 +153,7 @@ export const computeBacklog = (Notes: VaultNote[]): string[] => {
       if (!T) continue
       if (Graph.resolve(T)) continue
       if (T.includes('/') && PathMatch(T)) continue
-      Missing.add(T.toLowerCase())
+      Missing.add(backlogKey(T))
     }
   }
   return [...Missing].sort()

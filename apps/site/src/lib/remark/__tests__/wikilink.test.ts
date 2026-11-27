@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 import { describe, expect, it } from 'vitest'
+import { backlogKey } from '../../content/backlog'
 import { buildGraph, type Node } from '../../content/graph'
 import { writeBrokenReport, type BrokenLink } from '../../content/broken-report'
 import { remarkWikilink } from '../wikilink'
@@ -121,5 +122,38 @@ describe('writeBrokenReport split', () => {
     expect(existsSync(Back)).toBe(true)
     writeBrokenReport(Path, [])
     expect(existsSync(Back)).toBe(false)
+  })
+})
+
+describe('remarkWikilink typographic apostrophes (astro smartypants runs first)', () => {
+  const Prim: Node = { collection: 'wiki', slug: 'prims-algorithm', title: "Prim's Algorithm", aliases: [], body: '' }
+  const Pg = buildGraph([Prim])
+
+  const renderSmart = async (md: string) => {
+    const Broken: BrokenLink[] = []
+    const R = await createMarkdownProcessor({
+      syntaxHighlight: false,
+      remarkPlugins: [[remarkWikilink, { contentDir: ContentDir, getGraph: () => Pg, getAssets: () => Assets, isBacklog: (t: string) => backlogKey(t) === "jensen's device", onBroken: (b: BrokenLink) => Broken.push(b) }]],
+    })
+    const { code } = await R.render(md, { fileURL: pathToFileURL('/vault/wiki/computer/노트.md') })
+    return { html: decodeURI(code), Broken }
+  }
+
+  it('straight apostrophe in source links to the note', async () => {
+    const { html, Broken } = await renderSmart("[[Prim's Algorithm]]")
+    expect(html).toContain('href="/wiki/prims-algorithm"')
+    expect(Broken).toEqual([])
+  })
+
+  it('curly apostrophe links to the note', async () => {
+    expect((await renderSmart('[[Prim\u2019s Algorithm]]')).html).toContain('href="/wiki/prims-algorithm"')
+  })
+
+  it('backlog target renders pending without a warning in both forms', async () => {
+    for (const Src of ["[[Jensen's Device]]", '[[Jensen\u2019s Device]]']) {
+      const { html, Broken } = await renderSmart(Src)
+      expect(html).toContain('wikilink-pending')
+      expect(Broken).toEqual([])
+    }
   })
 })

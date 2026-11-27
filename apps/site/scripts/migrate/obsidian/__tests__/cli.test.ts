@@ -94,6 +94,18 @@ describe('runBatch', () => {
     expect(R.brokenList).toEqual([{ target: '진짜 없음', files: ['컴퓨터 네트워크/A.md'] }])
   })
 
+  it('classifies straight and curly apostrophe links the same way', () => {
+    const Backlog = join(mkdtempSync(join(tmpdir(), 'bl-')), 'b.json')
+    writeFileSync(Backlog, JSON.stringify(["jensen's device"]))
+    const V = makeVault({
+      "컴퓨터 네트워크/A.md": note('', "[[Prim's Algorithm]] [[Prim\u2019s Algorithm]] [[Jensen's Device]] [[Jensen\u2019s Device]] [[Kruskal\u2019s]]\n"),
+      "자료구조/Prim's Algorithm.md": note(),
+    })
+    const R = runBatch(V, '컴퓨터 네트워크', newContent(), { dryRun: false, backlogPath: Backlog })
+    expect(R.links).toEqual({ broken: 1, backlog: 2, notYetMigrated: 2 })
+    expect(R.brokenList).toEqual([{ target: 'Kruskal\u2019s', files: ['컴퓨터 네트워크/A.md'] }])
+  })
+
   it('frontmatter that fails WikiSchema stops the batch with the file name', () => {
     const V = makeVault({ '컴퓨터 네트워크/A.md': note(), '컴퓨터 네트워크/Bad.md': note('title: x\n').replace('created: 2026-01-02', 'created: 가나다') })
     const C = newContent()

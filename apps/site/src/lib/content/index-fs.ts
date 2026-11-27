@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'yaml'
-import { loadBacklog } from './backlog'
+import { backlogKey, loadBacklog } from './backlog'
 import { buildGraph, type Collection, type Graph, type Node } from './graph'
 import type { BrokenLink } from './broken-report'
 import { maskCode, parseInner, slugFromPath } from './wikilink'
@@ -96,7 +96,7 @@ export const getGraphSignature = (contentDir: string): string => {
 export const getGraph = (contentDir: string): Graph => load(contentDir).graph
 
 // 아직 쓰지 않은 노트로 가는 링크인가 (이름은 소문자 · 앞뒤 공백 제거로 맞춘다)
-export const isBacklog = (contentDir: string, target: string): boolean => load(contentDir).backlog.has(target.trim().toLowerCase())
+export const isBacklog = (contentDir: string, target: string): boolean => load(contentDir).backlog.has(backlogKey(target))
 
 // 첨부 파일 이름 → 콘텐츠 폴더 기준 경로 (Obsidian 처럼 파일명만으로 찾는다)
 export const getAssets = (contentDir: string): Map<string, string> => load(contentDir).assets
@@ -120,7 +120,7 @@ export const findBrokenLinks = (contentDir: string): BrokenLink[] => {
         const Missing = M[1] ? ImageRe.test(L.target) && !assets.has(L.target) : !graph.resolve(L.target)
         if (!Missing) continue
         // 이미지 임베드는 backlog 가 아니다
-        const Kind = !M[1] && backlog.has(L.target.trim().toLowerCase()) ? 'backlog' : 'broken'
+        const Kind = !M[1] && backlog.has(backlogKey(L.target)) ? 'backlog' : 'broken'
         Out.set(`${C}/${F}\u0000${L.target}`, { file: `${C}/${F}`, target: L.target, kind: Kind })
       }
     }

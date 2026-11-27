@@ -1,6 +1,6 @@
 // wiki · posts 노트 사이의 링크 그래프 : 빌드 (remark) 와 페이지 (역링크) 가 함께 쓴다
 import { slug } from 'github-slugger'
-import { headingSlug, parseWikilinks, type Wikilink } from './wikilink'
+import { headingSlug, linkKey, parseWikilinks, type Wikilink } from './wikilink'
 
 export type Collection = 'wiki' | 'posts'
 
@@ -22,7 +22,7 @@ export interface Graph {
   duplicates: string[]
 }
 
-const key = (s: string) => s.trim().toLowerCase()
+const key = linkKey
 
 export const buildGraph = (Nodes: Node[]): Graph => {
   const WikiTitle = new Map<string, Node>()

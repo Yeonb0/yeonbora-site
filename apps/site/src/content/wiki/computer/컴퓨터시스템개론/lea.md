@@ -1,0 +1,38 @@
+---
+title: lea
+aliases:
+  - Load Effective Address
+  - lea 명령어
+tags: []
+field: computer
+topic: system
+source: obsidian
+sourcePath: 컴퓨터시스템개론/lea.md
+created: 2026-08-01
+---
+
+- 주소 계산만 수행, [[메모리]] 접근 X 인 명령어
+- [[mov]] 와 형태 비슷, 행동 상이
+
+### 형태
+- ==ex)== `lea 0x20(%rbx, %rcx, 4), %rax`
+	- `%rax` = `0x20` + `%rbx` + `(%rcx * 4)`
+	- `%rbx` = 0x3000, `%rcx` = 0x100 -> `%rax` = 0x3420
+
+### 용도
+- [[포인터]] 계산용 instruction
+- [[산술 명령어]] 보다 빠름 -> 정수 산술 [[연산]]에도 사용
+- [[배열]] 요소 · 행 주소 계산 -> [[배열의 어셈블리 구현]]
+	- ==ex)== `lea (%rsi, %rsi, 4), %rax` -> `5 × row_idx`
+	- ==ex)== `lea (%rdi, %rax, 4), %rax` -> `arr + 20 × row_idx`
+- base 와 index 에 같은 register -> scale 결합으로 [[상수]] 곱셈 대체
+
+![[Assembly-Introduction-14.png]]
+
+### [[mov]] 와 차이
+| 명령어 | 동작 |
+| --- | --- |
+| `mov` | 주소 계산 & [[메모리]] 접근 |
+| `lea` | 주소 계산만, [[메모리]] 접근 X -> 속도 빠름 |
+
+-> arithmetic 명령어에 가까움

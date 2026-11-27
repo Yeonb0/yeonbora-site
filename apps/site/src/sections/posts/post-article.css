@@ -87,7 +87,7 @@
 .bp-series a {
   color: #b9b6cf;
 }
-.bp-series li[aria-current='page'] {
+.bp-series li[aria-current="page"] {
   font-family: var(--font-point);
 }
 
@@ -253,7 +253,7 @@
 .bora-post a.bp-page:hover {
   background: var(--bp-h2);
 }
-.bp-page[data-empty='true'] {
+.bp-page[data-empty="true"] {
   opacity: 0.45;
 }
 .bp-page-label {

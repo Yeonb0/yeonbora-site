@@ -5,7 +5,9 @@ aliases:
   - Secure SDLC(소프트웨어 개발 보안 생명주기)
 tags: []
 field: computer
-topic: engineer-cert
+topic: security
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/정보시스템 구축 관리/소프트웨어 개발 보안 구축/Secure SDLC.md
 created: 2026-09-15

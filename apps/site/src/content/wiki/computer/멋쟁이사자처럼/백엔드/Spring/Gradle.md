@@ -3,7 +3,9 @@ title: Gradle
 aliases: []
 tags: []
 field: computer
-topic: likelion
+topic: spring
+course:
+  - likelion
 source: obsidian
 sourcePath: 멋쟁이사자처럼/백엔드/Spring/Gradle.md
 created: 2026-07-30

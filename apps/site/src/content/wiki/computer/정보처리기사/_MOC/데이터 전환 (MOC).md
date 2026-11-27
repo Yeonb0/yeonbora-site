@@ -5,7 +5,9 @@ aliases:
 tags:
   - MOC
 field: computer
-topic: engineer-cert
+topic: database
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/_MOC/데이터 전환.md
 created: 2026-09-15

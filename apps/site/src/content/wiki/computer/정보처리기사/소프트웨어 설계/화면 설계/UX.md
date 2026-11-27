@@ -4,7 +4,9 @@ aliases:
   - User Experience
 tags: []
 field: computer
-topic: engineer-cert
+topic: se
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/소프트웨어 설계/화면 설계/UX.md
 created: 2026-07-30

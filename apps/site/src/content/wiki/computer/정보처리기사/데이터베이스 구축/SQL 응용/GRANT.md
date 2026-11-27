@@ -5,7 +5,9 @@ aliases:
   - GRANT(권한 부여)
 tags: []
 field: computer
-topic: engineer-cert
+topic: database
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/데이터베이스 구축/SQL 응용/GRANT.md
 created: 2026-09-15

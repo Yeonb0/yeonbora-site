@@ -16,6 +16,8 @@ export const WikiSchema = z.object({
   tags: Strings,
   field: Field,
   topic: z.string().optional(),
+  // 배운 곳 (코스) id : sections/wiki 의 코스 칸에서 묶어 보인다 (lib/content/wiki-courses.ts)
+  course: Strings,
   source: Source,
   sourcePath: z.string().optional(),
   created: z.coerce.date().optional(),

@@ -1,12 +1,16 @@
 ---
 // 위키 첫 화면 : 왼쪽 카테고리 + 가운데 전체 그래프. 카테고리를 누르면 그 무리로 확대된다 (?topic=)
+// 아래 코스를 누르면 그 코스 노트로 확대되고 오른쪽에 배운 순서가 나온다 (?course=)
 import Layout from '@/sections/wiki/Layout.astro'
 import WikiGraph from '@/sections/wiki/WikiGraph'
+import CoursePanel from '@/sections/wiki/CoursePanel.astro'
 import { getWikiGraph } from '@/lib/content/site-graph'
 
-const { tree } = await getWikiGraph()
+const { tree, courses, data } = await getWikiGraph()
+const Colors = Object.fromEntries(data.topics.map((t) => [t.id, t.color]))
 ---
 
-<Layout mode="home" topics={tree}>
+<Layout mode="home" topics={tree} courses={courses}>
   <WikiGraph client:load current={null} transition:persist="wiki-graph" />
+  <CoursePanel courses={courses} colors={Colors} />
 </Layout>

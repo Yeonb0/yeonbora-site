@@ -2,8 +2,10 @@
 import type { Graph, Node } from './graph'
 import { parseWikilinks } from './wikilink'
 import { EtcTopic, normalizeTopic, sortTopics, topicColors, topicName } from './wiki-topics'
+import type { CourseOutline } from './wiki-courses'
 
-export type GKind = 'wiki' | 'post' | 'ghost'
+// course : 코스 (멋사 · 정처기) 를 나타내는 마름모 노드. 그 코스의 MOC 노트와 이어진다
+export type GKind = 'wiki' | 'post' | 'ghost' | 'course'
 
 export interface GNode {
   // 위키 /wiki/<slug>, 글 /posts/<slug>, 빈 점 ?<소문자 이름>
@@ -11,6 +13,8 @@ export interface GNode {
   title: string
   kind: GKind
   topic: string
+  // 위키 노트가 속한 코스 id
+  courses?: string[]
   // 작성 시각 (ms) : 첫 화면에서 노드가 이 순서로 나타난다
   t?: number
   // 빌드 때 미리 잡은 자리 (wiki-layout.ts)
@@ -24,12 +28,12 @@ export interface WikiGraphData {
   topics: { id: string; name: string; color: string }[]
 }
 
-type WikiNode = Node & { topic?: string; created?: Date }
+type WikiNode = Node & { topic?: string; created?: Date; course?: string[] }
 
 const idOf = (n: Node) => `/${n.collection}/${n.slug}`
 const ghostId = (target: string) => `?${target.trim().toLowerCase()}`
 
-export const buildWikiGraphData = (Nodes: WikiNode[], G: Graph): WikiGraphData => {
+export const buildWikiGraphData = (Nodes: WikiNode[], G: Graph, Courses: CourseOutline[] = []): WikiGraphData => {
   const Out = new Map<string, GNode>()
   const Links = new Map<string, [string, string]>()
   const Topic = new Map<string, string>()
@@ -60,14 +64,22 @@ export const buildWikiGraphData = (Nodes: WikiNode[], G: Graph): WikiGraphData =
     }
     for (const T of Targets) link(Me, T)
     const T = N.created ? { t: N.created.getTime() } : {}
-    if (N.collection === 'wiki') Out.set(Me, { id: Me, title: N.title, kind: 'wiki', topic: Topic.get(Me)!, ...T })
+    const Cs = N.course?.length ? { courses: [...N.course] } : {}
+    if (N.collection === 'wiki') Out.set(Me, { id: Me, title: N.title, kind: 'wiki', topic: Topic.get(Me)!, ...Cs, ...T })
     else if (Targets.some((t) => t !== Me)) Out.set(Me, { id: Me, title: N.title, kind: 'post', topic: '', ...T })
+  }
+
+  // 코스 노드 : 카테고리 없이 (topic '') 코스 · 과목 MOC 와 잇는다
+  for (const C of Courses) {
+    const Hubs = C.hubs.filter((h) => Out.has(h))
+    Out.set(C.node, { id: C.node, title: C.name, kind: 'course', topic: '' })
+    for (const H of Hubs) link(C.node, H)
   }
 
   // 글 · 빈 점은 이어진 위키 노트 중 첫 번째의 카테고리를 따른다
   const Pairs = [...Links.values()]
   for (const N of Out.values()) {
-    if (N.kind === 'wiki') continue
+    if (N.kind === 'wiki' || N.kind === 'course') continue
     const Near = Pairs.map(([a, b]) => (a === N.id ? b : b === N.id ? a : '')).find((x) => Topic.has(x))
     N.topic = Near ? Topic.get(Near)! : EtcTopic.id
   }

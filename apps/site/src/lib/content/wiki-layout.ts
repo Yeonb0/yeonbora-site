@@ -22,7 +22,7 @@ export const topicCenters = (Topics: string[], Total: number): Map<string, { x: 
 }
 
 // 점 크기 : 이어진 선이 많을수록 크게 (옵시디언처럼 제곱근으로 늘려 큰 허브도 지나치게 커지지 않게)
-export const nodeRadius = (n: Pick<GNode, 'kind'>, deg: number) => (n.kind === 'ghost' ? 3 : Math.min(16, 3.5 + 1.6 * Math.sqrt(deg)))
+export const nodeRadius = (n: Pick<GNode, 'kind'>, deg: number) => (n.kind === 'ghost' ? 3 : n.kind === 'course' ? 9 : Math.min(16, 3.5 + 1.6 * Math.sqrt(deg)))
 
 // 선 세기 · 길이 : 같은 카테고리면 세게, 다르면 약하게. 빈 점으로 가는 선은 짧게
 export const linkStrength = (a: GNode, b: GNode) => (a.topic === b.topic ? Forces.linkSame : Forces.linkCross)
@@ -34,9 +34,11 @@ export const layoutWikiGraph = (D: WikiGraphData, Ticks = 500): WikiGraphData =>
     D.nodes.length,
   )
   const at = (n: GNode) => Center.get(n.topic) ?? { x: 0, y: 0 }
-  const Nodes: N[] = D.nodes.map((n) => ({ ...n, x: undefined, y: undefined }))
+  // 코스 노드는 힘 배치에서 빼고, 끝난 뒤 그 코스 노트들의 가운데에 둔다 (여러 카테고리 사이의 다리처럼)
+  const IsCourse = new Set(D.nodes.filter((n) => n.kind === 'course').map((n) => n.id))
+  const Nodes: N[] = D.nodes.filter((n) => !IsCourse.has(n.id)).map((n) => ({ ...n, x: undefined, y: undefined }))
   type L = { source: string | N; target: string | N }
-  const Links: L[] = D.links.map(([source, target]) => ({ source, target }))
+  const Links: L[] = D.links.filter(([a, b]) => !IsCourse.has(a) && !IsCourse.has(b)).map(([source, target]) => ({ source, target }))
   const Deg = new Map<string, number>()
   for (const [a, b] of D.links) {
     Deg.set(a, (Deg.get(a) ?? 0) + 1)
@@ -63,5 +65,15 @@ export const layoutWikiGraph = (D: WikiGraphData, Ticks = 500): WikiGraphData =>
     n.y = (n.y ?? 0) * 0.3 + C.y
   }
   Sim.tick(Ticks)
-  return { ...D, nodes: Nodes.map(({ index: _i, vx: _vx, vy: _vy, fx: _fx, fy: _fy, x, y, ...n }) => ({ ...n, x: Math.round(x! * 10) / 10, y: Math.round(y! * 10) / 10 })) }
+  const round = (v: number) => Math.round(v * 10) / 10
+  const Placed: GNode[] = Nodes.map(({ index: _i, vx: _vx, vy: _vy, fx: _fx, fy: _fy, x, y, ...n }) => ({ ...n, x: round(x!), y: round(y!) }))
+  const CourseNodes = D.nodes
+    .filter((n) => IsCourse.has(n.id))
+    .map((c) => {
+      const Key = c.id.slice(1)
+      const M = Placed.filter((n) => n.courses?.includes(Key))
+      const avg = (k: 'x' | 'y') => (M.length ? M.reduce((s, n) => s + n[k]!, 0) / M.length : 0)
+      return { ...c, x: round(avg('x')), y: round(avg('y')) }
+    })
+  return { ...D, nodes: [...Placed, ...CourseNodes] }
 }

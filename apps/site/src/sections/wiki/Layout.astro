@@ -2,7 +2,7 @@
 // 위키 레이아웃 : 왼쪽 카테고리 트리 · 가운데 · 오른쪽 (글 화면만). 허브 오른쪽 입구에서 들어온다
 import Base from '@/shared/Base.astro'
 import { findSection } from '@/sections/registry'
-import Tree, { type TreeTopic } from './Tree.astro'
+import Tree, { type TreeCourse, type TreeTopic } from './Tree.astro'
 import './tokens.css'
 import './home.css'
 
@@ -10,12 +10,13 @@ interface Props {
   title?: string
   mode: 'home' | 'note'
   topics: TreeTopic[]
+  courses: TreeCourse[]
   open?: string
   current?: string
 }
 
 const Me = findSection('wiki')
-const { title, mode, topics, open, current } = Astro.props
+const { title, mode, topics, courses, open, current } = Astro.props
 ---
 
 <Base title={`${title ?? Me.label} · 연보라`}>
@@ -33,7 +34,7 @@ const { title, mode, topics, open, current } = Astro.props
         }
       } catch {}
     </script>
-    <Tree topics={topics} open={open} current={current} />
+    <Tree topics={topics} courses={courses} open={open} current={current} />
     <div class="wiki-center">
       <slot />
     </div>

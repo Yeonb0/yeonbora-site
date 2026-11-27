@@ -1,0 +1,188 @@
+---
+// 첫 화면 오른쪽 배운 순서 패널 : 트리 코스 칸에 호버하거나 코스를 고르면 그 코스 판이 밀려 나온다 (wiki.ts)
+import type { CourseOutline } from '@/lib/content/wiki-courses'
+
+interface Props {
+  courses: CourseOutline[]
+  // 카테고리 id → 그래프 점 색
+  colors: Record<string, string>
+}
+
+const { courses, colors } = Astro.props
+---
+
+<div class="wiki-courses">
+  {
+    courses.map((c) => (
+      <section class="wiki-course" data-course={c.id} aria-label={`${c.name} 배운 순서`}>
+        <h2>
+          <span class="wc-mark" aria-hidden="true" />
+          {c.name}
+        </h2>
+        <ol>
+          {c.groups.map((g) => (
+            <li>
+              {g.href ? (
+                <a href={g.href} data-node={g.href} class="wcg">
+                  {g.name}
+                </a>
+              ) : (
+                <span class="wcg">{g.name}</span>
+              )}
+              {g.units.length > 0 && (
+                <ol>
+                  {g.units
+                    .filter((u) => u.count > 0 || u.href)
+                    .map((u) => (
+                      <li style={`--c: ${(u.topic && colors[u.topic]) ?? 'var(--w-node)'}`}>
+                        {u.href ? (
+                          <a href={u.href} data-node={u.href} class="wcu">
+                            {u.name}
+                          </a>
+                        ) : (
+                          <span class="wcu">{u.name}</span>
+                        )}
+                        <span class="wcn">{u.count}</span>
+                      </li>
+                    ))}
+                </ol>
+              )}
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))
+  }
+</div>
+
+<style>
+  .wiki-courses {
+    position: absolute;
+    /* 위쪽 글 노드 버튼은 가리지 않게 */
+    top: 54px;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    width: min(300px, 80%);
+    pointer-events: none;
+  }
+  .wiki-course {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    padding: 22px 22px 32px;
+    border-top: 1px solid var(--w-line);
+    background: color-mix(in srgb, var(--w-pane) 94%, transparent);
+    border-left: 1px solid var(--w-line);
+    font-size: 0.88rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(24px);
+    scrollbar-width: thin;
+    scrollbar-color: var(--w-line-strong) transparent;
+    transition:
+      opacity 0.35s var(--w-ease),
+      transform 0.45s var(--w-ease),
+      visibility 0s 0.45s;
+  }
+  .wiki-course:global(.on) {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
+    transition:
+      opacity 0.35s var(--w-ease),
+      transform 0.45s var(--w-ease),
+      visibility 0s;
+  }
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 20px;
+    color: var(--w-fg);
+    font-family: var(--font-base-bold);
+    font-size: 0.95rem;
+    font-weight: normal;
+    word-break: keep-all;
+  }
+  .wc-mark {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border: 1.5px solid currentColor;
+    transform: rotate(45deg);
+  }
+  ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .wiki-course > ol > li + li {
+    margin-top: 16px;
+  }
+  .wcg {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--w-dim);
+    font-size: 0.8rem;
+    text-decoration: none;
+    word-break: keep-all;
+  }
+  li li {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 4px 0 4px 2px;
+  }
+  li li::before {
+    content: '';
+    flex: none;
+    align-self: center;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--c);
+  }
+  .wcu {
+    flex: 1;
+    color: var(--w-sub);
+    text-decoration: none;
+    word-break: keep-all;
+    transition: color 0.2s;
+  }
+  .wcn {
+    color: var(--w-dim);
+    font-size: 0.78rem;
+  }
+  a:focus-visible {
+    outline: 2px solid var(--w-accent);
+    outline-offset: 2px;
+  }
+  @media (hover: hover) {
+    a.wcu:hover,
+    a.wcg:hover {
+      color: var(--w-fg);
+    }
+  }
+  /* 모바일 : 그래프 아래쪽 판 */
+  @media (max-width: 860px) {
+    .wiki-courses {
+      top: auto;
+      width: 100%;
+      height: 45%;
+    }
+    .wiki-course {
+      padding: 20px 20px 28px;
+      border-left: 0;
+      border-top: 1px solid var(--w-line);
+      transform: translateY(24px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wiki-course,
+    .wiki-course:global(.on) {
+      transition-duration: 0.01s !important;
+    }
+  }
+</style>

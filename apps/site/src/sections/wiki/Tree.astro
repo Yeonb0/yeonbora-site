@@ -1,5 +1,13 @@
 ---
 // 왼쪽 카테고리 트리 : 첫 화면에서는 그래프 확대, 글 화면에서는 첫 화면의 그 카테고리로 간다
+// 아래 코스 칸 : 호버하면 그래프에서 그 코스 노트가 밝아지고, 누르면 고정 (첫 화면 오른쪽에 배운 순서)
+export interface TreeCourse {
+  id: string
+  name: string
+  node: string
+  count: number
+}
+
 export interface TreeTopic {
   id: string
   name: string
@@ -9,15 +17,18 @@ export interface TreeTopic {
 
 interface Props {
   topics: TreeTopic[]
+  courses: TreeCourse[]
   // 펼쳐 둘 카테고리 · 강조할 글 주소
   open?: string
   current?: string
 }
 
-const { topics, open, current } = Astro.props
+const { topics, courses, open, current } = Astro.props
 ---
 
 <nav class="wiki-tree" aria-label="위키 카테고리">
+  <div class="wt-topics">
+  <span class="wt-label">주제</span>
   {
     topics.map((t) => (
       <div class:list={['wt-cat', { open: t.id === open }]} data-topic={t.id}>
@@ -37,18 +48,110 @@ const { topics, open, current } = Astro.props
       </div>
     ))
   }
+  </div>
+  {
+    courses.length > 0 && (
+      <div class="wt-courses" role="group" aria-label="코스">
+        <span class="wt-label">코스</span>
+        {courses.map((c) => (
+          <button type="button" class="wc-item" data-course={c.id} data-node={c.node} aria-pressed="false">
+            <span class="wc-mark" aria-hidden="true" />
+            <span class="wc-name">{c.name}</span>
+            <span class="wc-n">{c.count}</span>
+          </button>
+        ))}
+      </div>
+    )
+  }
 </nav>
 
 <style>
   .wiki-tree {
     grid-area: tree;
-    overflow-y: auto;
-    padding: 72px 14px 24px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
     background: var(--w-pane);
     border-right: 1px solid var(--w-line);
     font-size: 0.92rem;
+  }
+  .wt-topics {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 72px 14px 24px;
     scrollbar-width: thin;
     scrollbar-color: var(--w-line-strong) transparent;
+  }
+  .wt-label {
+    display: block;
+    margin: 0 10px 8px;
+    color: var(--w-dim);
+    font-size: 0.78rem;
+  }
+
+  /* 코스 칸 : 트리 아래에 고정 */
+  .wt-courses {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 14px 14px 18px;
+    border-top: 1px solid var(--w-line);
+    background: color-mix(in srgb, var(--w-pane) 70%, var(--w-bg));
+  }
+  .wc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 36px;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--w-sub);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    word-break: keep-all;
+    transition:
+      background 0.2s,
+      color 0.2s;
+  }
+  /* 그래프의 코스 노드와 같은 마름모 */
+  .wc-mark {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin: 0 2px 0 1px;
+    border: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    transition: background 0.2s;
+  }
+  .wc-name {
+    flex: 1;
+  }
+  .wc-n {
+    color: var(--w-dim);
+    font-size: 0.8rem;
+  }
+  .wc-item[aria-pressed='true'] {
+    color: var(--w-accent);
+    background: var(--w-hover);
+  }
+  .wc-item[aria-pressed='true'] .wc-mark {
+    background: currentColor;
+  }
+  .wc-item:focus-visible {
+    outline: 2px solid var(--w-accent);
+    outline-offset: -2px;
+  }
+  @media (hover: hover) {
+    .wc-item:hover {
+      background: var(--w-hover);
+      color: var(--w-fg);
+    }
   }
   .wt-cat {
     margin: 0 0 2px;
@@ -150,12 +253,29 @@ const { topics, open, current } = Astro.props
   /* 모바일 : 카테고리는 위쪽 가로 칩 */
   @media (max-width: 860px) {
     .wiki-tree {
-      display: flex;
+      flex-direction: row;
       gap: 6px;
       overflow-x: auto;
       padding: 12px 12px 12px 64px;
       border-right: 0;
       border-bottom: 1px solid var(--w-line);
+    }
+    .wt-topics,
+    .wt-courses {
+      display: contents;
+    }
+    .wt-label,
+    .wc-n {
+      display: none;
+    }
+    .wc-item {
+      flex: none;
+      width: auto;
+      min-height: 0;
+      white-space: nowrap;
+      padding: 6px 12px;
+      border: 1px solid var(--w-line);
+      border-radius: 999px;
     }
     .wt-cat {
       margin: 0;
@@ -177,7 +297,9 @@ const { topics, open, current } = Astro.props
     .wt-head,
     .wt-head::before,
     .wt-notes,
-    .wt-notes a {
+    .wt-notes a,
+    .wc-item,
+    .wc-mark {
       transition-duration: 0.01s !important;
     }
   }

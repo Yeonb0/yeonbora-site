@@ -6,7 +6,9 @@ aliases:
   - IGP(Interior Gateway Protocol)
 tags: []
 field: computer
-topic: engineer-cert
+topic: se
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/정보시스템 구축 관리/IT 프로젝트 정보시스템 구축 관리/IGP.md
 created: 2026-09-15

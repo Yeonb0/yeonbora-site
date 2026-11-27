@@ -6,7 +6,9 @@ aliases:
   - 모델-뷰-컨트롤러 패턴(Model-View-Controller Pattern)
 tags: []
 field: computer
-topic: likelion
+topic: spring
+course:
+  - likelion
 source: obsidian
 sourcePath: 멋쟁이사자처럼/백엔드/Spring/MVC 패턴.md
 created: 2026-07-30

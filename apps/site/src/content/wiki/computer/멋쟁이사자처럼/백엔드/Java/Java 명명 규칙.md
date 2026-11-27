@@ -3,7 +3,9 @@ title: Java 명명 규칙
 aliases: []
 tags: []
 field: computer
-topic: likelion
+topic: java
+course:
+  - likelion
 source: obsidian
 sourcePath: 멋쟁이사자처럼/백엔드/Java/Java 명명 규칙.md
 created: 2026-07-30

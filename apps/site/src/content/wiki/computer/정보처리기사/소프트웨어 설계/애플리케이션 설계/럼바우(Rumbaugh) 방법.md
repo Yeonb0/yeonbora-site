@@ -5,7 +5,9 @@ aliases:
   - Rumbaugh
 tags: []
 field: computer
-topic: engineer-cert
+topic: se
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/소프트웨어 설계/애플리케이션 설계/럼바우(Rumbaugh) 방법.md
 created: 2026-07-30

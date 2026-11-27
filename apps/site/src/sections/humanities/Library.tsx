@@ -25,7 +25,7 @@ export default function Library({ urls, posts }: Props) {
       </aside>
       <div className="room">
         <div className="lib overview wait">
-          <div className="world" />
+          <canvas className="world" />
         </div>
         <div className="scroller">
           <div className="scene hidden">

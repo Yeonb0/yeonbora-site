@@ -223,7 +223,7 @@ P1 이 데모데이에 가장 중요해서 먼저 한다. 슬라이드 내용은
 
 - 하니스 `serve.demo_api` (Python), 미리 돌린 볼트 `demo900_propose_20261022_193431` (합성 시연 코퍼스, 스냅샷 900). 실제 코퍼스 · 실험 로그는 넣지 않는다.
 - 임베딩 : 같은 컨테이너 안의 llama.cpp `llama-server` + `bge-m3-Q8_0.gguf` (CPU). 미리 돌린 볼트를 만든 것과 같은 임베딩 모델이라 검색 결과가 로컬 시연과 같게 유지된다. *Claude 판단* : 외부 임베딩 API 를 쓰면 계정이 하나 더 늘고 벡터가 달라진다.
-- 생성 : OpenRouter (`https://openrouter.ai/api/v1/chat/completions`). 키는 Secret Manager 에 두고 환경 변수로 넘긴다. 이미지 · 저장소 · 화면에 키를 넣지 않는다.
+- 생성 : OpenRouter (`https://openrouter.ai/api/v1/chat/completions`). 주의 : 미리 돌린 볼트를 만든 Qwen3-8B (`qwen/qwen3-8b`) 는 OpenRouter 에서 2026-10-09 지원 종료 예정으로 공지되어 있었다. 같은 모델을 못 쓰면 미리 돌린 볼트 (로컬 Qwen3-8B) 와 라이브 투입 (다른 모델) 의 모델이 달라지므로 화면 고지에 둘 다 적는다. 키는 Secret Manager 에 두고 환경 변수로 넘긴다. 이미지 · 저장소 · 화면에 키를 넣지 않는다.
 
 Cloud Run 설정
 
@@ -231,12 +231,12 @@ Cloud Run 설정
 - CPU 상시 할당 : 응답을 돌려준 뒤에도 도는 작업 (라이브 투입 · 회의록 투입) 이 멈추지 않게.
 - 최소 인스턴스 0. 데모데이 (12-16 · 12-18) 와 리허설 날만 1 로 올려 첫 요청 대기를 없앤다.
 - 요청 시간 한도는 라이브 1건 (로컬 실측 약 90초) 을 넉넉히 넘게.
-- 리전 : 서울 (asia-northeast3). *Claude 판단*
+- 리전 : 도쿄 (asia-northeast1). *Claude 판단* : Cloud Run 도메인 매핑을 지원하는 가장 가까운 리전이고 (서울 asia-northeast3 은 미지원), 1등급 요금 리전이라 더 싸다. 확인 : Cloud Run locations 문서 (https://docs.cloud.google.com/run/docs/locations)
 - 컨테이너 파일은 재시작 때 사라진다 : 회의 데이터 · 투입 결과는 재시작하면 시드 상태로 돌아간다. 시연에는 오히려 맞다 (리허설 흔적이 남지 않음).
 
 주소
 
-- 사이트 시연 탭은 Cloud Run 기본 주소 (`https://<서비스>-<번호>.asia-northeast3.run.app`) 를 부른다. 사이트 자체가 yeonbora.dev 에 있으므로 "도메인에서 동작" 은 충족된다. 하위 도메인 (`demo-api.yeonbora.dev`) 연결은 필요해지면 나중에. *Claude 판단* : 서울 리전은 Cloud Run 도메인 매핑을 지원하지 않아 부하 분산기를 따로 둬야 해서 비용 · 단계가 늘어난다.
+- 시연 API 주소는 `https://demo-api.yeonbora.dev` (Cloud Run 도메인 매핑 + yeonbora.dev DNS 에 CNAME). 매핑이 막히면 Cloud Run 기본 주소 (`*.run.app`) 로 대신하고, 사이트 쪽은 주소 한 줄 (`data.ts` 의 `ApiBase`, demo:sync 의 `VITE_API_BASE`) 만 바꾼다.
 - 시연 API 의 `--cors-origin https://yeonbora.dev`.
 - Chrome 로컬 네트워크 허용이 더는 필요 없다 (localhost 를 부르지 않음).
 
@@ -252,6 +252,9 @@ Cloud Run 설정
 
 ### 9.6 비용 · 남용 통제 (가이드 18쪽)
 
+- 공개 서버에서 켜는 기능 : 로컬 시연과 같게 전부 (대시보드 · 노트 · 그래프 · 비교 · 라이브 투입 · Q&A · 회의 · 회의록 투입 · 할 일 제안). *Claude 판단* : 시연 순서 문서 1 ~ 16 이 그대로 돌게. 회의 시드는 하니스 `demo_corpus/meetings/seed_meetings.json` 을 이미지에 넣는다.
+- 상한은 LLM 을 부르는 모든 경로 (라이브 투입, /ask, 회의록 투입, 할 일 제안) 가 하루 카운터 하나를 함께 쓴다. *Claude 판단* : 투입에만 걸면 나머지 경로로 비용이 샌다.
+
 - OpenRouter 키에 금액 상한을 건다 (상한에 닿으면 OpenRouter 가 거절 → 시연 API 가 실패를 그대로 보인다).
 - 시연 API 하루 투입 상한 (9.5-2). 투입 · Q&A 는 지금처럼 한 번에 한 건.
 - Cloud Run 최대 인스턴스 1 로 서버 비용 상한도 고정된다.
@@ -260,6 +263,13 @@ Cloud Run 설정
 ### 9.7 Dify 앞단
 
 지금 라이브 투입 · Q&A 는 Dify 워크플로를 거친다 (시연 경로 MVP 의 "Dify 앞단"). 로컬 Dify 는 공개 서버에서 닿지 않는다. → 9.8 의 질문.
+
+### 9.7.1 빌드 · 배포를 누가 어떻게
+
+- 미리 돌린 볼트 (`~/layered-wiki-work/demo/demo900_propose_20261022_193431`) 는 저장소에 커밋하지 않는다. 배포 스크립트 (`deploy/demo-cloudrun/deploy.sh`) 가 관리자님 WSL 에서 그 폴더를 빌드 재료 폴더에 복사한 뒤 `gcloud run deploy --source` 로 Cloud Build 에 넘긴다. 로컬 Docker 가 필요 없다. *Claude 판단* : 하니스 지침 9절 "누가 실행하는가" (설치 · 인증은 사용자 터미널).
+- bge-m3 GGUF 는 이미지 빌드 때 Hugging Face 에서 받는다 (이미지에 고정 해시로).
+- gcloud 로그인, Secret Manager 등록, 도메인 소유 확인은 관리자님 터미널 · 화면에서. Claude 는 명령을 쓴다.
+- Cloudflare DNS 의 `demo-api` CNAME 은 프록시 끔 (DNS only). Cloud Run 도메인 매핑이 인증서를 직접 발급하려면 필요하다.
 
 ### 9.8 바뀐 진행 단계
 

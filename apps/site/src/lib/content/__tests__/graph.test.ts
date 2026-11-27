@@ -93,3 +93,52 @@ describe('typographic apostrophes', () => {
     expect(Pg.href({ raw: '', target: 'Jensen\u2019s Device' })).toBeUndefined()
   })
 })
+
+describe('clash-name links (R13)', () => {
+  const W = (slug: string, title: string, sourcePath: string, aliases: string[] = []): Node => ({ collection: 'wiki', slug, title, aliases, body: '', sourcePath })
+  const PopStack = W('pop-컴퓨터시스템개론', 'pop (컴퓨터시스템개론)', '컴퓨터시스템개론/pop.md', ['pop'])
+  const PopServer = W('pop-서버', 'POP (서버 구조와 기술)', '서버 구조와 기술/POP.md', ['POP'])
+  const PopLang = W('process-oriented-programming', 'Process Oriented Programming', '프로그래밍 언어/Process Oriented Programming.md', ['POP'])
+  const ImpCss = W('important-css', '!important (CSS)', '멋쟁이사자처럼/css/!important.md', ['!important'])
+  const ImpJs = W('important-js', '!important (JS)', '멋쟁이사자처럼/js/!important.md', ['!important'])
+  const Nodes = [PopServer, PopLang, PopStack, ImpJs, ImpCss]
+  const From = (sourcePath: string) => ({ sourcePath })
+
+  it('prefers the note whose title or alias matches with exact case', () => {
+    const G = buildGraph(Nodes)
+    expect(G.resolve('pop', From('자료구조/시간 복잡도.md'))).toBe(PopStack)
+    expect(G.resolve('POP', From('자료구조/시간 복잡도.md'))).not.toBe(PopStack)
+    expect(G.resolveInfo('pop', From('자료구조/시간 복잡도.md')).ambiguous).toEqual([])
+  })
+
+  it('then picks the note nearest to the linking note', () => {
+    const G = buildGraph(Nodes)
+    expect(G.resolve('!important', From('멋쟁이사자처럼/css/박스.md'))).toBe(ImpCss)
+    expect(G.resolve('!important', From('멋쟁이사자처럼/js/함수.md'))).toBe(ImpJs)
+    const Info = G.resolveInfo('!important', From('멋쟁이사자처럼/css/박스.md'))
+    expect(Info.node).toBe(ImpCss)
+    expect(Info.ambiguous).toEqual(expect.arrayContaining([ImpCss, ImpJs]))
+  })
+
+  it('then falls back to a fixed order by sourcePath', () => {
+    const G = buildGraph(Nodes)
+    expect(G.resolve('!important', From('자료구조/x.md'))).toBe(ImpCss)
+    expect(G.resolve('!important')).toBe(ImpCss)
+    expect(G.resolve('POP', From('자료구조/x.md'))).toBe(PopServer)
+  })
+
+  it('gives the same result for any input order', () => {
+    const A = buildGraph(Nodes)
+    const B = buildGraph([...Nodes].reverse())
+    for (const T of ['pop', 'POP', '!important'])
+      for (const S of ['자료구조/x.md', '멋쟁이사자처럼/js/a.md', undefined]) expect(B.resolve(T, S ? From(S) : undefined)).toBe(A.resolve(T, S ? From(S) : undefined))
+  })
+
+  it('href and backlinks use the linking note as context', () => {
+    const Css: Node = { ...ImpCss, body: '' }
+    const Linker: Node = { collection: 'wiki', slug: 'box', title: '박스', aliases: [], body: '[[!important]]', sourcePath: '멋쟁이사자처럼/css/박스.md' }
+    const G = buildGraph([ImpJs, Css, Linker])
+    expect(G.href({ raw: '', target: '!important' }, From('멋쟁이사자처럼/js/a.md'))).toBe('/wiki/important-js')
+    expect(G.href({ raw: '', target: '!important' }, From('멋쟁이사자처럼/css/a.md'))).toBe('/wiki/important-css')
+  })
+})

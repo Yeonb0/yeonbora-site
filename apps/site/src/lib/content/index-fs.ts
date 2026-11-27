@@ -6,7 +6,7 @@ import { parse } from 'yaml'
 import { backlogKey, loadBacklog } from './backlog'
 import { buildGraph, type Collection, type Graph, type Node } from './graph'
 import type { BrokenLink } from './broken-report'
-import { maskCode, parseInner, slugFromPath } from './wikilink'
+import { maskCode, parseInner, slugFromPath, sourcePathFromRel } from './wikilink'
 
 const FrontRe = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/
 
@@ -117,7 +117,7 @@ export const findBrokenLinks = (contentDir: string): BrokenLink[] => {
         const L = parseInner(M[0], M[2])
         // [[#소제목]] 은 같은 노트 안 링크
         if (!M[1] && !L.target && L.heading) continue
-        const Missing = M[1] ? ImageRe.test(L.target) && !assets.has(L.target) : !graph.resolve(L.target)
+        const Missing = M[1] ? ImageRe.test(L.target) && !assets.has(L.target) : !graph.resolve(L.target, { sourcePath: sourcePathFromRel(`${C}/${F}`) })
         if (!Missing) continue
         // 이미지 임베드는 backlog 가 아니다
         const Kind = !M[1] && backlog.has(backlogKey(L.target)) ? 'backlog' : 'broken'

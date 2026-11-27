@@ -125,7 +125,7 @@ describe('writeBrokenReport split', () => {
   })
 })
 
-describe('remarkWikilink typographic apostrophes (astro smartypants runs first)', () => {
+describe('remarkWikilink typographic apostrophes (normalised even though smartypants is off)', () => {
   const Prim: Node = { collection: 'wiki', slug: 'prims-algorithm', title: "Prim's Algorithm", aliases: [], body: '' }
   const Pg = buildGraph([Prim])
 
@@ -155,5 +155,26 @@ describe('remarkWikilink typographic apostrophes (astro smartypants runs first)'
       expect(html).toContain('wikilink-pending')
       expect(Broken).toEqual([])
     }
+  })
+})
+
+describe('remarkWikilink clash names', () => {
+  const W = (slug: string, sourcePath: string): Node => ({ collection: 'wiki', slug, title: `!important (${slug})`, aliases: ['!important'], body: '', sourcePath })
+  const Css = W('css', '멋쟁이사자처럼/css/!important.md')
+  const Js = W('js', '멋쟁이사자처럼/js/!important.md')
+  const Cg = buildGraph([Js, Css])
+
+  const renderAt = async (rel: string) => {
+    const R = await createMarkdownProcessor({
+      syntaxHighlight: false,
+      remarkPlugins: [[remarkWikilink, { contentDir: ContentDir, getGraph: () => Cg, getAssets: () => Assets, onBroken: () => {} }]],
+    })
+    const { code } = await R.render('[[!important]]', { fileURL: pathToFileURL(`/vault/${rel}`) })
+    return decodeURI(code)
+  }
+
+  it('resolves to the note nearest to the linking note', async () => {
+    expect(await renderAt('wiki/computer/멋쟁이사자처럼/css/박스.md')).toContain('href="/wiki/css"')
+    expect(await renderAt('wiki/computer/멋쟁이사자처럼/js/함수.md')).toContain('href="/wiki/js"')
   })
 })

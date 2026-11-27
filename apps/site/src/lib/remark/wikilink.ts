@@ -6,7 +6,7 @@ import { visit } from 'unist-util-visit'
 import type { VFile } from 'vfile'
 import type { BrokenLink } from '../content/broken-report'
 import type { Graph } from '../content/graph'
-import { headingSlug, parseInner } from '../content/wikilink'
+import { headingSlug, parseInner, sourcePathFromRel } from '../content/wikilink'
 
 export interface WikilinkOptions {
   contentDir: string
@@ -31,6 +31,9 @@ export function remarkWikilink(opts: WikilinkOptions) {
     const Abs = filePath(file)
     const Rel = Abs ? relative(opts.contentDir, Abs).split('\\').join('/') : ''
     const Graph = opts.getGraph()
+    // 같은 이름의 노트가 여럿일 때 링크를 건 노트와 가까운 폴더의 노트를 고르려고 Main 상대 경로를 넘긴다
+    const Front = (file.data as { astro?: { frontmatter?: { sourcePath?: unknown } } }).astro?.frontmatter?.sourcePath
+    const From = { sourcePath: typeof Front === 'string' ? Front : sourcePathFromRel(Rel) }
 
     visit(tree, 'text', (node: Text, index, parent) => {
       if (!parent || index === undefined || !node.value.includes('[[')) return
@@ -60,7 +63,7 @@ export function remarkWikilink(opts: WikilinkOptions) {
         } else {
           // [[#소제목]] : 같은 노트 안의 소제목
           const Same = !Link.target && Link.heading ? `#${headingSlug(Link.heading)}` : undefined
-          const Href = Same ?? Graph.href(Link)
+          const Href = Same ?? Graph.href(Link, From)
           const Shown = Link.label ?? (Same ? Link.heading! : Link.target)
           if (Href) {
             const A: Link = { type: 'link', url: Href, children: [{ type: 'text', value: Shown }], data: { hProperties: { className: ['wikilink'] } } }

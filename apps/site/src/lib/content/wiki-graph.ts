@@ -11,6 +11,9 @@ export interface GNode {
   title: string
   kind: GKind
   topic: string
+  // 빌드 때 미리 잡은 자리 (wiki-layout.ts)
+  x?: number
+  y?: number
 }
 
 export interface WikiGraphData {

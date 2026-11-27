@@ -17,17 +17,12 @@
   stroke: var(--w-line-strong);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
-  transition:
-    stroke 0.3s,
-    opacity 0.4s;
 }
 .wg-node {
   cursor: pointer;
-  transition: opacity 0.4s;
 }
 .wg-node circle {
   fill: var(--w-node);
-  transition: fill 0.3s;
 }
 .wg-node.post rect {
   fill: var(--w-post);
@@ -50,9 +45,6 @@
   font-family: var(--font-base);
   font-size: 11px;
   pointer-events: none;
-  transition:
-    opacity 0.4s,
-    fill 0.3s;
 }
 .wg-node.me text {
   fill: var(--w-fg);
@@ -67,28 +59,26 @@
   opacity: 0 !important;
   pointer-events: none;
 }
-.wg-node.hidden,
-.wg-edge.hidden {
+/* 흐리기는 그룹 하나에 건다 : 카테고리를 확대하면 뒤 그룹이 옅어지고, 글 화면에서는 뒤 그룹을 숨긴다 */
+.wg-back {
+  transition: opacity 0.4s;
+}
+.wg-back.dim {
+  opacity: 0.12;
+}
+.wg-back.gone {
   display: none;
 }
-.wg-svg.zoomed .wg-node.out,
-.wg-svg.zoomed .wg-edge.out {
-  opacity: 0.12;
+.wg-world {
+  transition: opacity 0.25s;
 }
-.wg-svg.focus .wg-edge:not(.off) {
-  opacity: 0.12;
-}
-.wg-svg.focus .wg-edge.hot:not(.off) {
-  opacity: 1;
-  stroke: var(--w-accent);
-}
-.wg-svg.focus .wg-node:not(.off) {
+.wg-svg.focus .wg-world {
   opacity: 0.22;
 }
-.wg-svg.focus .wg-node.hot:not(.off) {
-  opacity: 1;
+.wg-edge.hot {
+  stroke: var(--w-accent);
 }
-.wg-svg.focus .wg-node.hot text {
+.wg-node.hot text {
   fill: var(--w-fg);
 }
 
@@ -135,9 +125,8 @@
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 @media (prefers-reduced-motion: reduce) {
-  .wg-edge,
-  .wg-node,
-  .wg-node *,
+  .wg-back,
+  .wg-world,
   .wg-posts,
   .wg-posts::before {
     transition-duration: 0.01s !important;

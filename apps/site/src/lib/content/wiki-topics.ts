@@ -23,6 +23,11 @@ export const Topics: WikiTopic[] = [
   { id: 'database', name: '데이터베이스', aliases: ['db'] },
   { id: 'ml', name: '머신러닝', aliases: ['machine-learning'] },
   { id: 'se', name: '소프트웨어공학', aliases: ['software-engineering'] },
+  { id: 'server', name: '서버', aliases: [] },
+  { id: 'aws', name: 'AWS', aliases: [] },
+  { id: 'devops', name: 'DevOps', aliases: [] },
+  { id: 'bigdata-cert', name: '빅데이터분석기사', aliases: [] },
+  { id: 'likelion', name: '멋쟁이사자처럼', aliases: [] },
 ]
 
 // topic 이 없는 노트가 모이는 곳 : 늘 맨 뒤

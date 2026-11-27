@@ -1,0 +1,19 @@
+---
+title: Spring 특징
+aliases: []
+tags: []
+field: computer
+topic: likelion
+source: obsidian
+sourcePath: 멋쟁이사자처럼/백엔드/Spring/Spring 특징.md
+created: 2026-07-30
+---
+- [[POJO]] 프로그래밍 지향
+- [[IoC]] : 제어의 역전
+	- [[DI]] : 의존성 주입
+- [[AOP]] : 관점 지향 프로그래밍
+- [[PSA]] : 이식 가능한 서비스 추상화
+
+### 점유율
+- 한국 전자정부표준프레임워크의 기반 기술
+- 한국정보화진흥원 -> 공공 기관의 웹 서비스 제공 시 [[Spring|스프링]] 권장

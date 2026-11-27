@@ -1,23 +1,46 @@
 ---
 import { getCollection } from 'astro:content'
+import { getImage } from 'astro:assets'
 import Layout from '@/sections/posts/Layout.astro'
 // 확장자를 붙인다 : 윈도우는 대소문자를 구분하지 않는다
 import Desktop from '@/sections/posts/Desktop.tsx'
 import { summarize, type DeskPost } from '@/sections/posts/desk'
+import { firstImage, resolveImage } from '@/sections/posts/thumb'
 import { formatDate } from '@/lib/content/site-graph'
 
+// 볼트 안 그림 : 카드 썸네일은 본문 첫 그림을 작게 줄여 쓴다
+const Files = import.meta.glob<{ default: ImageMetadata }>('/src/content/**/*.{png,jpg,jpeg,gif,webp,avif,svg,PNG,JPG,JPEG}', { eager: true })
+const ByName = new Map<string, string>()
+for (const K of Object.keys(Files)) {
+  const Name = K.slice(K.lastIndexOf('/') + 1)
+  if (!ByName.has(Name)) ByName.set(Name, K)
+}
+
+const thumbOf = async (body: string, filePath?: string): Promise<string | undefined> => {
+  const Ref = firstImage(body)
+  if (!Ref) return undefined
+  if (/^https?:\/\//.test(Ref.url)) return Ref.url
+  const Key = Ref.embed ? ByName.get(Ref.url) : filePath ? resolveImage(filePath, Ref.url) : undefined
+  const Mod = Key ? Files[Key] : undefined
+  if (!Mod) return undefined
+  return (await getImage({ src: Mod.default, format: 'webp', width: 320 })).src
+}
+
 // 기술 블로그에는 컴퓨터 글만 놓는다 : 인문 글은 /humanities/ 도서관이 맡는다
-const Posts: DeskPost[] = (await getCollection('posts', (p) => p.data.field === 'computer')).map((p) => ({
-  id: p.id,
-  title: p.data.title,
-  date: formatDate(p.data.date),
-  topic: p.data.topic,
-  series: p.data.series,
-  step: p.data.step,
-  tier: p.data.tier,
-  tags: p.data.tags,
-  summary: p.data.description ?? summarize(p.body ?? ''),
-}))
+const Posts: DeskPost[] = await Promise.all(
+  (await getCollection('posts', (p) => p.data.field === 'computer')).map(async (p) => ({
+    id: p.id,
+    title: p.data.title,
+    date: formatDate(p.data.date),
+    topic: p.data.topic,
+    series: p.data.series,
+    step: p.data.step,
+    tier: p.data.tier,
+    tags: p.data.tags,
+    summary: p.data.description ?? summarize(p.body ?? ''),
+    thumb: await thumbOf(p.body ?? '', p.filePath),
+  })),
+)
 ---
 
 <Layout>

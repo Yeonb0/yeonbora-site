@@ -15,6 +15,8 @@ export interface DeskPost {
   tier?: Tier
   tags: string[]
   summary: string
+  // 카드 썸네일 주소 : 본문 첫 그림, 없으면 폴더 글리프
+  thumb?: string
 }
 
 export interface BookIcon {
@@ -40,6 +42,7 @@ export type Row =
       folder: string
       where?: string
       tier?: Tier
+      thumb?: string
     }
 
 export interface FolderView {
@@ -83,6 +86,7 @@ const postRow = (all: DeskPost[], p: DeskPost, i: number, where?: string): Row =
     loose: Rank === null,
     folder: folderOf(p.topic),
     where,
+    thumb: p.thumb,
   }
 }
 

@@ -48,3 +48,12 @@ export const CourseSchema = z.object({
   year: z.number().int().min(1).max(5),
   category: z.enum(['gen', 'phil', 'rel', 'cse']),
 })
+
+// Layered Wiki 설명 탭 : 주차 하나의 한 판 (제출본 / 최신판)
+export const WeekSchema = z.object({
+  week: z.number().int().positive(),
+  edition: z.enum(['submitted', 'latest']),
+  date: z.coerce.date(),
+  // 수업 위키 원문으로 아직 바꾸지 않은 임시 본문
+  provisional: z.boolean().default(false),
+})

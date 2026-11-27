@@ -1,0 +1,99 @@
+---
+// 표지 : 층 세 겹과 에이전트가 만드는 두 링크 방향 (상향 실선, 하향 조건부 빨간 점선) 을 그대로 그린다
+---
+
+<div class="title">
+  <div class="words">
+    <h1>Layered Wiki</h1>
+    <p class="lede">긴 문서를 개념 단위 노트로 나누고,<br />노트마다 개인 / 팀 / 전사 중 놓일 층을 정하는 에이전트</p>
+    <p class="course">실전 AI 에이전트 시스템 설계 · 구축, 2026년 2학기 데모데이</p>
+  </div>
+  <svg class="strata" viewBox="0 0 520 600" role="img" aria-label="전사, 팀, 개인 세 층과 노트 사이의 상향 링크, 하향 조건부 링크">
+    <g class="band org">
+      <rect x="0" y="0" width="520" height="180" />
+      <text x="24" y="44">전사</text>
+    </g>
+    <g class="band team">
+      <rect x="0" y="210" width="520" height="180" />
+      <text x="24" y="254">팀</text>
+    </g>
+    <g class="band me">
+      <rect x="0" y="420" width="520" height="180" />
+      <text x="24" y="464">개인</text>
+    </g>
+    <g class="notes">
+      <circle cx="300" cy="110" r="14" />
+      <circle cx="420" cy="80" r="14" />
+      <circle cx="250" cy="320" r="14" />
+      <circle cx="400" cy="300" r="14" />
+      <circle cx="330" cy="520" r="14" />
+    </g>
+    <!-- 상향 : 개인 → 팀 → 전사 실선. 하향 조건부 : 전사 노트에서 다른 팀 노트로 빨간 점선 -->
+    <g class="up">
+      <line x1="325" y1="507" x2="256" y2="333" />
+      <line x1="253" y1="306" x2="297" y2="124" />
+    </g>
+    <line class="down" x1="418" y1="94" x2="402" y2="286" />
+  </svg>
+</div>
+
+<style>
+  .title {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: center;
+    gap: 5cqw;
+  }
+  h1 {
+    font-size: 8.2cqw;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    color: var(--fg);
+  }
+  .lede {
+    margin-top: 3cqw;
+    max-width: 22em;
+    font-size: 1.9cqw;
+    line-height: 1.55;
+    color: var(--fg);
+  }
+  .course {
+    margin-top: 5cqw;
+    font-size: 1.25cqw;
+  }
+  .strata {
+    width: 100%;
+    height: auto;
+  }
+  .band rect {
+    rx: 6;
+  }
+  .org rect {
+    fill: color-mix(in srgb, var(--layer-org) 22%, var(--bg));
+  }
+  .team rect {
+    fill: color-mix(in srgb, var(--layer-team) 26%, var(--bg));
+  }
+  .me rect {
+    fill: color-mix(in srgb, var(--layer-me) 34%, var(--bg));
+  }
+  .band text {
+    font: 800 24px var(--font-point);
+    fill: var(--quiet);
+  }
+  .notes circle {
+    fill: var(--bg);
+    stroke: var(--fg);
+    stroke-width: 3;
+  }
+  .up line {
+    stroke: var(--fg);
+    stroke-width: 3;
+  }
+  .down {
+    stroke: var(--down);
+    stroke-width: 3;
+    stroke-dasharray: 8 7;
+  }
+</style>

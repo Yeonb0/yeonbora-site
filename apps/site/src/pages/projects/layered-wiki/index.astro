@@ -1,0 +1,141 @@
+---
+import { getCollection, render } from 'astro:content'
+import Layout from '@/sections/layered-wiki/Layout.astro'
+import { ApiBase, DemoSrc, RepoUrl, Weeks, pad } from '@/sections/layered-wiki/data'
+
+// 슬라이드 : slides/NN-이름.astro, 순서는 파일 이름
+const SlideModules = import.meta.glob<{ default: any }>('/src/sections/layered-wiki/slides/*.astro', { eager: true })
+const Slides = Object.keys(SlideModules)
+  .sort()
+  .map((k) => SlideModules[k].default)
+
+// 주차마다 두 판을 짝지어 렌더해 둔다
+const Entries = await getCollection('layeredWikiWeeks')
+const Rendered = await Promise.all(Entries.map(async (e) => ({ ...e.data, Content: (await render(e)).Content })))
+const Pages = Weeks.map((w) => ({
+  ...w,
+  submitted: Rendered.find((r) => r.week === w.week && r.edition === 'submitted'),
+  latest: Rendered.find((r) => r.week === w.week && r.edition === 'latest'),
+}))
+const FirstWithText = Pages.find((p) => p.submitted || p.latest) ?? Pages[0]
+
+const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+---
+
+<Layout>
+  <main class="lw" data-tab="slides" data-api="unknown" data-bar="closed" data-api-base={ApiBase}>
+    <section class="lw-panel" data-panel="slides" aria-label="발표">
+      <div class="lw-stage">
+        {
+          Slides.map((Slide, i) => (
+            <article class="lw-slide" data-index={i + 1} {...(i === 0 ? { 'data-current': '' } : {})}>
+              <Slide />
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="lw-panel" data-panel="demo" aria-label="시연">
+      <div class="lw-offline">
+        <div class="lw-offline-body">
+          <h2>시연은 발표 PC 에서만 움직입니다</h2>
+          <p>이 화면은 이 컴퓨터의 시연 API 에 붙어 동작합니다. 아래 서버가 켜지면 몇 초 안에 시연 화면으로 바뀝니다.</p>
+          <ul class="lw-servers">
+            <li><code>:8082</code><span>임베딩 서버. 화면만 보일 때도 필요</span></li>
+            <li><code>:8090</code><span>시연 API, --cors-origin https://yeonbora.dev</span></li>
+            <li><code>:8081</code><span>생성 서버. 라이브 투입 · Q&A 를 보일 때</span></li>
+            <li><code>Dify</code><span>라이브 투입을 보일 때</span></li>
+          </ul>
+        </div>
+      </div>
+      <!-- 연결되기 전에는 불러오지 않는다 : 다른 기기에서 빈 시연 화면이 요청을 쏟지 않게 -->
+      <iframe class="lw-demo-frame" title="Layered Wiki 시연" data-src={DemoSrc} allow="local-network-access; fullscreen"></iframe>
+    </section>
+
+    <section class="lw-panel" data-panel="wiki" aria-label="설명">
+      <nav class="lw-toc" aria-label="주차">
+        <h2>주차별 산출물</h2>
+        <a class="lw-toc-repo" href={RepoUrl} target="_blank" rel="noopener">하니스 저장소 열기</a>
+        <ol>
+          {
+            Pages.map((p) => (
+              <li>
+                <a
+                  href={`#wiki-${pad(p.week)}`}
+                  data-week={pad(p.week)}
+                  aria-current={p === FirstWithText ? 'true' : 'false'}
+                  {...(!p.submitted && !p.latest ? { 'data-empty': '' } : {})}
+                >
+                  <b>{p.week}주</b>
+                  <span>{p.title}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+      {
+        Pages.map((p) => {
+          const Both = p.submitted && p.latest
+          return (
+            <div
+              class="lw-week"
+              data-week={pad(p.week)}
+              {...(p === FirstWithText ? { 'data-current': '' } : {})}
+              {...(!Both ? { 'data-single': '' } : {})}
+            >
+              {!p.submitted && !p.latest && (
+                <p class="lw-empty">
+                  {p.week}주 {p.title} 은 아직 옮기지 않았습니다. 수업 위키의 본문을 weeks/{pad(p.week)}-submitted.md 로 옮기면 여기에 보입니다.
+                </p>
+              )}
+              {[p.submitted, p.latest].map(
+                (E) =>
+                  E && (
+                    <div class="lw-pane" data-edition={E.edition}>
+                      <button class="lw-pane-head" type="button" data-edition={E.edition} disabled={!Both} aria-pressed="false">
+                        {E.edition === 'submitted' ? '제출본' : '최신판'}
+                        <time datetime={fmt(E.date)}>{fmt(E.date)}</time>
+                        {!Both && <small>제출본 그대로</small>}
+                        {Both && <small>눌러서 이 판만 보기</small>}
+                      </button>
+                      <div class="lw-prose">
+                        <E.Content />
+                      </div>
+                    </div>
+                  ),
+              )}
+            </div>
+          )
+        })
+      }
+    </section>
+
+    <div class="lw-edge" aria-hidden="true"></div>
+    <nav class="lw-bar" aria-label="탭">
+      <button class="lw-tab" type="button" data-tab="slides" aria-selected="true">
+        발표 <span class="lw-count"><span data-slide-now>1</span> / {Slides.length}</span><kbd>1</kbd>
+      </button>
+      <button class="lw-tab" type="button" data-tab="demo" aria-selected="false">
+        시연 <span class="lw-dot" role="img" aria-label="시연 API 연결 상태"></span><kbd>2</kbd>
+      </button>
+      <button class="lw-tab" type="button" data-tab="wiki" aria-selected="false">설명 <kbd>3</kbd></button>
+      <a class="lw-home" href="/projects/">프로젝트 방으로</a>
+    </nav>
+  </main>
+</Layout>
+
+<script>
+  import { mountStage } from '@/sections/layered-wiki/stage'
+  // ClientRouter 로 오가면 모듈 스크립트는 한 번만 돈다 : 페이지가 뜰 때마다 붙이고, 떠날 때 뗀다
+  let Unmount: (() => void) | null = null
+  document.addEventListener('astro:page-load', () => {
+    const Root = document.querySelector<HTMLElement>('.lw')
+    if (Root) Unmount = mountStage(Root)
+  })
+  document.addEventListener('astro:before-swap', () => {
+    Unmount?.()
+    Unmount = null
+  })
+</script>

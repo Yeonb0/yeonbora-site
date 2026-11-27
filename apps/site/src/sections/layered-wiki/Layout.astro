@@ -1,0 +1,11 @@
+---
+// Layered Wiki 무대 레이아웃 : 프로젝터에 떠 있는 UI 를 없애려고 사이트 홈 버튼을 끈다 (홈은 하단 막대 끝)
+import Base from '@/shared/Base.astro'
+import './stage.css'
+---
+
+<Base title="Layered Wiki · 연보라" description="Layered Wiki 데모데이 발표 · 시연 · 설명" showHome={false}>
+  <!-- 교수님 · 청중용 무대라 검색에 내보내지 않는다 -->
+  <meta slot="head" name="robots" content="noindex, nofollow" />
+  <slot />
+</Base>

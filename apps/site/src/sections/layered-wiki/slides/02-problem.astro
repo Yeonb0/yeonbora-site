@@ -1,0 +1,54 @@
+---
+// 예시 장 : 1주 문제 정의서의 두 목적 (도달성 · 누출). 발표 내용은 따로 정한다
+---
+
+<div class="problem">
+  <h2>모두 이으면 새고, 모두 막으면 닿지 않는다</h2>
+  <div class="axes">
+    <section>
+      <h3>도달성</h3>
+      <p>상위 층 노트에서 하위 층 내용에 얼마나 닿을 수 있는가</p>
+    </section>
+    <section>
+      <h3>누출</h3>
+      <p>하위 층에만 있어야 할 내용이 상위 층 노트에 얼마나 드러나는가</p>
+    </section>
+  </div>
+  <p class="close">두 목적이 동시에 걸릴 때만 판단이 필요하다. 어디서 나누고, 어느 층에 두고, 어떤 링크를 만들 것인가.</p>
+</div>
+
+<style>
+  .problem {
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 4cqw;
+  }
+  h2 {
+    max-width: 18em;
+  }
+  .axes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4cqw;
+    align-items: start;
+  }
+  section {
+    padding-top: 1.6cqw;
+    border-top: 0.35cqw solid var(--layer-org);
+  }
+  section + section {
+    border-top-color: var(--down);
+  }
+  h3 {
+    margin: 0 0 1cqw;
+    font: 800 2.6cqw/1.2 var(--font-point);
+  }
+  .axes p {
+    font-size: 1.9cqw;
+    color: var(--fg);
+  }
+  .close {
+    max-width: 36em;
+  }
+</style>

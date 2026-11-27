@@ -3,7 +3,8 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'yaml'
 import { buildGraph, type Collection, type Graph, type Node } from './graph'
-import { slugFromPath } from './wikilink'
+import type { BrokenLink } from './broken-report'
+import { maskCode, parseInner, slugFromPath } from './wikilink'
 
 const FrontRe = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/
 
@@ -77,3 +78,25 @@ export const getGraph = (contentDir: string): Graph => load(contentDir).graph
 
 // 첨부 파일 이름 → 콘텐츠 폴더 기준 경로 (Obsidian 처럼 파일명만으로 찾는다)
 export const getAssets = (contentDir: string): Map<string, string> => load(contentDir).assets
+
+const EmbedRe = /(!?)\[\[([^\[\]\n]+?)\]\]/g
+const ImageRe = /\.(png|jpe?g|gif|webp|svg|avif)$/i
+
+// 깨진 링크 목록 : 렌더 결과는 캐시되므로 리포트는 파일에서 직접 계산한다
+export const findBrokenLinks = (contentDir: string): BrokenLink[] => {
+  const { graph, assets } = load(contentDir)
+  const Out = new Map<string, BrokenLink>()
+  for (const C of ['wiki', 'posts'] as const) {
+    for (const F of listFiles(join(contentDir, C))) {
+      if (!F.endsWith('.md')) continue
+      const Text = readFileSync(join(contentDir, C, F), 'utf8')
+      const Body = maskCode(Text.replace(FrontRe, '')).replace(/%%[\s\S]*?%%/g, (m) => ' '.repeat(m.length))
+      for (const M of Body.matchAll(EmbedRe)) {
+        const L = parseInner(M[0], M[2])
+        const Missing = M[1] ? ImageRe.test(L.target) && !assets.has(L.target) : !graph.resolve(L.target)
+        if (Missing) Out.set(`${C}/${F}\u0000${L.target}`, { file: `${C}/${F}`, target: L.target })
+      }
+    }
+  }
+  return [...Out.values()].sort((x, y) => x.file.localeCompare(y.file) || x.target.localeCompare(y.target))
+}

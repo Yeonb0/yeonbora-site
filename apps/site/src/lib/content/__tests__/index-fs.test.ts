@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { getAssets, getGraph, loadNodes } from '../index-fs'
+import { findBrokenLinks, getAssets, getGraph, loadNodes } from '../index-fs'
 
 const vault = () => {
   const Dir = mkdtempSync(join(tmpdir(), 'vault-'))
@@ -49,5 +49,16 @@ describe('getGraph', () => {
 describe('getAssets', () => {
   it('maps file names to paths', () => {
     expect(getAssets(vault()).get('그림 1.png')).toBe('_assets/obsidian/그림 1.png')
+  })
+})
+
+describe('findBrokenLinks', () => {
+  it('lists unresolved links and image embeds, skipping comments and code', () => {
+    const Dir = vault()
+    writeFileSync(join(Dir, 'wiki/computer/ACK.md'), '[[Stop-and-Wait]] [[없음]] ![[그림 1.png]] ![[없는.png]] ![[노트]] %% [[주석 안]] %% `[[코드]]`')
+    expect(findBrokenLinks(Dir)).toEqual([
+      { file: 'wiki/computer/ACK.md', target: '없는.png' },
+      { file: 'wiki/computer/ACK.md', target: '없음' },
+    ])
   })
 })

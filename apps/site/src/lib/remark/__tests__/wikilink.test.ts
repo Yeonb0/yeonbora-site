@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 import { describe, expect, it } from 'vitest'
 import { buildGraph, type Node } from '../../content/graph'
-import { createBrokenReporter, type BrokenLink } from '../../content/broken-report'
+import { writeBrokenReport, type BrokenLink } from '../../content/broken-report'
 import { remarkWikilink } from '../wikilink'
 
 const Gc: Node = { collection: 'wiki', slug: '가비지-컬렉션', title: '가비지 컬렉션', aliases: ['GC'], body: '' }
@@ -72,14 +72,12 @@ describe('remarkWikilink', () => {
   })
 })
 
-describe('createBrokenReporter', () => {
-  it('reporter', () => {
+describe('writeBrokenReport', () => {
+  it('writes a table and removes the file when nothing is broken', () => {
     const Path = join(mkdtempSync(join(tmpdir(), 'rep-')), 'reports/broken-links.md')
-    const Report = createBrokenReporter(Path)
+    writeBrokenReport(Path, [{ file: 'a.md', target: 'x' }])
+    expect(readFileSync(Path, 'utf8')).toContain('| a.md | x |')
+    writeBrokenReport(Path, [])
     expect(existsSync(Path)).toBe(false)
-    Report({ file: 'a.md', target: 'x' })
-    Report({ file: 'a.md', target: 'x' })
-    const Text = readFileSync(Path, 'utf8')
-    expect(Text.match(/\| a\.md \| x \|/g)).toHaveLength(1)
   })
 })

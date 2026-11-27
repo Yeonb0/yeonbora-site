@@ -63,6 +63,14 @@ describe('applyEdits', () => {
     expect(R.Repo.Configs.v.speed.value).toBe(1)
   })
 
+  it('text object keeps original key order', () => {
+    const R0 = repo()
+    R0.Configs.v.labels = { type: 'text', value: { input: 'a', output: 'b', count: 'c' }, label: '라벨' }
+    const R = applyEdits(R0, [E({ kind: 'config', key: 'labels', value: { count: 'C', input: 'a', output: 'b' } }, '1')], '2026-11-27')
+    expect(Object.keys(R.Repo.Configs.v.labels.value as object)).toEqual(['input', 'output', 'count'])
+    expect((R.Repo.Configs.v.labels.value as Record<string, string>).count).toBe('C')
+  })
+
   it('does not mutate input repo', () => {
     const Before = repo()
     applyEdits(Before, [E({ kind: 'config', key: 'speed', value: 2 }, '1')], '2026-11-27')

@@ -46,7 +46,10 @@ export function applyEdits(Input: Repo, Edits: StoredEdit[], today: string): App
         const V = validateValue(Field, e.value)
         if (!V.ok) skip(`${e.vizId}.${e.key} : ${V.reason}`)
         else {
-          Field.value = V.value as never
+          // 문구 객체는 원래 키 순서를 지켜 diff 를 바뀐 줄만으로
+          const Old = Field.value
+          const Value = typeof Old === 'object' && Old && typeof V.value === 'object' ? Object.fromEntries(Object.keys(Old).map((k) => [k, (V.value as Record<string, string>)[k]])) : V.value
+          Field.value = Value as never
           Applied.push(e.id)
         }
       }

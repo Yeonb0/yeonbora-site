@@ -1,7 +1,7 @@
 // 위키 그래프 화면용 데이터 : 위키 노트 + 위키를 링크한 글 + 아직 없는 노트 (빈 점)
 import type { Graph, Node } from './graph'
 import { parseWikilinks } from './wikilink'
-import { EtcTopic, normalizeTopic, sortTopics, topicColor, topicName } from './wiki-topics'
+import { EtcTopic, normalizeTopic, sortTopics, topicColors, topicName } from './wiki-topics'
 
 export type GKind = 'wiki' | 'post' | 'ghost'
 
@@ -73,9 +73,10 @@ export const buildWikiGraphData = (Nodes: WikiNode[], G: Graph): WikiGraphData =
   }
 
   const Used = sortTopics([...new Set([...Out.values()].filter((n) => n.kind === 'wiki').map((n) => n.topic))])
+  const Colors = topicColors(Used)
   return {
     nodes: [...Out.values()],
     links: Pairs.filter(([a, b]) => Out.has(a) && Out.has(b)),
-    topics: Used.map((id) => ({ id, name: topicName(id), color: topicColor(id) })),
+    topics: Used.map((id) => ({ id, name: topicName(id), color: Colors.get(id)! })),
   }
 }

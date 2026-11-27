@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react'
 import { navigate } from 'astro:transitions/client'
 import type { GNode, WikiGraphData } from '@/lib/content/wiki-graph'
 import { placeLabels, type LabelItem } from './labels'
-import { Forces, linkDistance, linkStrength, topicCenters } from '@/lib/content/wiki-layout'
+import { Forces, linkDistance, linkStrength, nodeRadius, topicCenters } from '@/lib/content/wiki-layout'
 import './graph.css'
 
 interface Props {
@@ -22,7 +22,7 @@ const loadData = () =>
   }))
 
 type SNode = GNode & SimulationNodeDatum & { el?: SVGGElement; dot?: SVGElement; label?: SVGTextElement; deg: number; w?: number }
-type SLink = SimulationLinkDatum<SNode> & { el?: SVGLineElement; a: string; b: string }
+type SLink = SimulationLinkDatum<SNode> & { a: string; b: string }
 interface View {
   x: number
   y: number
@@ -82,6 +82,11 @@ export default function WikiGraph({ current }: Props) {
     const svg = document.createElementNS(NS, 'svg')
     svg.setAttribute('class', 'wg-svg')
     Host.prepend(svg)
+    // 선은 SVG 요소 대신 캔버스 한 장에 그린다 : 선이 수천 개라 요소로 두면 움직일 때마다 브라우저가 무거워진다
+    const Cv = document.createElement('canvas')
+    Cv.className = 'wg-canvas'
+    Host.prepend(Cv)
+    const Ctx = Cv.getContext('2d')!
     // 그룹 : 뒤 (전체) · 앞 (확대한 카테고리 · 로컬 그래프) · 호버 (강조한 노드와 이웃)
     // 노드 천여 개에 하나씩 클래스를 바꾸면 스타일 계산이 느려서, 흐리기는 그룹 하나에 걸고 대상만 앞으로 옮긴다
     const group = (cls: string) => {
@@ -93,10 +98,10 @@ export default function WikiGraph({ current }: Props) {
     const Back = group('wg-back')
     const Front = group('wg-front')
     const HotG = group('wg-hot')
-    const [BackE, BackN, FrontE, FrontN, HotE, HotN] = [group(''), group(''), group(''), group(''), group(''), group('')]
-    Back.append(BackE, BackN)
-    Front.append(FrontE, FrontN)
-    HotG.append(HotE, HotN)
+    const [BackN, FrontN, HotN] = [group(''), group(''), group('')]
+    Back.append(BackN)
+    Front.append(FrontN)
+    HotG.append(HotN)
     World.append(Back, Front)
     svg.append(World, HotG)
     // 요소가 평소 머무는 그룹 (호버가 끝나면 돌아갈 곳)
@@ -134,8 +139,8 @@ export default function WikiGraph({ current }: Props) {
       LinksOf.get(L.b)!.push(L)
     }
     const PostNodes = Nodes.filter((n) => n.kind === 'post')
-    const PostLinks = Links.filter((l) => ById.get(l.a)!.kind === 'post' || ById.get(l.b)!.kind === 'post')
-    const radius = (n: SNode) => (n.id === Cur ? 9 : n.kind === 'ghost' ? 3.5 : 4.5 + Math.min(n.deg, 6) * 0.7)
+    // 점 크기 : 이어진 선이 많을수록 크게 (지금 글은 한 단계 더)
+    const radius = (n: SNode) => (n.id === Cur ? Math.max(9, nodeRadius(n, n.deg) + 2) : nodeRadius(n, n.deg))
 
     // 상태
     let Cur: string | null = null
@@ -152,11 +157,6 @@ export default function WikiGraph({ current }: Props) {
 
     // DOM : 만들어만 두고, 붙이는 건 첫 화면 연출 (reveal) 이나 appendAll 이 한다
     const ColorOf = new Map(data.topics.map((t) => [t.id, t.color]))
-    for (const L of Links) {
-      L.el = document.createElementNS(NS, 'line')
-      // 다른 카테고리를 잇는 선은 옅게
-      L.el.setAttribute('class', ById.get(L.a)!.topic === ById.get(L.b)!.topic ? 'wg-edge' : 'wg-edge cross')
-    }
     for (const N of Nodes) {
       const g = document.createElementNS(NS, 'g')
       g.setAttribute('class', `wg-node ${N.kind}`)
@@ -194,7 +194,7 @@ export default function WikiGraph({ current }: Props) {
       .force('charge', forceManyBody<SNode>().strength(Forces.charge).distanceMax(Forces.chargeMax))
       .force('x', forceX<SNode>((d) => centerOf(d).x).strength(Forces.center))
       .force('y', forceY<SNode>((d) => centerOf(d).y).strength(Forces.center))
-      .force('collide', forceCollide<SNode>(Forces.collide))
+      .force('collide', forceCollide<SNode>((d) => Math.max(Forces.collide, nodeRadius(d, d.deg) + 5)))
       .stop()
     // 노드가 움직일 때만 선을 다시 그린다. 이름표는 몇 번에 한 번, 멈추면 마지막으로
     let TickN = 0
@@ -213,28 +213,75 @@ export default function WikiGraph({ current }: Props) {
     // k : 화면 1px 이 그래프 좌표 몇인지. f : 점 · 글씨를 원래 크기의 몇 배로 그릴지 (멀리서 보면 작게, 최소 0.4)
     const k = () => V.w / Math.max(1, HW)
     const f = () => Math.min(1, Math.max(0.4, 1 / k()))
+    const far = () => f() < 0.75 && !Local
     // 멀리서도 이름을 보여 줄 노드 : 링크가 많은 위쪽 8%
     const HubDeg = (() => {
       const D = Nodes.filter((n) => n.kind === 'wiki').map((n) => n.deg).sort((a, b) => b - a)
       return D[Math.floor(D.length * 0.08)] ?? 0
     })()
-    function draw() {
-      drawLinks()
-      drawNodes()
-      layoutLabels()
-    }
     function drawLinks() {
-      drawLinksOf(Links)
+      queueEdges()
     }
-    function drawLinksOf(List: SLink[]) {
-      for (const L of List) {
+    function drawLinksOf(_List: SLink[]) {
+      queueEdges()
+    }
+    // 선 그리기 : 한 프레임에 한 번만. 모양 (보통 · 다른 카테고리 · 흐림 · 강조) 마다 경로 하나로 모아 긋는다
+    let EdgeRaf = 0
+    let Visible: Set<SNode> | null = null
+    let HotId: string | null = null
+    function queueEdges() {
+      if (!EdgeRaf) EdgeRaf = requestAnimationFrame(paintEdges)
+    }
+    function paintEdges() {
+      EdgeRaf = 0
+      const Dpr = window.devicePixelRatio || 1
+      const W = Math.round(HW * Dpr)
+      const H = Math.round(HH * Dpr)
+      if (Cv.width !== W || Cv.height !== H) {
+        Cv.width = W
+        Cv.height = H
+      }
+      Ctx.setTransform(1, 0, 0, 1, 0, 0)
+      Ctx.clearRect(0, 0, W, H)
+      const S = Dpr / k()
+      Ctx.setTransform(S, 0, 0, S, -V.x * S, -V.y * S)
+      const Far = far()
+      const Paths = { same: new Path2D(), cross: new Path2D(), dimSame: new Path2D(), dimCross: new Path2D(), hot: new Path2D() }
+      for (const L of Links) {
         const A = ById.get(L.a)!
         const B = ById.get(L.b)!
-        L.el!.setAttribute('x1', String(A.x))
-        L.el!.setAttribute('y1', String(A.y))
-        L.el!.setAttribute('x2', String(B.x))
-        L.el!.setAttribute('y2', String(B.y))
+        if (!live(A) || !live(B)) continue
+        if (Visible && !(Visible.has(A) && Visible.has(B))) continue
+        if (Local && !(Local.has(L.a) && Local.has(L.b))) continue
+        if (Far && (A.kind === 'ghost' || B.kind === 'ghost') && L.a !== HotId && L.b !== HotId) continue
+        const Cross = A.topic !== B.topic
+        const P =
+          HotId && (L.a === HotId || L.b === HotId)
+            ? Paths.hot
+            : inFocus(A) && inFocus(B)
+              ? Cross
+                ? Paths.cross
+                : Paths.same
+              : Cross
+                ? Paths.dimCross
+                : Paths.dimSame
+        P.moveTo(A.x!, A.y!)
+        P.lineTo(B.x!, B.y!)
       }
+      // 멀리서 보면 옅게, 다른 카테고리를 잇는 선은 더 옅게, 강조 중이면 나머지는 흐리게
+      const Base = Math.min(1, Math.max(0.3, 1.2 / k())) * (HotId ? 0.22 : 1)
+      Ctx.lineWidth = k()
+      const stroke = (P: Path2D, Color: string, Alpha: number) => {
+        Ctx.strokeStyle = Color
+        Ctx.globalAlpha = Alpha
+        Ctx.stroke(P)
+      }
+      stroke(Paths.dimCross, '#565569', Base * 0.3 * 0.12)
+      stroke(Paths.dimSame, '#565569', Base * 0.12)
+      stroke(Paths.cross, '#565569', Base * 0.3)
+      stroke(Paths.same, '#565569', Base)
+      stroke(Paths.hot, '#aa93c2', 1)
+      Ctx.globalAlpha = 1
     }
     // 확대해도 점 · 글씨 크기가 그대로이도록 노드마다 거꾸로 축소한다
     // 글씨는 늘 같은 크기, 점만 f 배 (점 크기는 CSS 변수 하나로 한꺼번에)
@@ -247,12 +294,14 @@ export default function WikiGraph({ current }: Props) {
         LastF = F
         World.style.setProperty('--wg-f', String(F))
         HotG.style.setProperty('--wg-f', String(F))
+        // 멀리서 보면 아직 없는 노트 (빈 점) 는 숨긴다 : 거의 안 보이는데 그리는 양만 늘린다
+        World.classList.toggle('far', far())
       }
       for (const N of Nodes) if (shown(N)) N.el!.setAttribute('transform', `translate(${N.x},${N.y}) scale(${S})`)
+      queueEdges()
     }
-    // 선 진하기 : 멀리서 보면 옅게 (애니메이션이 끝날 때만 바꾼다, 선 수천 개를 매 프레임 다시 그리지 않게)
     function edgeTone() {
-      World.style.setProperty('--wg-edge-o', String(Math.min(1, Math.max(0.3, 1.2 / k()))))
+      queueEdges()
     }
     const shown = (n: SNode) => live(n) && (!Local || Local.has(n.id))
     const inFocus = (n: SNode) => shown(n) && (Local ? true : !Topic || n.topic === Topic)
@@ -458,19 +507,18 @@ export default function WikiGraph({ current }: Props) {
         }
       }
       for (const N of PostNodes) N.el!.classList.toggle('off', !live(N))
-      for (const L of PostLinks) L.el!.classList.toggle('off', !live(ById.get(L.a)!) || !live(ById.get(L.b)!))
       // 앞 그룹 : 확대한 카테고리 또는 로컬 그래프 (첫 화면 연출 중에는 끝난 뒤에)
       if (Revealing) {
         Fit = target()
         return setView(Fit, ms)
       }
-      for (const El of FrontEls) moveTo(El, El.tagName === 'line' ? BackE : BackN)
+      for (const El of FrontEls) moveTo(El, BackN)
       FrontEls = []
       if (Topic || Local) {
         for (const N of Nodes) if (inFocus(N)) FrontEls.push(N.el!)
-        for (const L of Links) if (inFocus(ById.get(L.a)!) && inFocus(ById.get(L.b)!)) FrontEls.push(L.el!)
-        for (const El of FrontEls) moveTo(El, El.tagName === 'line' ? FrontE : FrontN)
+        for (const El of FrontEls) moveTo(El, FrontN)
       }
+      queueEdges()
       Back.classList.toggle('dim', !!Topic && !Local)
       Back.classList.toggle('gone', !!Local)
       Fit = target(Local ? (Moves ?? undefined) : undefined)
@@ -492,11 +540,12 @@ export default function WikiGraph({ current }: Props) {
         const N = ById.get(h)!
         if (shown(N) && Rest.has(N.el!)) HotEls.push(N.el!)
       }
-      if (id && ById.has(id)) for (const L of LinksOf.get(id)!) if (shown(ById.get(L.a)!) && shown(ById.get(L.b)!) && Rest.has(L.el!)) HotEls.push(L.el!)
       for (const El of HotEls) {
         El.classList.add('hot')
-        ;(El.tagName === 'line' ? HotE : HotN).append(El)
+        HotN.append(El)
       }
+      HotId = id && ById.has(id) ? id : null
+      queueEdges()
       svg.classList.toggle('focus', HotEls.length > 0)
       layoutLabels()
     }
@@ -643,7 +692,6 @@ export default function WikiGraph({ current }: Props) {
     // 첫 화면 : 노트가 작성 순서대로 하나씩 나타난다 (옵시디언 그래프처럼). 빈 점은 이웃이 나타날 때 같이
     let Revealing = false
     const appendAll = () => {
-      for (const L of Links) moveTo(L.el!, BackE)
       for (const N of Nodes) moveTo(N.el!, BackN)
     }
     const reveal = (done: () => void) => {
@@ -653,6 +701,7 @@ export default function WikiGraph({ current }: Props) {
         .sort((a, b) => (a[0].t ?? Infinity) - (b[0].t ?? Infinity) || a[1] - b[1])
         .map(([n]) => n)
       const Seen = new Set<SNode>()
+      Visible = Seen
       // 몇 개를 보여 줄지는 흐른 시간으로 정한다 : 느린 기기에서도 Dur 안에 끝난다
       const Dur = 2400
       let T0 = 0
@@ -668,7 +717,6 @@ export default function WikiGraph({ current }: Props) {
         for (const L of LinksOf.get(N.id)!) {
           const O = ById.get(L.a === N.id ? L.b : L.a)!
           if (O.kind === 'ghost') show(O, Batch)
-          if (Seen.has(O) && !Rest.has(L.el!)) moveTo(L.el!, BackE)
         }
       }
       const step = (now: number) => {
@@ -679,10 +727,11 @@ export default function WikiGraph({ current }: Props) {
         At = Math.max(At, To)
         // 나타나는 연출이 끝나면 pop 을 뗀다 (나중에 그룹을 옮길 때 다시 재생되지 않게)
         setTimeout(() => Batch.forEach((el) => el.classList.remove('pop')), 700)
+        queueEdges()
         if (++Frame % 20 === 0) layoutLabels()
         if (At < Order.length) return void requestAnimationFrame(step)
         for (const N of Nodes) if (!Seen.has(N)) moveTo(N.el!, BackN)
-        for (const L of Links) if (!Rest.has(L.el!)) moveTo(L.el!, BackE)
+        Visible = null
         Revealing = false
         done()
       }

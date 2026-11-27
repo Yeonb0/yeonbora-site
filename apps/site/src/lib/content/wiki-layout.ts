@@ -21,6 +21,9 @@ export const topicCenters = (Topics: string[], Total: number): Map<string, { x: 
   )
 }
 
+// 점 크기 : 이어진 선이 많을수록 크게 (옵시디언처럼 제곱근으로 늘려 큰 허브도 지나치게 커지지 않게)
+export const nodeRadius = (n: Pick<GNode, 'kind'>, deg: number) => (n.kind === 'ghost' ? 3 : Math.min(16, 3.5 + 1.6 * Math.sqrt(deg)))
+
 // 선 세기 · 길이 : 같은 카테고리면 세게, 다르면 약하게. 빈 점으로 가는 선은 짧게
 export const linkStrength = (a: GNode, b: GNode) => (a.topic === b.topic ? Forces.linkSame : Forces.linkCross)
 export const linkDistance = (a: GNode, b: GNode) => (a.kind === 'ghost' || b.kind === 'ghost' ? Forces.ghostDist : Forces.linkDist)
@@ -34,6 +37,11 @@ export const layoutWikiGraph = (D: WikiGraphData, Ticks = 500): WikiGraphData =>
   const Nodes: N[] = D.nodes.map((n) => ({ ...n, x: undefined, y: undefined }))
   type L = { source: string | N; target: string | N }
   const Links: L[] = D.links.map(([source, target]) => ({ source, target }))
+  const Deg = new Map<string, number>()
+  for (const [a, b] of D.links) {
+    Deg.set(a, (Deg.get(a) ?? 0) + 1)
+    Deg.set(b, (Deg.get(b) ?? 0) + 1)
+  }
   const Sim = forceSimulation<N>(Nodes)
     .force(
       'link',
@@ -45,7 +53,8 @@ export const layoutWikiGraph = (D: WikiGraphData, Ticks = 500): WikiGraphData =>
     .force('charge', forceManyBody<N>().strength(Forces.charge).distanceMax(Forces.chargeMax))
     .force('x', forceX<N>((d) => at(d).x).strength(Forces.center))
     .force('y', forceY<N>((d) => at(d).y).strength(Forces.center))
-    .force('collide', forceCollide<N>(Forces.collide))
+    // 큰 점은 그만큼 넓게 비켜서게
+    .force('collide', forceCollide<N>((d) => Math.max(Forces.collide, nodeRadius(d, Deg.get(d.id) ?? 0) + 5)))
     .stop()
   // 처음 자리 : 카테고리 중심 근처 (d3 기본 해바라기 배치를 중심으로 옮긴다)
   for (const n of Nodes) {

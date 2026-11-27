@@ -22,6 +22,21 @@ describe('PostSchema', () => {
   it('keeps the original date', () => {
     expect(PostSchema.parse(Post).date.toISOString().slice(0, 10)).toBe('2026-06-24')
   })
+
+  it('keeps series step and rejects negative step', () => {
+    expect(PostSchema.parse({ ...Post, series: '컴퓨터 네트워크', step: 5 }).step).toBe(5)
+    expect(PostSchema.parse({ ...Post, step: 0 }).step).toBe(0)
+    expect(PostSchema.safeParse({ ...Post, step: -1 }).success).toBe(false)
+  })
+
+  it('accepts BOJ tiers only', () => {
+    expect(PostSchema.parse({ ...Post, tier: 'Gold' }).tier).toBe('Gold')
+    expect(PostSchema.safeParse({ ...Post, tier: 'Ruby' }).success).toBe(false)
+  })
+
+  it('keeps description', () => {
+    expect(PostSchema.parse({ ...Post, description: '한 줄 요약' }).description).toBe('한 줄 요약')
+  })
 })
 
 describe('WikiSchema', () => {

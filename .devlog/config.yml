@@ -1,7 +1,9 @@
 project: yeonbora-site
-# Phase 2 완료 전까지 게시 대상은 기존 Jekyll 깃블로그
+# M4 (깃블로그 이전) 완료 전까지 게시 대상은 기존 Jekyll 깃블로그
 publish_target: jekyll
 current_phase: 1
+# 글 옮기기 프로젝트 (docs/migration/project-instructions.md) 의 현재 Phase
+current_migration_phase: M1
 phases:
   - id: 1
     title: 허브 화면
@@ -11,15 +13,13 @@ phases:
       - 6칸 아이콘 허브 (데스크톱 3 x 2, 모바일 2 x 3, 호버 효과 + 모바일 동작)
       - 아이콘 클릭 시 섹션 빈 페이지로 전환
   - id: 2
-    title: 콘텐츠 모델 + 깃블로그 이전
-    goal: 기존 깃블로그 글이 새 스키마로 읽힌다
+    title: 과목 · 서재
+    goal: 옮겨진 글을 과목과 서재에서 찾는다
+    # 스키마 · Jekyll 이전 · devlog 게시 경로 변경은 글 옮기기 프로젝트 M1 · M4 로 이관 (2026-11-27)
     done:
-      - courses · posts 스키마 확정
       - 수강 과목 목록 입력
-      - Jekyll 글을 content collection으로 이전
-      - 과목 / 글 페이지 · 서재 목록
+      - 과목 페이지 · 서재 목록
       - 태그 · RSS · sitemap
-      - devlog 스킬 게시 경로를 Astro로 변경
   - id: 3
     title: 애드센스 준비
     goal: 도메인만 연결하면 바로 신청할 수 있는 상태가 된다
@@ -60,12 +60,10 @@ phases:
       - 종교 3개 이상
       - 모바일 대응
   - id: 8
-    title: 흩어진 출처 수집
-    goal: 나머지 플랫폼의 정리본이 모인다
+    title: 흩어진 출처 수집 (이관됨)
+    goal: 글 옮기기 프로젝트 M5 · M6 으로 이관 (2026-11-27)
     done:
-      - Notion · velog · Tistory 글 가져오기
-      - 종이 정리본 1편 이상 스캔 + 전사
-      - 모두 공통 스키마로 서재와 각 방에 표시
+      - 글 옮기기 프로젝트 M5 · M6 완료
   - id: 9
     title: 첫 인터랙티브 글
     goal: 글 안에서 시각화가 동작한다
@@ -90,3 +88,54 @@ phases:
       - astro.config.mjs 의 site 를 실제 도메인으로 변경
       - canonical · sitemap · RSS 주소 갱신
       - 애드센스 신청 완료
+
+# 글 옮기기 프로젝트 Phase (docs/migration/project-instructions.md)
+migration_phases:
+  - id: M1
+    title: 콘텐츠 기반
+    goal: 노트가 링크로 이어져 뜬다
+    done:
+      - wiki · posts · courses 스키마
+      - remark 플러그인 (링크 · viz · 주석)
+      - /wiki · /posts 페이지 + 역링크
+      - 샘플 노트 3개 이상
+      - content 폴더를 Obsidian 볼트로 열어 확인
+  - id: M2
+    title: 시안 작업대 + 첫 시각화
+    goal: 그림을 보고 고치고 승인한다
+    done:
+      - /_drafts 목록 (dev 전용)
+      - config.json 조절판 저장
+      - 본문 · 라벨 텍스트 저장
+      - 승인 / 반려 메모
+      - 샘플 글 1편에 직접 그린 SVG 또는 애니메이션
+      - 휴대폰에서 확인
+  - id: M3
+    title: 위키 이전
+    goal: Main 노트가 사이트에서 열린다
+    done:
+      - Main 노트 전부 이전
+      - 깨진 링크 리포트 0
+      - 이미지 정상
+      - Main 저장소 보관
+  - id: M4
+    title: 깃블로그 이전
+    goal: Jekyll 글이 사이트에서 열린다
+    done:
+      - _posts 전부 이전
+      - 원작성일 · 출처 유지
+      - 위키 링크 연결
+      - devlog 게시 경로를 Astro로 변경
+  - id: M5
+    title: velog · Tistory · Notion 이전
+    goal: 흩어진 블로그 글이 모인다
+    done:
+      - 세 출처 글 전부 이전
+      - 출처별 변환 리포트
+      - 중복 글 정리
+  - id: M6
+    title: 종이 정리본
+    goal: 손글씨가 글이 된다
+    done:
+      - 1편 이상 스캔 + 전사
+      - 스캔 원본 보관

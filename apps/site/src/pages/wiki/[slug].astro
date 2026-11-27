@@ -1,0 +1,24 @@
+---
+import { getCollection, render } from 'astro:content'
+import Layout from '@/sections/wiki/Layout.astro'
+import Article from '@/components/content/Article.astro'
+import LinkList from '@/components/content/LinkList.astro'
+import { formatDate, getSiteGraph } from '@/lib/content/site-graph'
+
+export async function getStaticPaths() {
+  return (await getCollection('wiki')).map((entry) => ({ params: { slug: entry.id }, props: { entry } }))
+}
+
+const { entry } = Astro.props
+const { Content } = await render(entry)
+const Graph = await getSiteGraph()
+const Backlinks = Graph.backlinks(entry.id).map((n) => ({ href: `/posts/${n.slug}`, title: n.title }))
+const Meta = entry.data.created ? [{ text: formatDate(entry.data.created) }] : []
+---
+
+<Layout title={entry.data.title}>
+  <Article title={entry.data.title} meta={Meta}>
+    <Content />
+    <LinkList slot="after" heading="이 개념을 다룬 글" items={Backlinks} />
+  </Article>
+</Layout>

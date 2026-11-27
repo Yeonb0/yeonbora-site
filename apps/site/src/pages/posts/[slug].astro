@@ -1,0 +1,24 @@
+---
+import { getCollection, render } from 'astro:content'
+import Layout from '@/sections/posts/Layout.astro'
+import Article from '@/components/content/Article.astro'
+import LinkList from '@/components/content/LinkList.astro'
+import { formatDate, getSiteGraph } from '@/lib/content/site-graph'
+
+export async function getStaticPaths() {
+  return (await getCollection('posts')).map((entry) => ({ params: { slug: entry.id }, props: { entry } }))
+}
+
+const { entry } = Astro.props
+const { Content } = await render(entry)
+const Graph = await getSiteGraph()
+const Related = Graph.related(entry.id).map((n) => ({ href: `/wiki/${n.slug}`, title: n.title }))
+const Meta = [{ text: formatDate(entry.data.date) }, { text: entry.data.source, href: entry.data.originalUrl }]
+---
+
+<Layout>
+  <Article title={entry.data.title} meta={Meta}>
+    <Content />
+    <LinkList slot="after" heading="관련 개념" items={Related} />
+  </Article>
+</Layout>

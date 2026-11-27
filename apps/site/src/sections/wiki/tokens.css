@@ -1,0 +1,6 @@
+/* wiki 읽기 화면 토큰 : 사이트 기본 다크 */
+:root:has(.section-wiki) {
+  --bg: #1a1a1a;
+  --fg: #e0e0e0;
+  --home-fg: #e0e0e0;
+}

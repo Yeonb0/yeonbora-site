@@ -61,7 +61,8 @@ docs/migration/wiki-backlog.json           Main 기준 미해결 대상 목록 (
 | 데이터베이스시스템 | database | 5 |
 | 빅데이터분석기사 | bigdata-cert | 7 |
 | 도커&쿠버네티스 | devops | 8 |
-| 기타 정보들 (+ 루트 LaTex.md) | etc | 19 |
+| 기타 정보들 | etc | 18 |
+| (루트) LaTex.md · `.` 묶음 | etc | 1 |
 | 자료구조 | data-structure | 28 |
 | 알고리즘 설계와 분석 | algorithm | 61 |
 | 컴퓨터시스템개론 | system | 88 |
@@ -267,13 +268,15 @@ Main 에 `$$` 59개 파일, 인라인 수식 약 190개 파일, 콜아웃 41개 
 - [ ] **Step 3 : `reports/broken-links.md` 를 본다.** 이 시점의 broken 은 모두 변환 문제다. 원인별로 묶어 Task 1 ~ 7 로 돌아가 고친다
 - [ ] **Step 4 : 임시 브랜치를 지운다**
 
-### Task 9 ~ 23 : 폴더 묶음 이전 (15개, 위 topic 표 순서)
+### Task 9 ~ 24 : 폴더 묶음 이전 (15개 + 루트 1개, 위 topic 표 순서, 루트는 맨 끝)
 
 작은 폴더부터 해서 초반 묶음에서 문제를 빨리 찾습니다. 묶음마다 같은 절차입니다 (migrate-posts 스킬의 0 · 5 단계와 같음).
 
+루트 묶음 (Task 24) : Main 최상위에 있는 `LaTex.md` 는 폴더가 아니라 `.` 로 따로 옮깁니다 (`run <Main> .`, topic `etc`, 리포트 `migrate-obsidian-etc-root.md`, 브랜치 `migrate/obsidian-etc-root`, 커밋 `migrate(obsidian) : 루트 1편`). 기타 정보들 묶음 (19편) 에는 들어가지 않습니다.
+
 - [ ] **Step 1 :** 작업대 db 에 반영 안 된 기록이 있는지 보고, 있으면 "시안 반영" 부터 할지 묻는다
 - [ ] **Step 2 :** 브랜치 `migrate/obsidian-<topic>` (main 최신에서)
-- [ ] **Step 3 :** `pnpm migrate:obsidian run <Main> <폴더> --dry-run` → 리포트에서 충돌 · 이름 바꿈 · 작성일 없음 확인, 문제 있으면 멈추고 묻는다
+- [ ] **Step 3 :** `pnpm migrate:obsidian run <Main> <폴더> --dry-run` → `reports/migrate-obsidian-<topic>.dry-run.md` 에서 충돌 · 이름 바꿈 · 작성일 없음 · 모호한 링크 확인, 문제 있으면 멈추고 묻는다
 - [ ] **Step 4 :** `run` → `pnpm test && pnpm build`
 - [ ] **Step 5 :** 의심 목록의 노트를 `pnpm dev` 390px 폭에서 열어 본다 (수식 · 콜아웃 · 표 · HTML). 원문이 이상하면 고치지 않고 `%% check %%` · `%% typo? %%`
 - [ ] **Step 6 :** 리포트의 `## 시각화 후보` 를 채운다 : 과정 · 구조 · 상태 변화가 글로만 설명된 노트, 노트당 한 줄 이유. 만들지 않는다
@@ -281,7 +284,7 @@ Main 에 `$$` 59개 파일, 인라인 수식 약 190개 파일, 콜아웃 41개 
 
 정보처리기사 (401편) 는 한 PR 로는 검토가 어려우니, 그 묶음 Step 3 에서 하위 폴더 단위로 나눌지 묻습니다.
 
-### Task 24 : M3 마무리
+### Task 25 : M3 마무리
 
 - [ ] **Step 1 : Run** `pnpm migrate:obsidian verify <Main>` · Expected : exit 0
 - [ ] **Step 2 : Run** `pnpm build` · Expected : `reports/broken-links.md` 없음 (broken 0), 그림 임베드 경고 0

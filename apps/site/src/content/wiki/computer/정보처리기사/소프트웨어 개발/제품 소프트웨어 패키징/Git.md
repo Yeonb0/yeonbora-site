@@ -1,0 +1,32 @@
+---
+title: Git
+aliases:
+  - 깃
+  - Git(깃)
+tags: []
+field: computer
+topic: engineer-cert
+source: obsidian
+sourcePath: 정보처리기사/소프트웨어 개발/제품 소프트웨어 패키징/Git.md
+created: 2026-07-30
+---
+
+- [[버전 관리 시스템]] 의 대표 구현
+- 로컬 저장소 -> 실제 개발
+- 원격 저장소 -> 버전 공동 관리
+- 저장소 : [[Repository]]
+- 작업 장소 : 워크 [[트리]] (work tree)
+- 임시 영역 : 인덱스 (index)
+
+### 명령어
+| 명령어          | 설명                                |
+| ------------ | --------------------------------- |
+| `add`        | 작업 내영 스테이징 영역 (Staging Area) 에 추가 |
+| `commit`     | 작업 내역 로컬 저장소 저장 ([[COMMIT]])      |
+| `branch`     | new 브랜치 생성. commit 마다 가장 최근으로     |
+| `checkout`   | 지정 브랜치 이동                         |
+| `merge`      | 두 브랜치 병합                          |
+| `init`       | 로컬 저장소 생성                         |
+| `remote add` | 원격 저장소 연결                         |
+| `push`       | 로컬 → 원격 저장소 반영                    |
+| `fetch`      | 원격 → 로컬 저장소 반영 (`clone`)          |

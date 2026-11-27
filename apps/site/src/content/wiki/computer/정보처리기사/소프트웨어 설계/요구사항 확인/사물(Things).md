@@ -1,0 +1,20 @@
+---
+title: 사물(Things)
+aliases: []
+tags: []
+field: computer
+topic: engineer-cert
+source: obsidian
+sourcePath: 정보처리기사/소프트웨어 설계/요구사항 확인/사물(Things).md
+created: 2026-07-30
+---
+- 모델 구성 기본 요소.
+- [[관계]] 형성 가능 대상
+
+### 종류
+
+| **구조 사물**  <br>Structural Things | 시스템의 개념적, 물리적 요소 표현  <br>==ex)== [[클래스]], [[유스케이스]], [[컴포넌트]], [[노드]] |
+| -------------------------------- | --------------------------------------------------------------------- |
+| **행동 사물**  <br>Behavioral Things | 시 · 공간에 따른 요소들 행위 표현  <br>==ex)== 상호작용, [[상태 머신]]                     |
+| **그룹 사물**  <br>Grouping Things   | 요소들 그룹으로 묶어 표현  <br>==ex)== [[패키지]]                                   |
+| **주해 사물**  <br>Annotation Things | 부가 설명, 제약 조건  <br>==ex)== 노트                                          |

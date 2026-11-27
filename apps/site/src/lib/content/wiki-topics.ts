@@ -26,6 +26,7 @@ export const Topics: WikiTopic[] = [
   { id: 'server', name: '서버', aliases: [] },
   { id: 'aws', name: 'AWS', aliases: [] },
   { id: 'devops', name: 'DevOps', aliases: [] },
+  { id: 'engineer-cert', name: '정보처리기사', aliases: [] },
   { id: 'bigdata-cert', name: '빅데이터분석기사', aliases: [] },
   { id: 'likelion', name: '멋쟁이사자처럼', aliases: [] },
 ]

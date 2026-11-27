@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react'
 import { navigate } from 'astro:transitions/client'
 import type { GNode, WikiGraphData } from '@/lib/content/wiki-graph'
 import { placeLabels, type LabelItem } from './labels'
-import { topicCenters } from '@/lib/content/wiki-layout'
+import { Forces, topicCenters } from '@/lib/content/wiki-layout'
 import './graph.css'
 
 interface Props {
@@ -183,11 +183,11 @@ export default function WikiGraph({ current }: Props) {
 
     // 힘 배치 : 링크 + 밀어내기 + 카테고리 중심으로 살짝
     const Sim: Simulation<SNode, SLink> = forceSimulation<SNode>([])
-      .force('link', forceLink<SNode, SLink>([]).id((d) => d.id).distance((l) => ((l.source as SNode).kind === 'ghost' || (l.target as SNode).kind === 'ghost' ? 34 : 58)).strength(0.4))
-      .force('charge', forceManyBody<SNode>().strength(-60).distanceMax(260))
-      .force('x', forceX<SNode>((d) => centerOf(d).x).strength(0.12))
-      .force('y', forceY<SNode>((d) => centerOf(d).y).strength(0.12))
-      .force('collide', forceCollide<SNode>(9))
+      .force('link', forceLink<SNode, SLink>([]).id((d) => d.id).distance((l) => ((l.source as SNode).kind === 'ghost' || (l.target as SNode).kind === 'ghost' ? Forces.ghostDist : Forces.linkDist)).strength(Forces.linkStrength))
+      .force('charge', forceManyBody<SNode>().strength(Forces.charge).distanceMax(Forces.chargeMax))
+      .force('x', forceX<SNode>((d) => centerOf(d).x).strength(Forces.center))
+      .force('y', forceY<SNode>((d) => centerOf(d).y).strength(Forces.center))
+      .force('collide', forceCollide<SNode>(Forces.collide))
       .stop()
     // 노드가 움직일 때만 선을 다시 그린다. 이름표는 몇 번에 한 번, 멈추면 마지막으로
     let TickN = 0
@@ -203,7 +203,14 @@ export default function WikiGraph({ current }: Props) {
     }
 
     // 그리기
+    // k : 화면 1px 이 그래프 좌표 몇인지. f : 점 · 글씨를 원래 크기의 몇 배로 그릴지 (멀리서 보면 작게, 최소 0.4)
     const k = () => V.w / Math.max(1, HW)
+    const f = () => Math.min(1, Math.max(0.4, 1 / k()))
+    // 멀리서도 이름을 보여 줄 노드 : 링크가 많은 위쪽 8%
+    const HubDeg = (() => {
+      const D = Nodes.filter((n) => n.kind === 'wiki').map((n) => n.deg).sort((a, b) => b - a)
+      return D[Math.floor(D.length * 0.08)] ?? 0
+    })()
     function draw() {
       drawLinks()
       drawNodes()
@@ -220,23 +227,40 @@ export default function WikiGraph({ current }: Props) {
       }
     }
     // 확대해도 점 · 글씨 크기가 그대로이도록 노드마다 거꾸로 축소한다
+    // 글씨는 늘 같은 크기, 점만 f 배 (점 크기는 CSS 변수 하나로 한꺼번에)
+    let LastF = -1
     function drawNodes() {
       const S = k()
+      // 점 크기 변수는 0.1 단위로 바뀔 때만 (바꿀 때마다 점 수천 개의 스타일을 다시 계산한다)
+      const F = Math.round(f() * 10) / 10
+      if (F !== LastF) {
+        LastF = F
+        World.style.setProperty('--wg-f', String(F))
+        HotG.style.setProperty('--wg-f', String(F))
+      }
       for (const N of Nodes) if (shown(N)) N.el!.setAttribute('transform', `translate(${N.x},${N.y}) scale(${S})`)
+    }
+    // 선 진하기 : 멀리서 보면 옅게 (애니메이션이 끝날 때만 바꾼다, 선 수천 개를 매 프레임 다시 그리지 않게)
+    function edgeTone() {
+      World.style.setProperty('--wg-edge-o', String(Math.min(1, Math.max(0.3, 1.2 / k()))))
     }
     const shown = (n: SNode) => live(n) && (!Local || Local.has(n.id))
     const inFocus = (n: SNode) => shown(n) && (Local ? true : !Topic || n.topic === Topic)
     function labelVisible(n: SNode) {
       if (!shown(n)) return false
+      if (Hot.has(n.id) || n.id === Cur) return true
+      // 멀리서는 링크가 많은 노드만, 가까이 갈수록 모두
+      if (f() < 0.75 && !Local && n.deg < HubDeg) return false
       if (n.kind !== 'ghost') return true
-      return Hot.has(n.id) || (!!Topic && !Cur && n.topic === Topic)
+      return !!Topic && !Cur && n.topic === Topic
     }
     function layoutLabels() {
       const S = k()
       const sx = (n: SNode) => (n.x! - V.x) / S
       const sy = (n: SNode) => (n.y! - V.y) / S
+      const F = f()
       const Dots = Nodes.filter((n) => shown(n) && sx(n) > -20 && sx(n) < HW + 20 && sy(n) > -20 && sy(n) < HH + 20).map((n) => {
-        const r = radius(n) + 1
+        const r = radius(n) * F + 1
         return { id: n.id, x: sx(n) - r, y: sy(n) - r, w: r * 2, h: r * 2 }
       })
       const score = (n: SNode) => (n.id === Cur ? 1e6 : 0) + (Hot.has(n.id) ? 1e5 : 0) + (inFocus(n) ? 0 : -1e4) + (n.kind === 'ghost' ? -1e3 : 0) + n.deg
@@ -249,7 +273,7 @@ export default function WikiGraph({ current }: Props) {
       for (const N of Nodes) if (!Order.includes(N)) N.el!.classList.add('nolabel')
       const Items: LabelItem[] = Order.map((n) => {
         n.w ??= n.label!.getComputedTextLength() || n.title.length * 6
-        return { id: n.id, x: sx(n), y: sy(n), r: radius(n), w: n.w + 4, force: n.id === Cur || Hot.has(n.id) }
+        return { id: n.id, x: sx(n), y: sy(n), r: radius(n) * F, w: n.w + 4, force: n.id === Cur || Hot.has(n.id) }
       })
       const Spots = placeLabels(Items, Dots, HW, HH)
       for (const N of Order) {
@@ -269,6 +293,7 @@ export default function WikiGraph({ current }: Props) {
         V = { ...T }
         svg.setAttribute('viewBox', `${V.x} ${V.y} ${V.w} ${V.h}`)
         drawNodes()
+        edgeTone()
         layoutLabels()
         return
       }
@@ -281,7 +306,10 @@ export default function WikiGraph({ current }: Props) {
         svg.setAttribute('viewBox', `${V.x} ${V.y} ${V.w} ${V.h}`)
         drawNodes()
         if (t < 1) VRaf = requestAnimationFrame(step)
-        else layoutLabels()
+        else {
+          edgeTone()
+          layoutLabels()
+        }
       }
       VRaf = requestAnimationFrame(step)
     }
@@ -310,13 +338,18 @@ export default function WikiGraph({ current }: Props) {
       return aspect(x0, y0, Math.max(...xs) + Pad - x0, Math.max(...ys) + Pad - y0)
     }
 
-    // 지금 글에서 2단계까지 : 2단계의 빈 점은 뺀다
+    // 지금 글에서 2단계까지 : 2단계의 빈 점은 뺀다. 2단계까지가 너무 많으면 (카드가 빽빽해서) 1단계만
+    const LocalMax = 40
     function localSet(root: string) {
+      const Two = localSetDepth(root, 2)
+      return Two.size <= LocalMax ? Two : localSetDepth(root, 1)
+    }
+    function localSetDepth(root: string, Depth: number) {
       const Seen = new Map([[root, 0]])
       const Q = [root]
       while (Q.length) {
         const c = Q.shift()!
-        if (Seen.get(c) === 2) continue
+        if (Seen.get(c) === Depth) continue
         for (const n of Adj.get(c) ?? []) {
           const N = ById.get(n)!
           if (!live(N) || Seen.has(n) || (Seen.get(c) === 1 && N.kind === 'ghost')) continue
@@ -355,9 +388,10 @@ export default function WikiGraph({ current }: Props) {
       }
       Back.classList.toggle('dim', !!Topic && !Local)
       Back.classList.toggle('gone', !!Local)
+      Fit = target()
       Toggle.setAttribute('aria-pressed', String(postsOn()))
       Toggle.setAttribute('aria-label', postsOn() ? '글 노드 숨기기' : '글 노드 보이기')
-      setView(target(), ms)
+      setView(Fit, ms)
     }
 
     let HotEls: Element[] = []
@@ -409,6 +443,63 @@ export default function WikiGraph({ current }: Props) {
       g.addEventListener('pointerup', up)
       g.addEventListener('pointercancel', up)
     }
+
+    // 휠 확대 · 빈 곳을 끌어 옮기기 (옵시디언 그래프처럼)
+    let Fit: View = V
+    const settle = (() => {
+      let T = 0
+      return () => {
+        clearTimeout(T)
+        T = window.setTimeout(() => {
+          edgeTone()
+          layoutLabels()
+        }, 120)
+      }
+    })()
+    const setNow = (Nv: View) => {
+      cancelAnimationFrame(VRaf)
+      V = Nv
+      svg.setAttribute('viewBox', `${V.x} ${V.y} ${V.w} ${V.h}`)
+      drawNodes()
+      settle()
+    }
+    svg.addEventListener(
+      'wheel',
+      (e) => {
+        e.preventDefault()
+        const R = svg.getBoundingClientRect()
+        const px = (e.clientX - R.left) / R.width
+        const py = (e.clientY - R.top) / R.height
+        const Z = Math.exp(e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.0015))
+        // 가장 가까이 : 1px = 0.3 좌표 (3배), 가장 멀리 : 전체가 보이는 범위의 2배
+        const W = Math.min(Fit.w * 2, Math.max(HW * 0.3, V.w * Z))
+        const H = (W * HH) / HW
+        setNow({ x: V.x + (V.w - W) * px, y: V.y + (V.h - H) * py, w: W, h: H })
+      },
+      { passive: false },
+    )
+    svg.addEventListener('pointerdown', (e) => {
+      if ((e.target as Element).closest('.wg-node') || e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      svg.classList.add('panning')
+      let X = e.clientX
+      let Y = e.clientY
+      const move = (ev: PointerEvent) => {
+        const S = k()
+        setNow({ ...V, x: V.x - (ev.clientX - X) * S, y: V.y - (ev.clientY - Y) * S })
+        X = ev.clientX
+        Y = ev.clientY
+      }
+      const up = () => {
+        svg.classList.remove('panning')
+        svg.removeEventListener('pointermove', move)
+        svg.removeEventListener('pointerup', up)
+        svg.removeEventListener('pointercancel', up)
+      }
+      svg.addEventListener('pointermove', move)
+      svg.addEventListener('pointerup', up)
+      svg.addEventListener('pointercancel', up)
+    })
 
     Toggle.addEventListener('click', () => {
       Posts = { ...Posts, [Cur ? 'card' : 'home']: !postsOn() }

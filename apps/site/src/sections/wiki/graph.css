@@ -12,14 +12,24 @@
   width: 100%;
   height: 100%;
   touch-action: none;
+  cursor: grab;
+}
+.wg-svg.panning {
+  cursor: grabbing;
 }
 .wg-edge {
   stroke: var(--w-line-strong);
+  stroke-opacity: var(--wg-edge-o, 1);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 .wg-node {
   cursor: pointer;
+}
+/* 멀리서 보면 점만 작게 (WikiGraph 가 --wg-f 를 0.4 ~ 1 로 바꾼다) */
+.wg-node > circle,
+.wg-node > rect {
+  transform: scale(var(--wg-f, 1));
 }
 .wg-node circle {
   fill: var(--w-node);

@@ -5,9 +5,12 @@ import type { GNode, WikiGraphData } from './wiki-graph'
 
 type N = GNode & SimulationNodeDatum
 
+// 넓게 퍼뜨린다 : 멀리서는 점을 작게 그리고 (WikiGraph), 확대하면 이웃 사이가 넉넉하다
+export const Forces = { linkDist: 70, ghostDist: 36, linkStrength: 0.3, charge: -150, chargeMax: 500, center: 0.1, collide: 16 }
+
 // 카테고리 중심 : 원 위에 고르게, 노트가 많을수록 원이 커진다
 export const topicCenters = (Topics: string[], Total: number): Map<string, { x: number; y: number }> => {
-  const Ring = Topics.length > 1 ? 120 + 14 * Math.sqrt(Total) : 0
+  const Ring = Topics.length > 1 ? 120 + 30 * Math.sqrt(Total) : 0
   return new Map(
     Topics.map((t, k) => {
       const A = (k / Topics.length) * Math.PI * 2 - Math.PI / 2
@@ -26,11 +29,11 @@ export const layoutWikiGraph = (D: WikiGraphData, Ticks = 400): WikiGraphData =>
   const Links = D.links.map(([source, target]) => ({ source, target }))
   const Ghost = new Set(D.nodes.filter((n) => n.kind === 'ghost').map((n) => n.id))
   const Sim = forceSimulation<N>(Nodes)
-    .force('link', forceLink<N, { source: string | N; target: string | N }>(Links).id((d) => d.id).distance((l) => (Ghost.has((l.source as N).id) || Ghost.has((l.target as N).id) ? 34 : 58)).strength(0.4))
-    .force('charge', forceManyBody<N>().strength(-60).distanceMax(260))
-    .force('x', forceX<N>((d) => at(d).x).strength(0.12))
-    .force('y', forceY<N>((d) => at(d).y).strength(0.12))
-    .force('collide', forceCollide<N>(9))
+    .force('link', forceLink<N, { source: string | N; target: string | N }>(Links).id((d) => d.id).distance((l) => (Ghost.has((l.source as N).id) || Ghost.has((l.target as N).id) ? Forces.ghostDist : Forces.linkDist)).strength(Forces.linkStrength))
+    .force('charge', forceManyBody<N>().strength(Forces.charge).distanceMax(Forces.chargeMax))
+    .force('x', forceX<N>((d) => at(d).x).strength(Forces.center))
+    .force('y', forceY<N>((d) => at(d).y).strength(Forces.center))
+    .force('collide', forceCollide<N>(Forces.collide))
     .stop()
   // 처음 자리 : 카테고리 중심 근처 (d3 기본 해바라기 배치를 중심으로 옮긴다)
   for (const n of Nodes) {

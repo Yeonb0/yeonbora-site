@@ -141,8 +141,8 @@
   position: absolute;
   left: 0;
   top: 0;
+  /* will-change: transform 은 두지 않는다 : 처음 크기 (1배) 로 그림 전체를 붙잡아 두어, 멀리서 볼 때 메모리가 넘쳐 군데군데 비었다 */
   transform-origin: 0 0;
-  will-change: transform;
   transition: opacity 0.35s var(--ease);
 }
 /* 책장 그림을 다 풀기 전에는 숨긴다 : 띠마다 따로 나타나거나 카메라를 맞추기 전 모습이 비치지 않게 */

@@ -151,11 +151,8 @@ export function mountLibrary({ root, urls, posts }: LibraryOptions): () => void 
   Spares.className = 'spares'
   const TileW = 2 * (CaseW + CaseGap)
   const TileH = CapH * 2 + 5 * RowH + TierGap
+  // 크기는 sizeSpares 가 카메라가 보일 수 있는 만큼만 잡는다
   Object.assign(Spares.style, {
-    left: `${-4 * (CaseW + CaseGap)}px`,
-    top: `${-6 * TileH}px`,
-    width: `${16 * (CaseW + CaseGap)}px`,
-    height: `${13 * TileH}px`,
     backgroundImage: `url(${urls['spare-tile']})`,
     backgroundSize: `${TileW}px ${TileH}px`,
   })
@@ -218,7 +215,23 @@ export function mountLibrary({ root, urls, posts }: LibraryOptions): () => void 
     return [R.x + f.vx, R.y + (ViewY - RowTop), ViewW, ViewH]
   }
   const camFor = (f: Focus | null) => (f ? camTo(rowView(f), rel(Scene.getBoundingClientRect())) : camTo(overviewRect(), fitRect(overviewRect())))
+  // 여분 책장은 도서관 전체 보기에서 화면에 보이는 만큼 (= 카메라가 가장 멀리 물러났을 때) 만 깐다
+  // 넉넉히 깔면 (예전 28000 x 24600px) 브라우저가 그림을 다 들고 있지 못해 사각형으로 군데군데 비었다
+  // 무늬가 책장과 맞도록 경계는 타일 단위로 맞춘다
+  const sizeSpares = () => {
+    const { W, H } = roomSize()
+    if (!W || !H) return
+    const S = fitRect(overviewRect()).w / WorldW
+    const Mx = W / S / 2
+    const My = H / S / 2
+    const L = Math.floor(-Mx / TileW) * TileW
+    const Tp = Math.floor(-My / TileH) * TileH
+    const R = Math.ceil((WorldW + Mx) / TileW) * TileW
+    const B = Math.ceil((WorldH + My) / TileH) * TileH
+    Object.assign(Spares.style, { left: `${L}px`, top: `${Tp}px`, width: `${R - L}px`, height: `${B - Tp}px` })
+  }
   const setCam = () => {
+    sizeSpares()
     World.style.transform = camFor(Focus)
   }
 

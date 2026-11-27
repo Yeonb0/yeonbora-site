@@ -5,7 +5,7 @@ import { basename, join } from 'node:path'
 import { maskCode } from '../../../src/lib/content/wikilink'
 import type { VaultNote } from './vault'
 
-const EmbedRe = /!\[\[([^\]|]+?\.(?:png|jpe?g|gif|webp|svg|avif))[ \t]*(?:\|[^\]]*)?\]\]/gi
+const EmbedRe = /!\[\[([^\]|]+?\.(?:png|jpe?g|gif|webp|svg|avif))[ \t]*(?:\\?\|[^\]]*)?\]\]/gi
 
 const sha = (path: string) => createHash('sha256').update(readFileSync(path)).digest('hex')
 
@@ -50,7 +50,7 @@ export const copyImages = (
     const Found = Existing.get(Name)
     if (Found) {
       const H = sha(Src)
-      if (Found.some((p) => sha(p) === H)) Same.push(Name)
+      if (Found.every((p) => sha(p) === H)) Same.push(Name)
       else Clash.push(Name)
       continue
     }

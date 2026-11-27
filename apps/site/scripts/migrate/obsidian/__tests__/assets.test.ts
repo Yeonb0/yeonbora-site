@@ -23,7 +23,7 @@ const setup = (Images: Record<string, string>) => {
 describe('copyImages', () => {
   it('copies only referenced images', () => {
     const { ImagesDir, Assets } = setup({ 'a.png': 'A', 'b.png': 'B', 'c.png': 'C' })
-    const R = copyImages([note('n.md', '![[a.png]] text ![[b.png|300]]')], ImagesDir, Assets)
+    const R = copyImages([note('n.md', '![[a.png]] text ![[b.png\\|300]]')], ImagesDir, Assets)
     expect(R.Copied).toEqual(['a.png', 'b.png'])
     expect(readFileSync(join(Assets, 'obsidian', 'a.png'), 'utf8')).toBe('A')
     expect(existsSync(join(Assets, 'obsidian', 'c.png'))).toBe(false)
@@ -79,5 +79,18 @@ describe('copyImages', () => {
       { note: '1.md', name: 'z.png' },
       { note: '2.md', name: 'z.png' },
     ])
+  })
+
+  it('same only if every same-named file is identical', () => {
+    const { ImagesDir, Assets } = setup({ 'a.png': 'A' })
+    mkdirSync(join(Assets, 'obsidian'))
+    mkdirSync(join(Assets, 'jekyll'))
+    writeFileSync(join(Assets, 'obsidian', 'a.png'), 'A')
+    writeFileSync(join(Assets, 'jekyll', 'a.png'), 'OTHER')
+    const R = copyImages([note('n.md', '![[a.png]]')], ImagesDir, Assets)
+    expect(R.Clash).toEqual(['a.png'])
+    expect(R.Same).toEqual([])
+    expect(R.Copied).toEqual([])
+    expect(readFileSync(join(Assets, 'obsidian', 'a.png'), 'utf8')).toBe('A')
   })
 })

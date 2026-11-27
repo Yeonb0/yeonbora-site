@@ -5,31 +5,43 @@ import type { GNode, WikiGraphData } from './wiki-graph'
 
 type N = GNode & SimulationNodeDatum
 
-// 넓게 퍼뜨린다 : 멀리서는 점을 작게 그리고 (WikiGraph), 확대하면 이웃 사이가 넉넉하다
-export const Forces = { linkDist: 70, ghostDist: 36, linkStrength: 0.3, charge: -150, chargeMax: 500, center: 0.1, collide: 16 }
+// 옵시디언 그래프처럼 : 같은 카테고리끼리는 짧고 센 선으로 뭉치고, 다른 카테고리를 잇는 선은 약하게 당겨
+// 카테고리 무리들이 큰 원 안에 떨어져 흩어진다
+export const Forces = { linkDist: 36, ghostDist: 20, linkSame: 0.5, linkCross: 0.03, charge: -120, chargeMax: 380, center: 0.055, collide: 9 }
 
-// 카테고리 중심 : 원 위에 고르게, 노트가 많을수록 원이 커진다
+// 카테고리 중심 : 큰 원 위에 고르게, 홀짝으로 안쪽 · 바깥 원을 번갈아 써서 무리끼리 겹치지 않게
 export const topicCenters = (Topics: string[], Total: number): Map<string, { x: number; y: number }> => {
-  const Ring = Topics.length > 1 ? 120 + 30 * Math.sqrt(Total) : 0
+  const Ring = Topics.length > 1 ? 62 * Math.sqrt(Total) : 0
   return new Map(
     Topics.map((t, k) => {
-      const A = (k / Topics.length) * Math.PI * 2 - Math.PI / 2
-      return [t, { x: Math.round(Math.cos(A) * Ring), y: Math.round(Math.sin(A) * Ring) }]
+      const A = (k / Topics.length) * Math.PI * 2 - Math.PI / 2 + (k % 2) * 0.2
+      const R = Ring * (k % 2 ? 0.62 : 1)
+      return [t, { x: Math.round(Math.cos(A) * R), y: Math.round(Math.sin(A) * R) }]
     }),
   )
 }
 
-export const layoutWikiGraph = (D: WikiGraphData, Ticks = 400): WikiGraphData => {
+// 선 세기 · 길이 : 같은 카테고리면 세게, 다르면 약하게. 빈 점으로 가는 선은 짧게
+export const linkStrength = (a: GNode, b: GNode) => (a.topic === b.topic ? Forces.linkSame : Forces.linkCross)
+export const linkDistance = (a: GNode, b: GNode) => (a.kind === 'ghost' || b.kind === 'ghost' ? Forces.ghostDist : Forces.linkDist)
+
+export const layoutWikiGraph = (D: WikiGraphData, Ticks = 500): WikiGraphData => {
   const Center = topicCenters(
     D.topics.map((t) => t.id),
     D.nodes.length,
   )
   const at = (n: GNode) => Center.get(n.topic) ?? { x: 0, y: 0 }
-  const Nodes: N[] = D.nodes.map((n) => ({ ...n }))
-  const Links = D.links.map(([source, target]) => ({ source, target }))
-  const Ghost = new Set(D.nodes.filter((n) => n.kind === 'ghost').map((n) => n.id))
+  const Nodes: N[] = D.nodes.map((n) => ({ ...n, x: undefined, y: undefined }))
+  type L = { source: string | N; target: string | N }
+  const Links: L[] = D.links.map(([source, target]) => ({ source, target }))
   const Sim = forceSimulation<N>(Nodes)
-    .force('link', forceLink<N, { source: string | N; target: string | N }>(Links).id((d) => d.id).distance((l) => (Ghost.has((l.source as N).id) || Ghost.has((l.target as N).id) ? Forces.ghostDist : Forces.linkDist)).strength(Forces.linkStrength))
+    .force(
+      'link',
+      forceLink<N, L>(Links)
+        .id((d) => d.id)
+        .distance((l) => linkDistance(l.source as N, l.target as N))
+        .strength((l) => linkStrength(l.source as N, l.target as N)),
+    )
     .force('charge', forceManyBody<N>().strength(Forces.charge).distanceMax(Forces.chargeMax))
     .force('x', forceX<N>((d) => at(d).x).strength(Forces.center))
     .force('y', forceY<N>((d) => at(d).y).strength(Forces.center))
@@ -42,5 +54,5 @@ export const layoutWikiGraph = (D: WikiGraphData, Ticks = 400): WikiGraphData =>
     n.y = (n.y ?? 0) * 0.3 + C.y
   }
   Sim.tick(Ticks)
-  return { ...D, nodes: Nodes.map(({ id, title, kind, topic, x, y }) => ({ id, title, kind, topic, x: Math.round(x! * 10) / 10, y: Math.round(y! * 10) / 10 })) }
+  return { ...D, nodes: Nodes.map(({ index: _i, vx: _vx, vy: _vy, fx: _fx, fy: _fy, x, y, ...n }) => ({ ...n, x: Math.round(x! * 10) / 10, y: Math.round(y! * 10) / 10 })) }
 }

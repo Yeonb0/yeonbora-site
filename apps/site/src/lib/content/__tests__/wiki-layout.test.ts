@@ -14,8 +14,8 @@ const D: WikiGraphData = {
     ['/wiki/c', '?d'],
   ],
   topics: [
-    { id: 'network', name: '네트워크' },
-    { id: 'os', name: '운영체제' },
+    { id: 'network', name: '네트워크', color: '#5cc8e6' },
+    { id: 'os', name: '운영체제', color: '#ff9e64' },
   ],
 }
 

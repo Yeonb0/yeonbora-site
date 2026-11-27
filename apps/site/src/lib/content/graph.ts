@@ -1,4 +1,5 @@
 // wiki · posts 노트 사이의 링크 그래프 : 빌드 (remark) 와 페이지 (역링크) 가 함께 쓴다
+import { slug } from 'github-slugger'
 import { headingSlug, parseWikilinks, type Wikilink } from './wikilink'
 
 export type Collection = 'wiki' | 'posts'
@@ -48,7 +49,11 @@ export const buildGraph = (Nodes: Node[]): Graph => {
     }
   }
 
-  const resolve = (target: string) => WikiTitle.get(key(target)) ?? WikiAlias.get(key(target)) ?? PostTitle.get(key(target))
+  // Obsidian 은 파일명으로 링크한다 : posts 는 제목 다음에 파일명 (slug) 으로도 찾는다
+  const PostSlug = new Map(Nodes.filter((n) => n.collection === 'posts').map((n) => [n.slug, n]))
+
+  const resolve = (target: string) =>
+    WikiTitle.get(key(target)) ?? WikiAlias.get(key(target)) ?? PostTitle.get(key(target)) ?? PostSlug.get(slug(target))
 
   // 본문에서 링크한 노드 : 중복 없이 본문 순서
   const Outgoing = new Map<Node, Node[]>()

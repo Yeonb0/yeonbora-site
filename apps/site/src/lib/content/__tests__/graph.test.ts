@@ -14,6 +14,8 @@ describe('buildGraph', () => {
     expect(G.resolve('GC')).toBe(Gc)
     expect(G.resolve('[시프] 프록시 서버 구현')).toBe(Proxy)
     expect(G.resolve('없음')).toBeUndefined()
+    // Obsidian 은 파일명으로 링크한다 : posts 는 제목 다음에 파일명 (slug) 으로도 찾는다
+    expect(G.resolve('proxy')).toBe(Proxy)
   })
 
   it('href', () => {

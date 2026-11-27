@@ -131,10 +131,15 @@ export default function Desktop({ posts }: Props) {
   }, [Folder_, Shown])
 
   // 창이 커지기 시작할 점 : 지금 폴더 아이콘의 가운데
+  // 창은 줄어든 채일 수 있어 화면 좌표 대신 변형 전 위치 (offset) 로 잰다. 둘 다 .tech-desk 기준이다
   useLayoutEffect(() => {
-    const W = WinRef.current?.getBoundingClientRect()
-    const I = IconRefs.current.get(Folder_)?.getBoundingClientRect()
-    if (W && I) setOrigin(`${I.left + I.width / 2 - W.left}px ${I.top + I.height / 2 - W.top}px`)
+    const W = WinRef.current
+    const I = IconRefs.current.get(Folder_)
+    const Nav = I?.parentElement
+    if (!W || !I || !Nav) return
+    const X = I.offsetLeft - Nav.scrollLeft + I.offsetWidth / 2 - W.offsetLeft
+    const Y = I.offsetTop - Nav.scrollTop + I.offsetHeight / 2 - W.offsetTop
+    setOrigin(`${X}px ${Y}px`)
   }, [Folder_, Open])
 
   useEffect(() => () => clearTimeout(Timer.current), [])

@@ -17,6 +17,7 @@
   --hover: #34334d;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 
+  position: relative;
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr) 240px;
   grid-template-rows: 50px minmax(0, 1fr);
@@ -111,6 +112,7 @@
 /* 바탕화면 아이콘 */
 .folders,
 .books {
+  position: static;
   display: grid;
   grid-template-columns: repeat(2, 110px);
   grid-auto-rows: 112px;

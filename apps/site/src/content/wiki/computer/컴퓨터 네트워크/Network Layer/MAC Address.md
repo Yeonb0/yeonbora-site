@@ -1,0 +1,34 @@
+---
+title: MAC Address
+aliases:
+  - MAC 주소
+  - 물리적 주소
+  - MAC 주소(MAC Address)
+tags: []
+field: computer
+topic: network
+source: obsidian
+sourcePath: 컴퓨터 네트워크/Network Layer/MAC Address.md
+created: 2026-08-03
+---
+
+- 기기에 할당된 물리적 주소
+- 48 bit 주소
+
+### 특징
+- 한 기기에 여러 개 보유 O -> 5G · [[IEEE 802.11|Wi-Fi]] MAC 주소 상이
+- 기기 이동해도 고정
+- cf) [[IP 주소]] : 논리적 주소, 기기 이동할 때마다 변경
+	- [[IPv4]] 32 bit
+
+### 주소 해석
+- [[IP 주소]] 만 아는 [[state|상태]] -> [[ARP]] 로 해당 MAC 주소 질의
+- ARP 인증 부재 -> [[ARP Spoofing]] 위험
+
+### 구성
+- 16진수 2자리 × 6세트 -> 총 48 bit
+	- 16진수 2자리 = 옥텟 (8 bit)
+- 1 ~ 3 번째 옥텟 : 벤더 식별 번호 (OUI) <- IEEE 할당
+- 4 ~ 6 번째 옥텟 : 벤더가 임의로 고유하게 할당
+- 제품의 [[LAN]] [[Port|포트]]마다 고유 할당 -> unique
+- [[Ethernet|이더넷]] 이 사용하는 주소 -> [[데이터]] 링크 계층에서 주로 사용

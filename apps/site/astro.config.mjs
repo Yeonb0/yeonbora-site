@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { remarkStripComments } from './src/lib/remark/comments'
 import { remarkViz } from './src/lib/remark/viz'
 import { remarkWikilink } from './src/lib/remark/wikilink'
+import { remarkHighlight } from './src/lib/remark/highlight'
 import { findBrokenLinks, getAssets, getGraph } from './src/lib/content/index-fs'
 import { writeBrokenReport } from './src/lib/content/broken-report'
 
@@ -34,12 +35,13 @@ export default defineConfig({
   // 게임 방은 프로젝트 방이 되었다 : 옛 주소로 들어오면 넘긴다
   redirects: { '/games': '/projects' },
   integrations: [react(), mdx(), brokenLinks],
-  // Astro 7 기본 처리기 (Sätteri) 대신 remark 파이프라인 : 위키 링크 · 주석 · viz 플러그인
+  // Astro 7 기본 처리기 (Sätteri) 대신 remark 파이프라인 : 위키 링크 · 하이라이트 · 주석 · viz 플러그인
   markdown: {
     processor: unified({
       remarkPlugins: [
         [remarkStripComments, { onWarn: warn }],
         [remarkViz, { onWarn: warn }],
+        remarkHighlight,
         [remarkWikilink, { contentDir: ContentDir, getGraph: () => getGraph(ContentDir), getAssets: () => getAssets(ContentDir), onBroken: (/** @type {{ file: string, target: string }} */ b) => warn(`찾지 못한 링크 : ${b.file} → ${b.target}`) }],
       ],
     }),

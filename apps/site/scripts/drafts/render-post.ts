@@ -17,6 +17,7 @@ import { getAssets, getGraph } from '../../src/lib/content/index-fs'
 import { remarkStripComments } from '../../src/lib/remark/comments'
 import { remarkViz } from '../../src/lib/remark/viz'
 import { remarkWikilink } from '../../src/lib/remark/wikilink'
+import { remarkHighlight } from '../../src/lib/remark/highlight'
 
 export interface Block {
   start: number
@@ -94,6 +95,7 @@ export function renderPost(file: string, contentDir: string): DraftPost {
       .use(remarkGfm)
       .use(remarkStripComments, { onWarn: warn })
       .use(remarkViz, { onWarn: warn })
+      .use(remarkHighlight)
       .use(remarkWikilink, { contentDir, getGraph: () => getGraph(contentDir), getAssets: () => getAssets(contentDir), onBroken: warn })
       .use(remarkRehype, { allowDangerousHtml: true })
       .use(tagBlocks)

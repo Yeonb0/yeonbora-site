@@ -1,0 +1,24 @@
+---
+// 역링크 · 관련 개념 목록 : 비어 있으면 아무것도 그리지 않는다
+interface Props {
+  heading: string
+  items: { href: string; title: string }[]
+}
+
+const { heading, items } = Astro.props
+---
+
+{
+  items.length > 0 && (
+    <section class="link-list">
+      <h2>{heading}</h2>
+      <ul>
+        {items.map((i) => (
+          <li>
+            <a href={i.href}>{i.title}</a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}

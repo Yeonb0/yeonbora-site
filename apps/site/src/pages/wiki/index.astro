@@ -1,0 +1,30 @@
+---
+import { getCollection } from 'astro:content'
+import Layout from '@/sections/wiki/Layout.astro'
+import '@/components/content/article.css'
+import { Fields } from '@/lib/content/schemas'
+
+const FieldLabel: Record<(typeof Fields)[number], string> = { computer: '컴퓨터', philosophy: '철학', religion: '종교학', etc: '기타' }
+const Wiki = (await getCollection('wiki')).sort((a, b) => a.data.title.localeCompare(b.data.title, 'ko'))
+const Groups = Fields.map((f) => ({ field: f, notes: Wiki.filter((w) => w.data.field === f) })).filter((g) => g.notes.length > 0)
+---
+
+<Layout>
+  <div class="article">
+    <h1>위키</h1>
+    {
+      Groups.map((g) => (
+        <section class="link-list">
+          <h2>{FieldLabel[g.field]}</h2>
+          <ul>
+            {g.notes.map((n) => (
+              <li>
+                <a href={`/wiki/${n.id}`}>{n.data.title}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</Layout>

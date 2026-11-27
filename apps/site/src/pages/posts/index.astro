@@ -1,7 +1,44 @@
 ---
+import { getCollection } from 'astro:content'
 import Layout from '@/sections/posts/Layout.astro'
+import '@/components/content/article.css'
+import { formatDate } from '@/lib/content/site-graph'
+
+const Posts = (await getCollection('posts')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
 ---
 
 <Layout>
-  <h1>준비 중</h1>
+  <div class="article">
+    <h1>서재</h1>
+    <ul class="post-list">
+      {
+        Posts.map((p) => (
+          <li>
+            <a href={`/posts/${p.id}`}>{p.data.title}</a>
+            <time datetime={p.data.date.toISOString()}>{formatDate(p.data.date)}</time>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
 </Layout>
+
+<style>
+  .post-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .post-list li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid #333333;
+  }
+  .post-list time {
+    color: #9a9a9a;
+    font-size: 0.9rem;
+  }
+</style>

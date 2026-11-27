@@ -1,0 +1,33 @@
+---
+// wiki · posts 공통 읽기 틀 : 제목 + 메타 + 본문 (slot) + 아래 링크 목록 (slot="after")
+import './article.css'
+
+interface Props {
+  title: string
+  meta?: { text: string; href?: string }[]
+}
+
+const { title, meta = [] } = Astro.props
+---
+
+<article class="article">
+  <header>
+    <h1>{title}</h1>
+    {
+      meta.length > 0 && (
+        <p class="article-meta">
+          {meta.map((m, i) => (
+            <>
+              {i > 0 && <span aria-hidden="true"> · </span>}
+              {m.href ? <a href={m.href} rel="noopener">{m.text}</a> : <span>{m.text}</span>}
+            </>
+          ))}
+        </p>
+      )
+    }
+  </header>
+  <div class="article-body">
+    <slot />
+  </div>
+  <slot name="after" />
+</article>

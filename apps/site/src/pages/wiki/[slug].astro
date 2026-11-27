@@ -91,6 +91,17 @@ const MinDepth = Math.min(...Heads.map((h) => h.depth))
     background: color-mix(in srgb, var(--w-accent) 18%, transparent);
   }
 
+  /* ==하이라이트== : 위키는 Obsidian 처럼 노란 형광펜 (블로그는 content-extras.css 의 남색 글씨) */
+  :global(.section-wiki .article-body mark) {
+    padding: 0.05em 0.15em;
+    border-radius: 3px;
+    background: rgba(255, 208, 0, 0.4);
+    color: inherit;
+    font-weight: inherit;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
   .wiki-card {
     min-height: 0;
     border-bottom: 1px solid var(--w-line);

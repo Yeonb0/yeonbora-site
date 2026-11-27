@@ -10,6 +10,7 @@ export interface WikiTopic {
 export const Topics: WikiTopic[] = [
   { id: 'cpp', name: 'C / C++', aliases: ['c-cpp', 'c', 'c++'] },
   { id: 'java', name: 'Java', aliases: [] },
+  { id: 'python', name: 'Python', aliases: ['py'] },
   { id: 'pl', name: '프로그래밍 언어', aliases: ['programming-language'] },
   { id: 'ds', name: '자료구조', aliases: ['data-structure'] },
   { id: 'dm', name: '이산수학', aliases: ['discrete-math'] },

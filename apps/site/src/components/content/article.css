@@ -77,15 +77,6 @@
   padding: 6px 10px;
   border: 1px solid var(--a-line);
 }
-/* ==하이라이트== : Obsidian 처럼 노란 형광펜 */
-.article-body mark {
-  padding: 0.05em 0.15em;
-  border-radius: 3px;
-  background: rgba(255, 208, 0, 0.4);
-  color: inherit;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
 .article-body .wikilink {
   text-decoration-thickness: 1px;
 }
@@ -94,6 +85,11 @@
   font-style: normal;
   text-decoration: underline dotted var(--a-dim);
   text-underline-offset: 3px;
+}
+/* 아직 쓰지 않은 노트 (backlog) : 흐린 글자, 밑줄 없음 */
+.article-body .wikilink-pending {
+  font-style: normal;
+  color: var(--a-dim);
 }
 /* 시각화 자리 : 컴포넌트는 src/viz/mount.ts 가 보일 때 채운다 */
 .article-body figure.viz {

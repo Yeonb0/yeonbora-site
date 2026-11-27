@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseHash } from '../stage'
+import { TabKeys, parseHash, resolveStart } from '../stage'
 import { Weeks, pad } from '../data'
 
 describe('parseHash', () => {
@@ -13,6 +13,23 @@ describe('parseHash', () => {
     expect(parseHash('')).toBeNull()
     expect(parseHash('#foo')).toBeNull()
     expect(parseHash('#slides-x')).toBeNull()
+  })
+})
+
+describe('첫 화면 · 탭 순서', () => {
+  it('숫자키 0 1 2 3', () => {
+    expect(TabKeys).toEqual({ '0': 'home', '1': 'demo', '2': 'slides', '3': 'wiki' })
+  })
+
+  it('#home 과 빈 해시는 첫 화면', () => {
+    expect(parseHash('#home')).toEqual({ tab: 'home', n: undefined })
+    expect(resolveStart('', 2, ['01'])).toEqual({ tab: 'home', slide: 0, week: null })
+  })
+
+  it('없는 장 · 주차는 그 탭의 처음으로', () => {
+    expect(resolveStart('#slides-99', 2, ['01'])).toEqual({ tab: 'slides', slide: 0, week: null })
+    expect(resolveStart('#wiki-04', 2, ['01', '07'])).toEqual({ tab: 'wiki', slide: 0, week: '01' })
+    expect(resolveStart('#slides-2', 2, ['01'])).toEqual({ tab: 'slides', slide: 1, week: null })
   })
 })
 

@@ -12,4 +12,9 @@ describe('toNodes', () => {
       { collection: 'posts', slug: 'framing', title: '[Network] Framing', aliases: [], body: '' },
     ])
   })
+
+  it('copies wiki sourcePath', () => {
+    const [N] = toNodes([{ id: 'a', data: { title: 'A', sourcePath: 'x/a.md' }, body: '' }], [])
+    expect(N.sourcePath).toBe('x/a.md')
+  })
 })

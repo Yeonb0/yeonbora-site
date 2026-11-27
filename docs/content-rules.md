@@ -10,7 +10,7 @@
 ## 폴더
 ```
 apps/site/src/content/
-  wiki/<분야>/<제목>.md        위키 노트 (원자 단위 개념)
+  wiki/<분야>/<출처 폴더 경로>/<제목>.md   위키 노트 (원자 단위 개념)
   posts/<출처>/<slug>.md       블로그 글
   courses/<code>.md            과목
   _assets/<출처>/...           이미지 · 스캔 원본 (Obsidian 첨부 폴더도 여기로 지정)
@@ -22,6 +22,8 @@ apps/site/src/viz/<id>/
 ```
 - 분야 : computer · philosophy · religion · etc
 - 출처 : jekyll · velog · tistory · notion · obsidian · paper
+- wiki 는 원래 출처의 폴더 구조를 그대로 둔다 : `wiki/<분야>/<원래 출처의 폴더 경로>/<제목>.md` (obsidian 은 Main 상대 경로 그대로). 주소는 파일명 slug 이므로 폴더를 옮겨도 주소는 바뀌지 않는다 (2026-11-27 결정).
+- 이름 충돌 : 같은 slug 가 둘 이상이면 파일명 뒤에 ` (<폴더>)` 를 붙이고, 원래 이름을 aliases 맨 앞에 넣는다. 폴더는 파일명과 이름이 다른 가장 가까운 상위 폴더이고 `_MOC` 는 `MOC` 로 쓴다. 새 이름도 slug 가 겹치면 멈추고 알린다.
 
 ## frontmatter
 
@@ -34,11 +36,13 @@ tags: [java, jvm]
 field: computer
 topic: 컴퓨터 방의 폴더 이름
 source: obsidian            # 원래 있던 곳
-sourcePath: 서버 구조와 기술/가비지 컬렉션.md
+sourcePath: 서버 구조와 기술/가비지 컬렉션.md   # Main 상대 경로 (이름이 바뀐 노트도 원래 경로)
 created: 2026-07-29         # 원래 작성일
 autolink: true              # Main 규칙 그대로 (autolink · autolink-in)
 ---
 ```
+
+- Main 노트에 `source:` 키가 있으면 위 `source` 와 겹치므로 `sourceDoc` 으로 이름을 바꿔 옮긴다 (값은 그대로). Main 에만 있는 다른 키는 이름 그대로 뒤에 둔다.
 
 ### posts
 ```yaml
@@ -66,15 +70,18 @@ book: cpr                   # 인문 블로그 도서관의 책 id (있을 때�
 
 ## 링크
 - `[[제목]]` · `[[제목|표시]]` · `[[제목#소제목]]` 는 remark 플러그인이 주소로 바꾼다. 찾는 순서 : wiki 제목 → wiki aliases → posts 제목 → posts 파일명 (Obsidian 은 파일명으로 링크하고, 대괄호가 든 제목은 `[[ ]]` 안에 쓸 수 없으므로). 대소문자는 가리지 않는다.
+- 링크 키 : 앞뒤 공백을 지우고 소문자로 맞추며, 곡선 따옴표 (`‘ ’ ʼ`) 는 `'` 로 본다. 같은 키의 노트가 여럿이면 ① 대소문자까지 맞는 노트 ② 링크를 건 노트와 폴더가 가장 많이 겹치는 노트 ③ `sourcePath` 순서 중 첫 노트를 고른다 (②③ 으로 고른 링크는 이전 리포트의 `## 모호한 링크` 에 남는다).
+- 경로형 링크 `[[폴더/노트]]` 는 제목이 아니라 `sourcePath` 로 찾는다 (전체 경로 또는 `/` 경계의 뒷부분이 하나만 맞을 때, `.md` 는 있어도 없어도 된다). 이름이 바뀐 노트 (`!important (CSS)`) 도 원래 경로로 찾는다.
 - wiki 의 title 은 파일명과 같게 둔다 (Main 규칙 : 제목이 곧 링크 이름).
 - 이미지 임베드 `![[그림.png]]` · `![[그림.png|300]]` 는 `_assets/` 아래에서 파일명으로 찾아 이미지로 바꾼다. 노트 임베드 `![[노트]]` 는 아직 원문 그대로 둔다.
 - 주소 : wiki 는 `/wiki/<slug>`, posts 는 `/posts/<slug>`. slug 는 파일명 (한글 허용). 제목 중복은 금지 (Main 규칙 그대로).
 - 같은 대상은 글 하나에 한 번만 링크한다. 조사는 링크 밖에 둔다 (`[[가비지 컬렉션]]은`).
 - 역링크 : wiki 페이지 아래에 "이 개념을 다룬 글" (그 노트를 링크한 posts) 을 자동으로 붙인다. posts 페이지에는 "관련 개념" (본문에서 링크한 wiki) 을 붙인다.
-- 찾지 못한 링크는 빌드를 멈추지 않고 경고 + `reports/broken-links.md` 에 기록한다. 리포트는 `pnpm build` · `pnpm dev` 를 시작할 때 콘텐츠 폴더에서 다시 계산한다 (커밋하지 않음).
+- 찾지 못한 링크는 빌드를 멈추지 않고 경고한다. 대상 노트가 Main 에 처음부터 없던 링크는 backlog (나중에 쓸 노트) 로 따로 본다 : 목록은 `docs/migration/wiki-backlog.json`, 리포트는 `reports/wiki-backlog.md`, 사이트에서는 흐린 글자로 표시한다. 그 밖의 실제 깨진 링크는 `reports/broken-links.md` 에 기록한다. "깨진 링크 0" 은 backlog 를 뺀 수로 센다. 두 리포트는 `pnpm build` · `pnpm dev` 를 시작할 때 콘텐츠 폴더에서 다시 계산한다 (커밋하지 않음).
 
 ## 처리기
-- Astro 7 기본 처리기 (Sätteri) 대신 `@astrojs/markdown-remark` 의 `unified()` 를 쓴다. 플러그인 순서 : 주석 제거 → viz → 링크.
+- Astro 7 기본 처리기 (Sätteri) 대신 `@astrojs/markdown-remark` 의 `unified()` 를 쓴다. 플러그인 순서 : 주석 제거 → viz → 콜아웃 → 형광펜 → 수식 → 링크. Obsidian `==형광펜==` 은 `<mark>` 로 바뀐다.
+- smartypants 는 끈다 (원문 보존 : 따옴표 · 줄임표 · 대시를 곡선 · 특수 문자로 바꾸지 않는다). posts 에도 같이 적용된다.
 
 ## 시각화 · 그림
 본문에는 코드 블록 하나만 넣는다. Obsidian에서는 코드 블록으로 보이고, 사이트에서는 컴포넌트로 바뀐다.

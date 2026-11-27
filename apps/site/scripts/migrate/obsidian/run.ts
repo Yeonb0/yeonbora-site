@@ -77,7 +77,7 @@ const comparable = (body: string): string => {
       continue
     }
     SkipBlank = false
-    if (/^[ \t]*%%.*%%[ \t]*$/.test(Line)) continue
+    if (/^[ \t>]*%%.*%%[ \t]*$/.test(Line)) continue
     Out.push(Line)
   }
   return Out.join('\n').replace(/\n+$/, '')

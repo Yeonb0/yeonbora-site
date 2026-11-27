@@ -138,76 +138,17 @@
   overflow: hidden;
 }
 .humanities-library .world {
+  /* 책장 · 여분 책장 · 카메라 이동은 library.ts 가 이 canvas 에 그린다 */
   position: absolute;
-  left: 0;
-  top: 0;
-  /* will-change: transform 은 두지 않는다 : 처음 크기 (1배) 로 그림 전체를 붙잡아 두어, 멀리서 볼 때 메모리가 넘쳐 군데군데 비었다 */
-  transform-origin: 0 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
   transition: opacity 0.35s var(--ease);
 }
 /* 책장 그림을 다 풀기 전에는 숨긴다 : 띠마다 따로 나타나거나 카메라를 맞추기 전 모습이 비치지 않게 */
 .humanities-library .lib.wait .world {
   opacity: 0;
-}
-/* 어둡게 하기는 filter 대신 검은 막의 opacity 로 한다 (brightness(b) = 불투명도 1 - b 인 검은 막)
-   filter 는 카메라가 움직이는 동안 매 프레임 그 요소 전체를 따로 그려야 해서, 아주 큰 여분 책장에 걸면 화면이 깜빡이거나 비었다 */
-.humanities-library .spares,
-.humanities-library .row {
-  position: absolute;
-}
-.humanities-library .spares::after,
-.humanities-library .row::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: #000;
-  pointer-events: none;
-  transition: opacity 0.9s var(--ease);
-}
-.humanities-library .spares {
-  background-repeat: repeat;
-}
-.humanities-library .spares::after {
-  opacity: 0.62;
-}
-.humanities-library .lib.overview .spares::after {
-  opacity: 0.45;
-}
-.humanities-library .row {
-  overflow: hidden;
-  cursor: pointer;
-}
-.humanities-library .row::after {
-  opacity: 0.5;
-}
-.humanities-library .lib.overview .row::after,
-.humanities-library .row.focus::after {
-  opacity: 0;
-}
-.humanities-library .row.cap {
-  cursor: default;
-}
-.humanities-library .row img {
-  position: absolute;
-  left: 0;
-  width: 1536px;
-  height: 1024px;
-  max-width: none;
-  user-select: none;
-}
-/* 처음 화면은 진한 그림 (v), 칸으로 들어가면 옅은 그림 (p) 이 서서히 덮는다 */
-.humanities-library .row img.p {
-  transition: opacity 0.9s var(--ease);
-}
-.humanities-library .lib.overview .row img.p {
-  opacity: 0;
-}
-/* 호버 밝히기는 도서관 전체 화면에서 칸 하나에만 걸리므로 filter 를 그대로 쓴다. 칸으로 들어가면 바로 풀린다 */
-.humanities-library .lib.overview .row:not(.cap) {
-  transition: filter 0.3s var(--ease);
-}
-.humanities-library .lib.overview .row:not(.cap):hover {
-  filter: brightness(1.15);
 }
 
 /* 칸 화면 : 고른 칸 위에 정확히 겹쳐 책을 꺼낼 수 있게 한다 */
@@ -616,10 +557,6 @@
   .humanities-library .held,
   .humanities-library .dim,
   .humanities-library .world,
-  .humanities-library .row,
-  .humanities-library .row::after,
-  .humanities-library .row img.p,
-  .humanities-library .spares::after,
   .humanities-library .overview-btn,
   .humanities-library .close {
     transition-duration: 0.1s;

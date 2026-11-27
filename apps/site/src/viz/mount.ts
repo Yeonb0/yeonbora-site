@@ -20,20 +20,28 @@ export async function mountViz(el: HTMLElement, load: Loader, override?: Values)
   return () => Root.unmount()
 }
 
-export function observeViz(root: ParentNode, load: Loader): void {
+export function observeViz(root: ParentNode, load: Loader): () => void {
   const Seen = new WeakSet<Element>()
+  const Stops: Promise<() => void>[] = []
   const Io = new IntersectionObserver(
     (Entries) => {
       for (const e of Entries) {
         if (!e.isIntersecting || Seen.has(e.target)) continue
         Seen.add(e.target)
         Io.unobserve(e.target)
-        void mountViz(e.target as HTMLElement, load)
+        Stops.push(mountViz(e.target as HTMLElement, load).catch((err) => {
+          console.warn('[viz] 불러오지 못함', err)
+          return () => {}
+        }))
       }
     },
     { rootMargin: '200px' },
   )
   root.querySelectorAll('figure[data-viz]').forEach((el) => Io.observe(el))
+  return () => {
+    Io.disconnect()
+    Stops.forEach((p) => void p.then((stop) => stop()))
+  }
 }
 
 // 사이트용 : 컴포넌트는 보일 때 받고, config 는 작아서 함께 싣는다

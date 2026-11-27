@@ -67,6 +67,18 @@ describe('Controls', () => {
     expect(onCommit).toHaveBeenCalledWith('loop', false)
   })
 
+  it('select commits new value', () => {
+    const onCommit = vi.fn()
+    const Cfg: VizConfig = { mode: { type: 'select', options: ['a', 'b'], value: 'a', label: '모드' } }
+    const Div = mount(<Controls config={Cfg} values={{ mode: 'a' }} onCommit={onCommit} />)
+    const Sel = Div.querySelector('select')!
+    act(() => {
+      Sel.value = 'b'
+      Sel.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(onCommit).toHaveBeenCalledWith('mode', 'b')
+  })
+
   it('disabled when read only', () => {
     const Div = mount(<Controls config={Config} values={{ speed: 1, loop: true, labels: { a: '가', b: '나' } }} onCommit={() => {}} readOnly />)
     expect(Div.querySelector<HTMLInputElement>('input[type=range]')!.disabled).toBe(true)

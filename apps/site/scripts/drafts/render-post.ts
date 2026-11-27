@@ -22,6 +22,8 @@ export interface Block {
   start: number
   end: number
   text: string
+  // 원문에 한 번만 나오는 블록만 고칠 수 있다 ("시안 반영" 이 find 로 찾으므로)
+  unique: boolean
 }
 
 export interface DraftImage {
@@ -59,7 +61,8 @@ export function renderPost(file: string, contentDir: string): DraftPost {
   const Blocks: Block[] = Mdast.children.map((n) => {
     const start = n.position!.start.offset!
     const end = n.position!.end.offset!
-    return { start, end, text: markdown.slice(start, end) }
+    const text = markdown.slice(start, end)
+    return { start, end, text, unique: markdown.split(text).length === 2 }
   })
   const StartIdx = new Map(Blocks.map((b, i) => [b.start, i]))
 
@@ -70,7 +73,7 @@ export function renderPost(file: string, contentDir: string): DraftPost {
     for (const C of tree.children) {
       if (C.type !== 'element') continue
       const I = StartIdx.get(C.position?.start.offset ?? -1)
-      if (I !== undefined && C.tagName !== 'figure') C.properties = { ...C.properties, dataBlock: I }
+      if (I !== undefined && Blocks[I].unique && C.tagName !== 'figure') C.properties = { ...C.properties, dataBlock: I }
     }
     visit(tree, 'element', (el: Element) => {
       if (el.tagName !== 'img') return

@@ -1,8 +1,17 @@
 ---
 // 본문의 figure[data-viz] 를 화면에 보일 때 시각화 컴포넌트로 채운다 (client:visible 과 같은 동작)
+// ClientRouter 로 페이지를 옮겨도 새 문서에서 다시 찾고, 떠나는 페이지의 것은 정리한다
 ---
 
 <script>
   import { observeViz, siteLoader } from '@/viz/mount'
-  observeViz(document, siteLoader)
+  let stop: (() => void) | undefined
+  document.addEventListener('astro:page-load', () => {
+    stop?.()
+    stop = observeViz(document, siteLoader)
+  })
+  document.addEventListener('astro:before-swap', () => {
+    stop?.()
+    stop = undefined
+  })
 </script>

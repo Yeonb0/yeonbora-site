@@ -51,3 +51,14 @@ describe('renderPost', () => {
     expect(Post.html).toContain(`src="${Post.Images[0].name}"`)
   })
 })
+
+describe('duplicate blocks', () => {
+  it('blocks appearing twice are not editable', () => {
+    const Site = makeSite({ ...Base, 'src/content/posts/jekyll/sample.md': '---\ntitle: d\n---\n\n### 같은 제목\n\n가\n\n### 같은 제목\n\n나\n' })
+    const Content = join(Site, 'src/content')
+    const P = renderPost(join(Content, 'posts/jekyll/sample.md'), Content)
+    expect(P.Blocks.map((b) => b.unique)).toEqual([false, true, false, true])
+    expect(P.html).not.toMatch(/<h3 data-block/)
+    expect(P.html).toContain('<p data-block="1">')
+  })
+})

@@ -7,7 +7,7 @@ import { bodyEdit, configEdit, latestBody, latestReview, overlay, pendingSorted,
 import type { DraftsManifest } from './manifest'
 import { PostView } from './PostView'
 import { ReviewBar } from './ReviewBar'
-import { openStore, type Store, type StoredEdit } from './store'
+import { openStore, writeErrorState, type Store, type StoredEdit } from './store'
 import { VizView } from './VizView'
 
 type Post = Omit<DraftPost, 'Images'>
@@ -54,6 +54,7 @@ export function App({ manifest }: { manifest: DraftsManifest }) {
         () => {
           clearTimeout(Timer)
           setConn('offline')
+          setCanWrite(false)
         },
       )
     })
@@ -80,9 +81,14 @@ export function App({ manifest }: { manifest: DraftsManifest }) {
     try {
       await store.add(e)
     } catch (err) {
-      const Code = (err as { code?: string }).code
-      if (Code === 'invalid_argument') setCanWrite(false)
-      setError(Code === 'quota_exceeded' ? '기록 공간이 가득 참' : '기록하지 못함')
+      const R = writeErrorState((err as { code?: string }).code)
+      if (!R.canWrite) {
+        setCanWrite(false)
+        setConn('offline')
+      }
+      setError(R.message)
+      // 기록되지 않은 값은 미리보기에서도 되돌린다
+      setDrag({})
     }
   }
 

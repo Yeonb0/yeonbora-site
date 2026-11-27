@@ -31,7 +31,12 @@ export async function openStore(timeoutMs = 10000): Promise<Store | null> {
   const Deadline = Date.now() + timeoutMs
   const C = await runtime(Deadline)
   if (!C) return null
-  const D = (await Promise.race([C.use('db'), sleep(Math.max(Deadline - Date.now(), 0))])) as Db | null
+  let D: Db | null
+  try {
+    D = (await Promise.race([C.use('db'), sleep(Math.max(Deadline - Date.now(), 0))])) as Db | null
+  } catch {
+    return null
+  }
   if (!D) return null
   const Edits = D.collection('edits')
   return {
@@ -42,4 +47,12 @@ export async function openStore(timeoutMs = 10000): Promise<Store | null> {
         (err) => onError(err.code),
       ),
   }
+}
+
+// 쓰기 실패 뒤의 상태 : 일시적인 것만 계속 쓸 수 있게 둔다
+const Transient = new Set(['unavailable', 'resource_exhausted'])
+export function writeErrorState(code: string | undefined): { canWrite: boolean; message: string } {
+  if (code === 'quota_exceeded') return { canWrite: true, message: '기록 공간이 가득 참' }
+  if (code && Transient.has(code)) return { canWrite: true, message: '기록하지 못함 (잠시 뒤 다시)' }
+  return { canWrite: false, message: '기록할 수 없음' }
 }

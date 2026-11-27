@@ -66,6 +66,15 @@ describe('observeViz', () => {
     expect(El.textContent).toBe('speed=1')
   })
 
+  it('cleanup unmounts mounted viz', async () => {
+    const El = figure('demo')
+    const stop = observeViz(document, load)
+    await act(async () => Callbacks[0]([{ isIntersecting: true, target: El }]))
+    expect(El.textContent).toBe('speed=1')
+    await act(async () => stop())
+    expect(El.querySelector('.viz-mount')!.innerHTML).toBe('')
+  })
+
   it('warns and leaves figure for unknown id', async () => {
     const El = figure('nope')
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})

@@ -43,7 +43,6 @@ function Field({ name, field, value, onCommit, onPreview, readOnly }: { name: st
     onPreview?.(name, v)
   }
   const Ref = useNativeChange<HTMLInputElement>(() => commit(Draft.current))
-  const SelRef = useNativeChange<HTMLSelectElement>(() => commit(Draft.current))
 
   switch (field.type) {
     case 'range':
@@ -82,7 +81,16 @@ function Field({ name, field, value, onCommit, onPreview, readOnly }: { name: st
       return (
         <label className="ctl">
           <span>{field.label}</span>
-          <select ref={SelRef} value={String(draft)} disabled={readOnly} onChange={(e) => change(e.currentTarget.value)}>
+          <select
+            value={String(draft)}
+            disabled={readOnly}
+            onChange={(e) => {
+              // select 는 고르는 순간이 곧 확정
+              const V = e.currentTarget.value
+              change(V)
+              commit(V)
+            }}
+          >
             {field.options.map((o) => (
               <option key={o}>{o}</option>
             ))}

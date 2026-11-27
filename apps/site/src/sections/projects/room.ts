@@ -339,10 +339,12 @@ export const mountRoom = ({ root, projects, scene, fromHub }: RoomOptions): (() 
     if (e.key === 'Enter' && !T.closest('a, button')) openPage(Index)
   })
 
-  // ---------- 프로젝트 열기 : 가운데 CD 를 누르면 한 바퀴 힘차게 돌고, 저장소 · 서비스를 새 탭으로 연다 ----------
+  // ---------- 프로젝트 열기 : 가운데 CD 를 누르면 한 바퀴 힘차게 돌고, 저장소 · 서비스는 새 탭, 사이트 안 페이지는 같은 탭으로 연다 ----------
   const openPage = (i: number) => {
     Cds[i].v = Spin * 3
-    window.open(projects[i].href, '_blank', 'noopener')
+    const Href = projects[i].href
+    if (Href.startsWith('/')) location.assign(Href)
+    else window.open(Href, '_blank', 'noopener')
   }
 
   // ---------- 시간 · 날씨 ----------

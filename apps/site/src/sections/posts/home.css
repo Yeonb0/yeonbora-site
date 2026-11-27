@@ -1,6 +1,6 @@
 /* 기술 블로그 홈 버튼 : 바탕화면 메뉴 막대 왼쪽 끝의 시작 버튼. 폴더 아이콘과 같은 보라 선 */
 :root:has(.section-posts) .home-button {
-  top: 7px;
+  top: 8px;
   left: 18px;
   width: 36px;
   height: 36px;

@@ -1,0 +1,116 @@
+---
+// 기술 블로그 글 본문 : 깃블로그 (Bora.log, Minimal Mistakes dark) 글 화면을 따른다
+// 제목 · 날짜 · 구분선 → 시리즈 목록 → 본문 → 태그 · 출처 → 시리즈 이전 / 다음 → 관련 개념
+import 'katex/dist/katex.min.css'
+import '@/components/content/content-extras.css'
+import './post-article.css'
+
+interface Link {
+  href: string
+  title: string
+}
+
+interface Props {
+  title: string
+  date: string
+  tags: string[]
+  source: string
+  originalUrl?: string
+  // 시리즈 글 전체 (순서대로) : 지금 글은 href 가 없다
+  series?: { name: string; items: { href?: string; title: string }[] }
+  prev?: Link
+  next?: Link
+  related: Link[]
+}
+
+const { title, date, tags, source, originalUrl, series, prev, next, related } = Astro.props
+---
+
+<article class="bora-post">
+  <header class="bp-head">
+    <h1 class="bp-title">{title}</h1>
+    <p class="bp-meta">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2" /><path d="M3.5 10h17M8 3v4M16 3v4" /></svg>
+      <time datetime={date}>{date}</time>
+    </p>
+  </header>
+
+  {
+    series && series.items.length > 1 && (
+      <nav class="bp-series" aria-label={`${series.name} 시리즈`}>
+        <p class="bp-series-title">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z" /><path d="M5 17a3 3 0 0 1 3-3h11" /></svg>
+          '{series.name}' 시리즈
+        </p>
+        <ol>
+          {series.items.map((s) => (
+            <li aria-current={s.href ? undefined : 'page'}>{s.href ? <a href={s.href}>{s.title}</a> : <span>{s.title}</span>}</li>
+          ))}
+        </ol>
+      </nav>
+    )
+  }
+
+  <div class="article-body bp-body">
+    <slot />
+  </div>
+
+  <footer class="bp-foot">
+    {
+      tags.length > 0 && (
+        <p class="bp-tags">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12.5V4h8.5l8.5 8.5l-8.5 8.5z" /><circle cx="8" cy="8.5" r="1.3" /></svg>
+          <span class="bp-label">태그 :</span>
+          {tags.map((t) => <span class="bp-tag">{t}</span>)}
+        </p>
+      )
+    }
+    <p class="bp-source">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14l10-10M14 4h6v6M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" /></svg>
+      <span class="bp-label">출처 :</span>
+      {originalUrl ? <a href={originalUrl} rel="noopener">{source}</a> : <span>{source}</span>}
+    </p>
+
+    {
+      (prev || next) && (
+        <nav class="bp-pager" aria-label="시리즈 이전 / 다음 글">
+          {prev ? (
+            <a class="bp-page" href={prev.href}>
+              <span class="bp-page-label">이전</span>
+              <span class="bp-page-title">{prev.title}</span>
+            </a>
+          ) : (
+            <span class="bp-page" data-empty="true">
+              <span class="bp-page-label">이전</span>
+            </span>
+          )}
+          {next ? (
+            <a class="bp-page" href={next.href}>
+              <span class="bp-page-label">다음</span>
+              <span class="bp-page-title">{next.title}</span>
+            </a>
+          ) : (
+            <span class="bp-page" data-empty="true">
+              <span class="bp-page-label">다음</span>
+            </span>
+          )}
+        </nav>
+      )
+    }
+
+    {
+      related.length > 0 && (
+        <section class="bp-related">
+          <h2>관련 개념</h2>
+          <ul>
+            {related.map((r) => (
+              <li>
+                <a href={r.href}>{r.title}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </footer>
+</article>

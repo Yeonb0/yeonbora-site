@@ -1,0 +1,296 @@
+/* 기술 블로그 글 본문 : 깃블로그 (Bora.log) 의 Minimal Mistakes dark 스킨 + custom.scss 값을 옮긴다 */
+.bora-post {
+  --bp-fg: #eaeaea;
+  --bp-dim: #b4b3c8;
+  --bp-line: rgba(234, 234, 234, 0.35);
+  --bp-link: #d0c7da; /* mix(primary #aa93c2, text #eaeaea, 40%) */
+  --bp-link-hover: #dcd5e3;
+  --bp-h1: #9291af;
+  --bp-h2: #565569;
+  --bp-h3: #45445a;
+  --bp-code: #211e27;
+  --bp-box: #45445a;
+  --a-line: #565569;
+  --a-dim: var(--bp-dim);
+
+  width: min(820px, 100%);
+  margin: 0 auto;
+  padding: 26px clamp(6px, 2.4vw, 24px) 36px;
+  color: var(--bp-fg);
+  font-family: var(--font-base);
+  font-size: 16px;
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.bora-post svg {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.bora-post a {
+  color: var(--bp-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.bora-post a:hover {
+  color: var(--bp-link-hover);
+}
+
+/* 제목 · 날짜 · 구분선 */
+.bp-head {
+  margin-bottom: 1.6em;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--bp-line);
+}
+.bp-title {
+  margin: 0;
+  font-family: var(--font-point);
+  font-size: 1.463em;
+  line-height: 1.2;
+}
+.bp-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  color: var(--bp-fg);
+  font-size: 0.85em;
+}
+
+/* 시리즈 목록 : 지금 글은 링크 없이 밝게 */
+.bp-series {
+  margin: 0 0 1.4em;
+}
+.bp-series-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 0.7em;
+  font-family: var(--font-point);
+}
+.bp-series ol {
+  margin: 0;
+  padding-left: 2em;
+}
+.bp-series li {
+  margin-bottom: 0.35em;
+}
+.bp-series li::marker {
+  color: var(--bp-fg);
+}
+.bp-series a {
+  color: #b9b6cf;
+}
+.bp-series li[aria-current='page'] {
+  font-family: var(--font-point);
+}
+
+/* 본문 */
+.bp-body p {
+  margin: 0 0 1.3em;
+}
+.bp-body ul,
+.bp-body ol {
+  margin: 0 0 1.3em;
+  padding-left: 1.5em;
+}
+.bp-body li {
+  margin-bottom: 0.35em;
+}
+.bp-body li > ul,
+.bp-body li > ol {
+  margin: 0.35em 0 0;
+}
+.bp-body :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-point);
+  line-height: 1.2;
+  scroll-margin-top: 16px;
+}
+.bp-body h1 {
+  margin: 1.4em 0 0.45em;
+  padding: 0.45em 0.7em;
+  border-radius: 8px;
+  background: var(--bp-h1);
+  font-size: 1.966em;
+}
+.bp-body h2 {
+  margin: 1.4em 0 0.45em;
+  padding: 0.45em 0.7em;
+  border-radius: 8px;
+  background: var(--bp-h2);
+  font-size: 1.512em;
+}
+.bp-body h3 {
+  margin: 1.1em 0 0.4em;
+  padding: 0.3em 0.5em;
+  border-radius: 8px;
+  background: var(--bp-h3);
+  font-size: 1.256em;
+}
+.bp-body h4 {
+  margin: 1.2em 0 0.4em;
+  font-size: 1.0625em;
+}
+.bp-body > :is(h1, h2, h3):first-child {
+  margin-top: 0.6em;
+}
+.bp-body img {
+  display: block;
+  width: auto;
+  max-width: min(100%, 720px);
+  height: auto;
+  margin: 1.25rem auto;
+}
+.bp-body :not(pre) > code {
+  padding: 0.1rem 0.3em;
+  border-radius: 4px;
+  background: var(--bp-code);
+  font-size: 0.8em;
+}
+.bp-body pre {
+  overflow-x: auto;
+  margin: 0 0 1.3em;
+  padding: 1em;
+  border-radius: 4px;
+  background: #1c1b2d;
+  font-size: 0.85em;
+  line-height: 1.6;
+}
+.bp-body pre code {
+  padding: 0;
+  background: none;
+}
+.bp-body blockquote {
+  margin: 0 0 1.3em;
+  padding-left: 1.25rem;
+  border-left: 0.25rem solid var(--bp-h2);
+  color: var(--bp-dim);
+}
+.bp-body hr {
+  margin: 1.6em 0;
+  border: 0;
+  border-top: 1px solid var(--bp-h2);
+}
+.bp-body table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0 0 1.3em;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+.bp-body th,
+.bp-body td {
+  padding: 0.5em;
+  border: 1px solid var(--bp-h2);
+}
+.bp-body th {
+  background: var(--bp-h3);
+}
+
+/* 태그 · 출처 */
+.bp-foot {
+  margin-top: 2.4em;
+  font-size: 0.85em;
+}
+.bp-tags,
+.bp-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 0.6em;
+}
+.bp-label {
+  font-family: var(--font-point);
+}
+.bp-tag {
+  padding: 1px 8px;
+  border: 1px solid var(--bp-h2);
+  border-radius: 4px;
+  color: var(--bp-link);
+}
+
+/* 시리즈 이전 / 다음 : 깃블로그 pagination 처럼 붙은 두 칸 */
+.bp-pager {
+  display: flex;
+  margin-top: 1.6em;
+}
+.bp-page {
+  flex: 1 1 50%;
+  min-width: 0;
+  min-height: 5.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0.6em 1em;
+  border: 1px solid var(--bp-h2);
+  background: var(--bp-box);
+  text-align: center;
+  transition: background-color 0.2s ease;
+}
+.bora-post a.bp-page {
+  color: var(--bp-fg);
+  text-decoration: none;
+}
+.bp-page + .bp-page {
+  margin-left: -1px;
+}
+.bp-page:first-child {
+  border-radius: 4px 0 0 4px;
+}
+.bp-page:last-child {
+  border-radius: 0 4px 4px 0;
+}
+.bora-post a.bp-page:hover {
+  background: var(--bp-h2);
+}
+.bp-page[data-empty='true'] {
+  opacity: 0.45;
+}
+.bp-page-label {
+  font-family: var(--font-point);
+  font-size: 1.05em;
+}
+.bp-page-title {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+/* 관련 개념 (위키) */
+.bp-related {
+  margin-top: 2em;
+  padding-top: 1em;
+  border-top: 1px solid var(--bp-line);
+}
+.bp-related h2 {
+  margin: 0 0 0.5em;
+  font-family: var(--font-point);
+  font-size: 1.1em;
+}
+.bp-related ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+@media (max-width: 599px) {
+  .bora-post {
+    font-size: 15px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bp-page {
+    transition-duration: 0.05s;
+  }
+}

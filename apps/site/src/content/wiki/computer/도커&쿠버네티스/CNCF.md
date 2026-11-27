@@ -1,0 +1,18 @@
+---
+title: CNCF
+aliases:
+  - Cloud Native Computing Foundation(CNCF)
+  - Cloud Native Computing Foundation
+tags: []
+field: computer
+topic: devops
+source: obsidian
+sourcePath: 도커&쿠버네티스/CNCF.md
+created: 2026-09-04
+---
+- [[리눅스]] 재단 산하 프로젝트
+- 다양한 [[OSS]] 프로젝트 있음 ([[쿠버네티스]] 포함)
+- 프로젝트 성숙도에 따라 등급 나눔
+	- Graduated : [[쿠버네티스]]
+	- Incubating
+	- Sandbox

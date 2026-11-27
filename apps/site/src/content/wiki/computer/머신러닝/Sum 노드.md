@@ -1,0 +1,21 @@
+---
+title: Sum 노드
+aliases:
+  - Sum Node
+  - Sum 노드(Sum Node)
+  - 범용 덧셈 노드
+tags: []
+field: computer
+topic: ml
+source: obsidian
+sourcePath: 머신러닝/Sum 노드.md
+created: 2026-08-24
+---
+
+- 범용 덧셈 [[node]] -> 입력 N 개 총합 계산
+
+### 형태
+- [[순전파]] : N 개 입력 총합 -> 1개 출력
+- [[역전파]] : 상류 [[기울기]] 를 N 개로 [[레플리케이션|복제]] -> 하류 전달
+- [[덧셈 계층]] 의 일반화 형태
+- [[Repeat 노드]] 와 정반대 관계

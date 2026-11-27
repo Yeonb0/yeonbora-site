@@ -7,3 +7,10 @@ dist/
 
 # 시안 작업대 묶음 (아티팩트로만 올림)
 .drafts-dist/
+
+# 빌드할 때마다 새로 쓰는 리포트
+reports/
+
+# Obsidian 개인 작업 상태
+apps/site/src/content/.obsidian/workspace*.json
+apps/site/src/content/.obsidian/cache

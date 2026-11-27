@@ -1,5 +1,7 @@
 // bit stuffing : 입력 비트가 한 칸씩 나가며 1 이 5개 이어지면 0 이 끼워진다
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
+import { StepControls } from '../StepControls'
+import { useSteps } from '../steps'
 import type { VizProps } from '../types'
 import { useReducedMotion } from '../useReducedMotion'
 import { frames, type Frame } from './stuff'
@@ -42,21 +44,9 @@ export default function BitStuffing({ values }: VizProps) {
     }
   }, [Input])
 
-  const [k, setK] = useState(0)
-  const [playing, setPlaying] = useState(true)
-  const Timer = useRef<number>(0)
+  const Steps = useSteps(Frames.length, { stepMs: StepMs, holdMs: HoldMs, speed: Speed, loop: Loop, reduced: Reduced })
+  const k = Math.min(Steps.k, Math.max(Frames.length - 1, 0))
   const LastIdx = Math.max(Frames.length - 1, 0)
-
-  useEffect(() => setK(Reduced ? LastIdx : 0), [Frames, Reduced, LastIdx])
-
-  useEffect(() => {
-    if (Reduced || !playing || Frames.length === 0) return
-    const atEnd = k >= LastIdx
-    if (atEnd && !Loop) return
-    const wait = atEnd ? HoldMs : StepMs / Speed
-    Timer.current = window.setTimeout(() => setK(atEnd ? 0 : k + 1), wait)
-    return () => window.clearTimeout(Timer.current)
-  }, [k, playing, Reduced, Loop, Speed, LastIdx, Frames.length])
 
   if (Frames.length === 0) return <div style={{ background: Bg, borderRadius: 8, minHeight: 120 }} />
 
@@ -73,59 +63,50 @@ export default function BitStuffing({ values }: VizProps) {
   const RowCount = RowOut + Cell + 28
   const H = RowCount + 10 + Pad
 
-  const toggle = () => {
-    if (Reduced) return
-    if (!playing && k >= LastIdx) setK(0)
-    setPlaying((p) => !p)
-  }
-
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      role="img"
-      aria-label={`${Lab.input} ${Input} → ${Lab.output} ${Final.out}`}
-      onClick={toggle}
-      style={{ display: 'block', width: `min(${Size}px, 100%)`, margin: '0 auto', background: Bg, borderRadius: 8, cursor: Reduced ? 'default' : 'pointer', touchAction: 'manipulation' }}
-    >
-      <text x={Pad} y={RowIn + Cell / 2} fill={Dim} fontSize={12} dominantBaseline="middle">
-        {Lab.input}
-      </text>
-      <text x={Pad} y={RowOut + Cell / 2} fill={Dim} fontSize={12} dominantBaseline="middle">
-        {Lab.output}
-      </text>
-
-      {Input.split('').map((b, i) => {
-        const Done = i <= F.inPos
-        const Now = i === F.inPos
-        return (
-          <g key={`in${i}`} opacity={Done ? 0.45 : 1}>
-            <rect x={cellX(i)} y={RowIn} width={Cell} height={Cell} rx={4} fill="none" stroke={Now ? Fg : Line} strokeWidth={Now ? 2 : 1} />
-            <text x={cellX(i) + Cell / 2} y={RowIn + Cell / 2 + 1} fill={Fg} fontSize={15} fontFamily="ui-monospace, monospace" textAnchor="middle" dominantBaseline="middle">
-              {b}
-            </text>
-          </g>
-        )
-      })}
-
-      {F.out.split('').map((b, i) => {
-        const Stuffed = Inserted.has(i)
-        const Newest = i === F.out.length - 1
-        return (
-          <g key={`out${i}`}>
-            <rect x={cellX(i)} y={RowOut} width={Cell} height={Cell} rx={4} fill={Stuffed ? Accent : 'none'} stroke={Stuffed ? Accent : Newest ? Fg : Line} strokeWidth={Newest ? 2 : 1} />
-            <text x={cellX(i) + Cell / 2} y={RowOut + Cell / 2 + 1} fill={Fg} fontSize={15} fontFamily="ui-monospace, monospace" textAnchor="middle" dominantBaseline="middle">
-              {b}
-            </text>
-          </g>
-        )
-      })}
-
-      <text x={Pad} y={RowCount} fill={Dim} fontSize={12} dominantBaseline="middle">
-        {Lab.count}
-      </text>
-      {[0, 1, 2, 3, 4].map((i) => (
-        <circle key={`c${i}`} cx={Pad + LabelW + i * 18 + 6} cy={RowCount} r={6} fill={i < Filled ? (F.stuffed ? Accent : Fg) : 'none'} stroke={F.stuffed ? Accent : Line} />
-      ))}
-    </svg>
+    <div style={{ width: `min(${Size}px, 100%)`, margin: '0 auto', background: Bg, borderRadius: 8, paddingBottom: 6 }}>
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${Lab.input} ${Input} → ${Lab.output} ${Final.out}`} style={{ display: 'block', width: '100%' }}>
+        <text x={Pad} y={RowIn + Cell / 2} fill={Dim} fontSize={12} dominantBaseline="middle">
+          {Lab.input}
+        </text>
+        <text x={Pad} y={RowOut + Cell / 2} fill={Dim} fontSize={12} dominantBaseline="middle">
+          {Lab.output}
+        </text>
+  
+        {Input.split('').map((b, i) => {
+          const Done = i <= F.inPos
+          const Now = i === F.inPos
+          return (
+            <g key={`in${i}`} opacity={Done ? 0.45 : 1}>
+              <rect x={cellX(i)} y={RowIn} width={Cell} height={Cell} rx={4} fill="none" stroke={Now ? Fg : Line} strokeWidth={Now ? 2 : 1} />
+              <text x={cellX(i) + Cell / 2} y={RowIn + Cell / 2 + 1} fill={Fg} fontSize={15} fontFamily="ui-monospace, monospace" textAnchor="middle" dominantBaseline="middle">
+                {b}
+              </text>
+            </g>
+          )
+        })}
+  
+        {F.out.split('').map((b, i) => {
+          const Stuffed = Inserted.has(i)
+          const Newest = i === F.out.length - 1
+          return (
+            <g key={`out${i}`}>
+              <rect x={cellX(i)} y={RowOut} width={Cell} height={Cell} rx={4} fill={Stuffed ? Accent : 'none'} stroke={Stuffed ? Accent : Newest ? Fg : Line} strokeWidth={Newest ? 2 : 1} />
+              <text x={cellX(i) + Cell / 2} y={RowOut + Cell / 2 + 1} fill={Fg} fontSize={15} fontFamily="ui-monospace, monospace" textAnchor="middle" dominantBaseline="middle">
+                {b}
+              </text>
+            </g>
+          )
+        })}
+  
+        <text x={Pad} y={RowCount} fill={Dim} fontSize={12} dominantBaseline="middle">
+          {Lab.count}
+        </text>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <circle key={`c${i}`} cx={Pad + LabelW + i * 18 + 6} cy={RowCount} r={6} fill={i < Filled ? (F.stuffed ? Accent : Fg) : 'none'} stroke={F.stuffed ? Accent : Line} />
+        ))}
+      </svg>
+      <StepControls k={k} last={LastIdx} playing={Steps.playing} dispatch={Steps.dispatch} accent={Accent} />
+    </div>
   )
 }

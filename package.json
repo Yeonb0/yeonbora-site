@@ -2,12 +2,15 @@
   "name": "yeonbora-site",
   "private": true,
   "packageManager": "pnpm@10.28.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "pnpm --filter site dev",
     "build": "pnpm --filter site build",
     "preview": "pnpm --filter site preview",
     "check": "pnpm --filter site check",
-    "test": "pnpm --filter site test"
+    "test": "pnpm --filter site test",
+    "drafts:bundle": "pnpm --filter site drafts:bundle"
   }
 }

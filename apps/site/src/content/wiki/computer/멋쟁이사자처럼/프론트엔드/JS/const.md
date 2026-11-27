@@ -1,0 +1,23 @@
+---
+title: const
+aliases: []
+tags: []
+field: computer
+topic: likelion
+source: obsidian
+sourcePath: 멋쟁이사자처럼/프론트엔드/JS/const.md
+created: 2026-07-30
+---
+- [[JavaScript|JS]]에서의 [[상수]] 선언 방법
+
+- 값 [[할당]] 이후 다른 값 재할당 불가능
+- [[선언]]만 하는 것 불가능, 반드시 값을 [[할당]]해야 함
+
+```js
+const a = 10;
+a = 20;
+//Error
+```
+
+- [[객체]]로 초기화 시 -> 재할당은 불가능, but 내부 속성값은 변경 가능
+	- `Object.freeze()` 함수로 [[객체]] 속성 변경 막기 가능

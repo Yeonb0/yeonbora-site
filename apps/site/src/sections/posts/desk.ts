@@ -75,7 +75,7 @@ const postRow = (all: DeskPost[], p: DeskPost, i: number, where?: string): Row =
   return {
     kind: 'post',
     id: p.id,
-    title: p.title,
+    title: cleanTitle(p.title),
     summary: p.summary,
     tags: p.tags.slice(0, 3),
     date: p.date,
@@ -125,6 +125,9 @@ export const folderView = (all: DeskPost[], folder: string, book: string | null)
   const Count = Book === Loose ? LooseP.length : Book ? Ps.filter((p) => p.series === Book).length : Ps.length
   return { books: Books, rows: Rows, count: Count, book: Book }
 }
+
+// 목록에서는 제목 앞 [카테고리] 머리말을 뗀다 : 폴더 · 경로가 이미 알려 준다
+export const cleanTitle = (title: string): string => title.replace(/^\[[^\]]*\]\s*(?=\S)/, '')
 
 export const bookTitle = (book: string | null): string | null => (book === Loose ? LooseTitle : book)
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { folderOf, folderView, parseHash, rankInSeries, recent, summarize, toHash, visibleFolders, type DeskPost } from '../desk'
+import { cleanTitle, folderOf, folderView, parseHash, rankInSeries, recent, summarize, toHash, visibleFolders, type DeskPost } from '../desk'
 
 const P = (o: Partial<DeskPost> & { id: string }): DeskPost => ({ title: o.id, date: '2026-06-24', tags: [], summary: '', ...o })
 
@@ -115,5 +115,14 @@ describe('summarize', () => {
     ].join('\n')
     expect(summarize(Body)).toBe('데이터 끊어 보내기 → 도착 시에 합치기 재전송 과 링크 를 본다')
     expect(summarize('가'.repeat(200), 10)).toBe('가'.repeat(9) + '…')
+  })
+})
+
+describe('cleanTitle', () => {
+  it('제목 앞 [카테고리] 머리말을 뗀다', () => {
+    expect(cleanTitle('[Network] Framing / Error Control')).toBe('Framing / Error Control')
+    expect(cleanTitle('[공장 게임] Phase 0 : 뼈대')).toBe('Phase 0 : 뼈대')
+    expect(cleanTitle('[Network]')).toBe('[Network]')
+    expect(cleanTitle('Hash Tables')).toBe('Hash Tables')
   })
 })

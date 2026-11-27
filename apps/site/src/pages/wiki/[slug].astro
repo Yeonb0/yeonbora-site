@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 const { entry } = Astro.props
 const { Content } = await render(entry)
 const Graph = await getSiteGraph()
-const Backlinks = Graph.backlinks(entry.id).map((n) => ({ href: `/posts/${n.slug}`, title: n.title }))
+const Backlinks = Graph.backlinks(entry.id).map((n) => ({ href: `/${n.collection}/${n.slug}`, title: n.title }))
 const Meta = entry.data.created ? [{ text: formatDate(entry.data.created) }] : []
 ---
 

@@ -65,7 +65,7 @@ export function remarkWikilink(opts: WikilinkOptions) {
             Made = A
           } else {
             opts.onBroken({ file: Rel, target: Link.target })
-            Made = { type: 'emphasis', children: [{ type: 'text', value: Shown }], data: { hName: 'span', hProperties: { className: ['wikilink-broken'] } } }
+            Made = { type: 'emphasis', children: [{ type: 'text', value: Shown }], data: { hName: 'span', hProperties: { className: ['wikilink-broken'], dataTarget: Link.target } } }
           }
         }
         if (M.index > Last) Out.push({ type: 'text', value: node.value.slice(Last, M.index) })

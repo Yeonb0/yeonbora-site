@@ -78,7 +78,7 @@ export const buildGraph = (Nodes: Node[]): Graph => {
     backlinks(slug) {
       const Me = bySlug('wiki', slug)
       if (!Me) return []
-      return Nodes.filter((n) => n.collection === 'posts' && Outgoing.get(n)?.includes(Me))
+      return Nodes.filter((n) => n !== Me && Outgoing.get(n)?.includes(Me))
     },
     related(slug) {
       const Me = bySlug('posts', slug)

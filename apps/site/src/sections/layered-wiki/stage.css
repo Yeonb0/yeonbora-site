@@ -33,10 +33,81 @@
   inset: 0;
   visibility: hidden;
 }
+.lw[data-tab='home'] .lw-panel[data-panel='home'],
 .lw[data-tab='slides'] .lw-panel[data-panel='slides'],
 .lw[data-tab='demo'] .lw-panel[data-panel='demo'],
 .lw[data-tab='wiki'] .lw-panel[data-panel='wiki'] {
   visibility: visible;
+}
+
+/* ---------- 첫 화면 : 시연 · 발표 · 설명 카드 셋 (9.3) ---------- */
+.lw-panel[data-panel='home'] {
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
+.lw-home-body {
+  width: min(960px, 100%);
+}
+.lw-home-body h1 {
+  margin: 0 0 28px;
+  font: 800 clamp(28px, 4vw, 44px) / 1.2 var(--font-point);
+  letter-spacing: -0.01em;
+}
+.lw-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.lw-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 180px;
+  padding: 22px 20px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--raise);
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.lw-card:hover {
+  border-color: var(--accent);
+}
+.lw-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.lw-card b {
+  font: 800 22px/1.3 var(--font-point);
+}
+.lw-card > span {
+  color: var(--quiet);
+}
+.lw-card-status {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--fg);
+}
+.lw-card kbd {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  font: 12px/1 var(--font-base);
+  color: var(--quiet);
+}
+/* 첫 화면에서는 막대도 막대를 부르는 띠도 없다 */
+.lw[data-tab='home'] .lw-bar,
+.lw[data-tab='home'] .lw-edge {
+  display: none;
 }
 
 /* ---------- 아래 가장자리 막대 ---------- */
@@ -462,5 +533,14 @@
 @media (prefers-reduced-motion: reduce) {
   .lw-bar {
     transition: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .lw-cards {
+    grid-template-columns: 1fr;
+  }
+  .lw-card {
+    min-height: 0;
   }
 }

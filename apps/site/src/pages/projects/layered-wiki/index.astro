@@ -18,12 +18,39 @@ const Pages = Weeks.map((w) => ({
   latest: Rendered.find((r) => r.week === w.week && r.edition === 'latest'),
 }))
 const FirstWithText = Pages.find((p) => p.submitted || p.latest) ?? Pages[0]
+const WeeksWithText = Pages.filter((p) => p.submitted || p.latest).length
 
 const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 ---
 
 <Layout>
-  <main class="lw" data-tab="slides" data-api="unknown" data-bar="closed" data-api-base={ApiBase}>
+  <main class="lw" data-tab="home" data-api="unknown" data-bar="closed" data-api-base={ApiBase}>
+    <section class="lw-panel" data-panel="home" aria-label="첫 화면">
+      <div class="lw-home-body">
+        <h1>Layered Wiki</h1>
+        <div class="lw-cards">
+          <button class="lw-card" type="button" data-tab="demo">
+            <b>시연</b>
+            <span>에이전트를 직접 돌려 봅니다</span>
+            <small class="lw-card-status"><span class="lw-dot" aria-hidden="true"></span><span data-card-status>서버 상태를 확인하는 중</span></small>
+            <kbd>1</kbd>
+          </button>
+          <button class="lw-card" type="button" data-tab="slides">
+            <b>발표</b>
+            <span>데모데이 슬라이드</span>
+            <small class="lw-card-status">{Slides.length}장</small>
+            <kbd>2</kbd>
+          </button>
+          <button class="lw-card" type="button" data-tab="wiki">
+            <b>설명</b>
+            <span>주차별 산출물</span>
+            <small class="lw-card-status">{WeeksWithText}주차</small>
+            <kbd>3</kbd>
+          </button>
+        </div>
+      </div>
+    </section>
+
     <section class="lw-panel" data-panel="slides" aria-label="발표">
       <div class="lw-stage">
         {
@@ -114,13 +141,14 @@ const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.ge
 
     <div class="lw-edge" aria-hidden="true"></div>
     <nav class="lw-bar" aria-label="탭">
-      <button class="lw-tab" type="button" data-tab="slides" aria-selected="true">
-        발표 <span class="lw-count"><span data-slide-now>1</span> / {Slides.length}</span><kbd>1</kbd>
-      </button>
       <button class="lw-tab" type="button" data-tab="demo" aria-selected="false">
-        시연 <span class="lw-dot" role="img" aria-label="시연 API 연결 상태"></span><kbd>2</kbd>
+        시연 <span class="lw-dot" role="img" aria-label="시연 API 연결 상태"></span><kbd>1</kbd>
+      </button>
+      <button class="lw-tab" type="button" data-tab="slides" aria-selected="false">
+        발표 <span class="lw-count"><span data-slide-now>1</span> / {Slides.length}</span><kbd>2</kbd>
       </button>
       <button class="lw-tab" type="button" data-tab="wiki" aria-selected="false">설명 <kbd>3</kbd></button>
+      <button class="lw-tab" type="button" data-tab="home" aria-selected="true">첫 화면 <kbd>0</kbd></button>
       <a class="lw-home" href="/projects/">프로젝트 방으로</a>
     </nav>
   </main>

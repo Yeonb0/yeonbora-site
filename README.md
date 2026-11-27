@@ -18,6 +18,7 @@ packages/             Algoristro 자리 (Phase 10)
 pnpm install
 pnpm dev       # http://localhost:4321
 pnpm build     # astro check + build → apps/site/dist
+pnpm demo:sync ~/layered-wiki   # Layered Wiki 시연 화면 (demo_ui) 을 빌드해 public/projects/layered-wiki/demo/ 에 복사
 ```
 
 ## Cloudflare Pages 설정

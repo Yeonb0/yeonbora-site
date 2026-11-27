@@ -54,6 +54,9 @@ originalUrl: https://yeonb0.github.io/...
 date: 2025-05-02            # 원래 작성일 (절대 오늘 날짜로 바꾸지 않음)
 tags: [c, network]
 series: ''                  # 있으면 유지 (devlog 포함)
+step: 5                     # 시리즈 안 순서 (있을 때만)
+tier: Gold                  # BOJ 글의 티어 : Bronze · Silver · Gold · Platinum
+description: ''             # 기술 블로그 목록 카드의 요약 (없으면 본문 앞부분)
 book: cpr                   # 인문 블로그 도서관의 책 id (있을 때만)
 ---
 ```

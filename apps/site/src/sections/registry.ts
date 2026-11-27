@@ -103,10 +103,10 @@ export const Sections: Section[] = [
     icon: ['M21 12a9 9 0 1 1-18 0a9 9 0 1 1 18 0', 'M14.5 12a2.5 2.5 0 1 1-5 0a2.5 2.5 0 1 1 5 0', 'M12 6.5a5.5 5.5 0 0 1 5.5 5.5'],
   },
   {
-    // 서재 : 모든 글의 공통 목록. 허브 입구 위치는 미정
+    // 기술 블로그 : 컴퓨터 글의 바탕화면. 허브 왼쪽 가장자리 (블로그) 에서 들어간다
     id: 'posts',
-    label: '서재',
-    en: 'Library',
+    label: '기술 블로그',
+    en: 'Tech',
     href: '/posts/',
     hub: false,
     fill: '#3b2f8f',

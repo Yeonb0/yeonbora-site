@@ -1,44 +1,25 @@
 ---
 import { getCollection } from 'astro:content'
 import Layout from '@/sections/posts/Layout.astro'
-import '@/components/content/article.css'
+// 확장자를 붙인다 : 윈도우는 대소문자를 구분하지 않는다
+import Desktop from '@/sections/posts/Desktop.tsx'
+import { summarize, type DeskPost } from '@/sections/posts/desk'
 import { formatDate } from '@/lib/content/site-graph'
 
-const Posts = (await getCollection('posts')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+// 기술 블로그에는 컴퓨터 글만 놓는다 : 인문 글은 /humanities/ 도서관이 맡는다
+const Posts: DeskPost[] = (await getCollection('posts', (p) => p.data.field === 'computer')).map((p) => ({
+  id: p.id,
+  title: p.data.title,
+  date: formatDate(p.data.date),
+  topic: p.data.topic,
+  series: p.data.series,
+  step: p.data.step,
+  tier: p.data.tier,
+  tags: p.data.tags,
+  summary: p.data.description ?? summarize(p.body ?? ''),
+}))
 ---
 
 <Layout>
-  <div class="article">
-    <h1>서재</h1>
-    <ul class="post-list">
-      {
-        Posts.map((p) => (
-          <li>
-            <a href={`/posts/${p.id}`}>{p.data.title}</a>
-            <time datetime={p.data.date.toISOString()}>{formatDate(p.data.date)}</time>
-          </li>
-        ))
-      }
-    </ul>
-  </div>
+  <Desktop client:only="react" posts={Posts} />
 </Layout>
-
-<style>
-  .post-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .post-list li {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 4px 16px;
-    padding: 10px 0;
-    border-bottom: 1px solid #333333;
-  }
-  .post-list time {
-    color: #9a9a9a;
-    font-size: 0.9rem;
-  }
-</style>

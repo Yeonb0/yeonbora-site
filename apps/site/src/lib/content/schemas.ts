@@ -3,6 +3,8 @@ import { z } from 'astro/zod'
 
 export const Fields = ['computer', 'philosophy', 'religion', 'etc'] as const
 export const Sources = ['jekyll', 'velog', 'tistory', 'notion', 'obsidian', 'paper'] as const
+// BOJ 글의 티어 : 기술 블로그 BOJ 폴더에서 책 대신 놓인다
+export const Tiers = ['Bronze', 'Silver', 'Gold', 'Platinum'] as const
 
 const Field = z.enum(Fields)
 const Source = z.enum(Sources)
@@ -34,6 +36,11 @@ export const PostSchema = z
     date: z.coerce.date(),
     tags: Strings,
     series: z.string().optional(),
+    // 시리즈 안 순서 (깃블로그 step 그대로, 0 부터일 수 있다)
+    step: z.number().int().min(0).optional(),
+    tier: z.enum(Tiers).optional(),
+    // 목록 카드의 한 줄 요약 : 없으면 본문 앞부분을 쓴다
+    description: z.string().optional(),
     // 인문 블로그 도서관의 책 id (sections/humanities/data.ts 의 Books) : 그 책을 펼치면 글 목록에 나온다
     book: z.string().optional(),
   })

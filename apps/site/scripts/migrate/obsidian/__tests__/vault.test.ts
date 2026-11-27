@@ -24,8 +24,8 @@ describe('listVault', () => {
     expect(Reason['scripts/a.md']).toBe('infra')
     expect(Reason['templete/b.md']).toBe('infra')
     expect(Reason['x.base']).toBe('infra')
-    expect(Reason['자료구조/_pending/c.md']).toBe('pending')
-    expect(Reason['자료구조/_inbox/i.md']).toBe('pending')
+    expect(Reason['자료구조/_pending/c.md']).toBe('infra')
+    expect(Reason['자료구조/_inbox/i.md']).toBe('infra')
     expect(Reason['자료구조/숨김.md']).toBe('publish-false')
     expect(Reason['자료구조/대기.md']).toBe('pending')
   })
@@ -55,8 +55,8 @@ describe('findSlugClashes / renameMap', () => {
   const Dir = makeVault({
     'CSS/!important.md': 'a',
     'JS/!important.md': 'b',
-    'x/C.md': 'c',
-    'x/C++.md': 'd',
+    'p/C.md': 'c',
+    'q/C++.md': 'd',
     'x/유일.md': 'e',
   })
   const { Notes } = listVault(Dir)
@@ -66,7 +66,7 @@ describe('findSlugClashes / renameMap', () => {
     const Groups = [...C.values()].map((g) => g.map((n) => n.relPath).sort())
     expect(Groups).toHaveLength(2)
     expect(Groups).toContainEqual(['CSS/!important.md', 'JS/!important.md'])
-    expect(Groups).toContainEqual(['x/C++.md', 'x/C.md'])
+    expect(Groups).toContainEqual(['p/C.md', 'q/C++.md'])
   })
 
   it('renameMap appends parent folder', () => {
@@ -75,7 +75,17 @@ describe('findSlugClashes / renameMap', () => {
     expect(R.get('JS/!important.md')).toBe('!important (JS)')
   })
 
-  it('throws when parents also clash', () => {
+  it('writes _MOC as MOC and skips a parent named like the stem', () => {
+    const Dir2 = makeVault({
+      '정보처리기사/_MOC/데이터 전환.md': '1',
+      '정보처리기사/데이터베이스 구축/데이터 전환/데이터 전환.md': '2',
+    })
+    const R = renameMap(findSlugClashes(listVault(Dir2).Notes))
+    expect(R.get('정보처리기사/_MOC/데이터 전환.md')).toBe('데이터 전환 (MOC)')
+    expect(R.get('정보처리기사/데이터베이스 구축/데이터 전환/데이터 전환.md')).toBe('데이터 전환 (데이터베이스 구축)')
+  })
+
+  it('throws when new stems still collide', () => {
     const Dir2 = makeVault({ 'a/x/N.md': '1', 'b/x/N.md': '2' })
     const C = findSlugClashes(listVault(Dir2).Notes)
     expect(() => renameMap(C)).toThrow(/a\/x\/N\.md.*b\/x\/N\.md/)

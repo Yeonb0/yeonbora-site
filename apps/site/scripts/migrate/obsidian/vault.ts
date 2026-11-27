@@ -23,7 +23,7 @@ const FrontRe = /^---\r?\n(?:([\s\S]*?)\r?\n)?---[ \t]*(?:\r?\n|$)/
 
 const InfraRootDirs = new Set(['scripts', 'templete', 'images', '.githooks'])
 const SkipDirs = new Set(['.git', '.obsidian'])
-const PendingDirs = new Set(['_inbox', '_pending'])
+const InfraDirs = new Set(['_inbox', '_pending'])
 
 const walk = (dir: string, prefix = ''): string[] => {
   const Out: string[] = []
@@ -72,8 +72,8 @@ export const listVault = (vaultDir: string): { Notes: VaultNote[]; Excluded: Exc
       Excluded.push({ relPath: Rel, reason: 'infra' })
       continue
     }
-    if (Parts.slice(0, -1).some((p) => PendingDirs.has(p))) {
-      Excluded.push({ relPath: Rel, reason: 'pending' })
+    if (Parts.slice(0, -1).some((p) => InfraDirs.has(p))) {
+      Excluded.push({ relPath: Rel, reason: 'infra' })
       continue
     }
     const N = parseNote(Rel, readFileSync(join(vaultDir, Rel), 'utf8'))
@@ -94,17 +94,25 @@ export const findSlugClashes = (Notes: VaultNote[]): Map<string, VaultNote[]> =>
   return new Map([...By].filter(([, g]) => g.length >= 2))
 }
 
-// 충돌한 노트의 새 stem : `<stem> (<바로 위 폴더>)`
+// 접미사 폴더 : stem 과 이름이 다른 가장 가까운 조상 폴더 (_MOC 는 MOC)
+const suffixFolder = (N: VaultNote): string => {
+  const Dirs = N.relPath.split('/').slice(0, -1).reverse()
+  const F = Dirs.find((d) => d !== N.stem)
+  if (!F) throw new Error(`접미사로 쓸 폴더가 없음 : ${N.relPath}`)
+  return F === '_MOC' ? 'MOC' : F
+}
+
+// 충돌한 노트의 새 stem : `<stem> (<접미사 폴더>)`, 새 이름도 slug 가 겹치면 던진다
 export const renameMap = (Clashes: Map<string, VaultNote[]>): Map<string, string> => {
   const Out = new Map<string, string>()
   for (const Group of Clashes.values()) {
     const Seen = new Map<string, VaultNote>()
     for (const N of Group) {
-      const Parent = N.relPath.split('/').slice(-2, -1)[0] ?? ''
-      const Name = `${N.stem} (${Parent})`
-      const Prev = Seen.get(Name)
+      const Name = `${N.stem} (${suffixFolder(N)})`
+      const Key = slugFromPath(Name)
+      const Prev = Seen.get(Key)
       if (Prev) throw new Error(`이름 충돌을 풀 수 없음 : ${Prev.relPath} / ${N.relPath}`)
-      Seen.set(Name, N)
+      Seen.set(Key, N)
       Out.set(N.relPath, Name)
     }
   }

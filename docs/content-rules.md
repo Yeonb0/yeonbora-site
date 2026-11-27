@@ -23,7 +23,7 @@ apps/site/src/viz/<id>/
 - 분야 : computer · philosophy · religion · etc
 - 출처 : jekyll · velog · tistory · notion · obsidian · paper
 - wiki 는 원래 출처의 폴더 구조를 그대로 둔다 : `wiki/<분야>/<원래 출처의 폴더 경로>/<제목>.md` (obsidian 은 Main 상대 경로 그대로). 주소는 파일명 slug 이므로 폴더를 옮겨도 주소는 바뀌지 않는다 (2026-11-27 결정).
-- 이름 충돌 : 같은 slug 가 둘 이상이면 파일명 뒤에 ` (<바로 위 폴더>)` 를 붙이고, 원래 이름을 aliases 맨 앞에 넣는다.
+- 이름 충돌 : 같은 slug 가 둘 이상이면 파일명 뒤에 ` (<폴더>)` 를 붙이고, 원래 이름을 aliases 맨 앞에 넣는다. 폴더는 파일명과 이름이 다른 가장 가까운 상위 폴더이고 `_MOC` 는 `MOC` 로 쓴다. 새 이름도 slug 가 겹치면 멈추고 알린다.
 
 ## frontmatter
 

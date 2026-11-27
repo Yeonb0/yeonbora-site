@@ -2,6 +2,15 @@
 import { execFileSync } from 'node:child_process'
 
 export const readCreatedDates = (vaultDir: string): Map<string, string> => {
+  // 얕은 clone 은 기록이 잘려 있어 모든 노트가 clone 시점의 날짜를 받는다 : 막는다
+  let Shallow = ''
+  try {
+    Shallow = execFileSync('git', ['rev-parse', '--is-shallow-repository'], { cwd: vaultDir, encoding: 'utf8', stdio: 'pipe' }).trim()
+  } catch {
+    // git 저장소가 아니면 아래 log 에서 같은 오류로 알린다
+  }
+  if (Shallow === 'true') throw new Error(`얕은 clone (--depth) 이라 작성일을 믿을 수 없습니다 (${vaultDir}) : --depth 없이 전체 기록을 받은 clone 을 쓰세요`)
+
   let Out: string
   try {
     // -z : 경로를 따옴표 없이 NUL 로 나눠 준다, 커밋 시작은 \x01 로 표시한다

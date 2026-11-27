@@ -100,3 +100,20 @@ describe('readCreatedDates', () => {
     expect(() => readCreatedDates(Dir)).toThrow(/git 기록을 읽지 못했습니다/)
   })
 })
+
+describe('readCreatedDates on a shallow clone', () => {
+  it('refuses, telling the user to use a full clone', () => {
+    const Src = newRepo()
+    write(Src, 'a.md', '1\n')
+    commit(Src, '2026-07-01T12:00:00+09:00')
+    write(Src, 'a.md', '2\n')
+    commit(Src, '2026-07-05T12:00:00+09:00')
+    const Parent = mkdtempSync(join(tmpdir(), 'git-shallow-'))
+    Dirs.push(Parent)
+    const Clone = join(Parent, 'clone')
+    execFileSync('git', ['clone', '-q', '--depth', '1', `file://${Src}`, Clone], { stdio: 'pipe' })
+    expect(() => readCreatedDates(Clone)).toThrow(/depth 없이|전체 기록/)
+    // 전체 clone 은 그대로 읽는다
+    expect(readCreatedDates(Src).get('a.md')).toBe('2026-07-01')
+  })
+})

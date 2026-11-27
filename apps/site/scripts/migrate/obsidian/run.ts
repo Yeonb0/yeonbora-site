@@ -11,7 +11,7 @@ import { copyImages } from './assets'
 import { convertNote } from './convert'
 import { readCreatedDates } from './git-dates'
 import { Topics } from './topics'
-import { computeBacklog, findSlugClashes, listVault, renameMap, type Excluded, type VaultNote } from './vault'
+import { computeBacklog, findSlugClashes, listVault, renameMap, toNode, type BadFront, type Excluded, type VaultNote } from './vault'
 import { renderReport } from './report'
 
 export type SuspectKind = 'math' | 'callout' | 'html' | 'table-link' | 'dataview' | 'embed-note'
@@ -27,6 +27,11 @@ export interface BatchResult {
   images: ReturnType<typeof copyImages>
   noDate: string[]
   links: { broken: number; backlog: number; notYetMigrated: number }
+  // 같은 이름 후보가 여럿이라 가까운 폴더 · 정렬 순서로 고른 링크
+  ambiguous: { file: string; target: string; chosen: string; candidates: number }[]
+  // 작성일 출처 : Main frontmatter 의 created / git 기록
+  dateSource: { frontmatter: number; git: number }
+  badFront: BadFront[]
   brokenList: { target: string; files: string[] }[]
   suspects: { path: string; kinds: SuspectKind[] }[]
   ignored: string[]
@@ -87,15 +92,6 @@ const parseFront = (text: string): Record<string, unknown> => {
   return P && typeof P === 'object' && !Array.isArray(P) ? (P as Record<string, unknown>) : {}
 }
 
-const toVaultNode = (N: VaultNote): Node => ({
-  collection: 'wiki',
-  slug: slugFromPath(N.relPath),
-  title: typeof N.data.title === 'string' ? N.data.title : N.stem,
-  aliases: Array.isArray(N.data.aliases) ? N.data.aliases.map(String) : [],
-  body: N.body,
-  sourcePath: N.relPath,
-})
-
 const toSiteNode = (path: string, text: string): Node => {
   const D = parseFront(text)
   return {
@@ -106,6 +102,12 @@ const toSiteNode = (path: string, text: string): Node => {
     body: bodyOf(text),
     sourcePath: typeof D.sourcePath === 'string' ? D.sourcePath : undefined,
   }
+}
+
+// 이전을 마쳤을 때 사이트에서 보일 노드 : 이름이 바뀐 노트는 새 제목 + 원래 이름 별칭
+const toFinalNode = (N: VaultNote, newStem?: string): Node => {
+  const C = convertNote(N, { newStem })
+  return { ...toSiteNode(C.path, C.text), body: '' }
 }
 
 export const topicOfFolder = (folder: string): string => (folder === '.' ? 'etc-root' : Topics[folder])
@@ -129,8 +131,8 @@ const suspectsOf = (body: string): SuspectKind[] => {
 }
 
 export const runBatch = (vaultDir: string, folder: string, contentDir: string, Opts: BatchOpts): BatchResult => {
-  if (folder !== '.' && !Object.hasOwn(Topics, folder)) throw new Error(`Main 최상위 폴더가 아닙니다 : ${folder} (루트 파일은 . )`)
-  const { Notes: All, Excluded, Ignored } = listVault(vaultDir)
+  if (folder !== '.' && !Object.hasOwn(Topics, folder)) throw new Error(`Main 최상위 폴더가 아닙니다 : ${folder} (루트 파일은 . )\n쓸 수 있는 폴더 : ${Object.keys(Topics).join(' · ')}`)
+  const { Notes: All, Excluded, Ignored, BadFront } = listVault(vaultDir)
   const Batch = All.filter((n) => {
     const Parts = n.relPath.split('/')
     return folder === '.' ? Parts.length === 1 : Parts.length > 1 && Parts[0] === folder
@@ -138,7 +140,8 @@ export const runBatch = (vaultDir: string, folder: string, contentDir: string, O
   const Renames = renameMap(findSlugClashes(All), All)
 
   // 작성일 : Main frontmatter 에 없을 때만 git 기록을 읽는다
-  const NeedGit = Batch.some((n) => parseFront(convertNote(n, {}).text).created === undefined)
+  const FrontDated = new Set(Batch.filter((n) => parseFront(convertNote(n, {}).text).created !== undefined).map((n) => n.relPath))
+  const NeedGit = FrontDated.size < Batch.length
   const Dates = NeedGit ? readCreatedDates(vaultDir) : new Map<string, string>()
 
   const Converted = Batch.map((N) => {
@@ -180,17 +183,25 @@ export const runBatch = (vaultDir: string, folder: string, contentDir: string, O
   const SiteNodes = loadNodes(contentDir)
   if (Opts.dryRun) for (const C of Converted) if (Written.includes(C.path)) SiteNodes.push(toSiteNode(C.path, C.text))
   const SiteGraph = buildGraph(SiteNodes)
-  const VaultGraph = buildGraph(All.map(toVaultNode))
+  const VaultGraph = buildGraph(All.map(toNode))
+  const FinalGraph = buildGraph(All.map((n) => toFinalNode(n, Renames.get(n.relPath))))
   const Backlog = Opts.backlogPath ? loadBacklog(Opts.backlogPath) : new Set<string>()
   const Links = { broken: 0, backlog: 0, notYetMigrated: 0 }
   const Broken = new Map<string, Set<string>>()
+  const Ambiguous = new Map<string, BatchResult['ambiguous'][number]>()
   for (const N of Batch) {
+    const From = { sourcePath: N.relPath }
     for (const L of parseWikilinks(N.body)) {
       const T = L.target.trim()
       if (!T) continue
-      if (SiteGraph.resolve(T)) continue
+      const Info = FinalGraph.resolveInfo(T, From)
+      if (Info.node && Info.ambiguous.length > 0) {
+        const Chosen = `${Info.node.title} (${Info.node.sourcePath})`
+        Ambiguous.set(`${N.relPath}\u0000${T}`, { file: N.relPath, target: T, chosen: Chosen, candidates: Info.ambiguous.length })
+      }
+      if (SiteGraph.resolve(T, From)) continue
       if (Backlog.has(backlogKey(T))) Links.backlog++
-      else if (VaultGraph.resolve(T)) Links.notYetMigrated++
+      else if (VaultGraph.resolve(T, From)) Links.notYetMigrated++
       else {
         Links.broken++
         Broken.set(T, (Broken.get(T) ?? new Set()).add(N.relPath))
@@ -211,6 +222,9 @@ export const runBatch = (vaultDir: string, folder: string, contentDir: string, O
     images: Images,
     noDate: Converted.filter((c) => !c.hasDate).map((c) => c.Note.relPath),
     links: Links,
+    ambiguous: [...Ambiguous.values()].sort((a, b) => a.file.localeCompare(b.file) || a.target.localeCompare(b.target)),
+    dateSource: { frontmatter: FrontDated.size, git: Converted.filter((c) => c.hasDate).length - FrontDated.size },
+    badFront: BadFront.filter((b) => Batch.some((n) => n.relPath === b.relPath)),
     brokenList: [...Broken].map(([target, files]) => ({ target, files: [...files].sort() })).sort((a, b) => a.target.localeCompare(b.target)),
     suspects: Suspects,
     ignored: Ignored.filter((p) => (folder === '.' ? !p.includes('/') : p.startsWith(`${folder}/`))),
@@ -224,13 +238,14 @@ export interface CommandOpts {
   dryRun: boolean
 }
 
-// 묶음을 옮기고 리포트를 쓴다 (dry-run 은 리포트도 쓰지 않는다)
+// 리포트 파일 이름 : dry-run 은 따로 적어 진짜 리포트를 덮지 않는다
+export const reportFileName = (topic: string, dryRun: boolean): string => `migrate-obsidian-${topic}${dryRun ? '.dry-run' : ''}.md`
+
+// 묶음을 옮기고 리포트를 쓴다 (dry-run 도 리포트는 쓴다 : 노트와 그림만 쓰지 않는다)
 export const runCommand = (vaultDir: string, folder: string, Opts: CommandOpts): BatchResult => {
   const R = runBatch(vaultDir, folder, Opts.contentDir, { dryRun: Opts.dryRun, backlogPath: Opts.backlogPath })
-  if (!Opts.dryRun) {
-    mkdirSync(Opts.reportsDir, { recursive: true })
-    writeFileSync(join(Opts.reportsDir, `migrate-obsidian-${R.topic}.md`), renderReport(R))
-  }
+  mkdirSync(Opts.reportsDir, { recursive: true })
+  writeFileSync(join(Opts.reportsDir, reportFileName(R.topic, Opts.dryRun)), renderReport(R, { dryRun: Opts.dryRun }))
   return R
 }
 

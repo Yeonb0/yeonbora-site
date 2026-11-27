@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { runBatch, runCommand, verifyVault, writeBacklog } from '../run'
+import { renderReport } from '../report'
 import { makeVault } from './fixture'
 
 const git = (dir: string, date: string | null, ...args: string[]) => execFileSync('git', args, { cwd: dir, stdio: 'pipe', env: { ...process.env, ...(date ? { GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date } : {}) } })
@@ -79,6 +80,15 @@ describe('runBatch', () => {
     expect(existsSync(join(C, 'wiki/computer'))).toBe(false)
     expect(existsSync(join(C, '_assets/obsidian'))).toBe(false)
     expect(existsSync(join(Reports, 'migrate-obsidian-network.md'))).toBe(false)
+    // dry-run 도 리포트는 쓴다 : 따로 .dry-run 이름으로
+    const Rep = readFileSync(join(Reports, 'migrate-obsidian-network.dry-run.md'), 'utf8')
+    expect(Rep).toContain('dry-run')
+    expect(Rep).toContain('## 이름 바꿈')
+    expect(Rep).toContain('## 작성일 못 찾음')
+    expect(Rep).toContain('p.png')
+    const Real = runCommand(V, '컴퓨터 네트워크', { contentDir: newContent(), reportsDir: Reports, dryRun: false })
+    expect(Real.written).toHaveLength(1)
+    expect(readFileSync(join(Reports, 'migrate-obsidian-network.md'), 'utf8')).not.toContain('dry-run')
   })
 
   it('links to notes in other Main folders count as notYetMigrated, not broken', () => {
@@ -208,5 +218,52 @@ describe('writeBacklog', () => {
     const N = writeBacklog(V, Out)
     expect(N).toBe(2)
     expect(readFileSync(Out, 'utf8')).toBe('[\n  "zed",\n  "없음"\n]\n')
+  })
+})
+
+describe('ambiguous links', () => {
+  it('lists links resolved by nearest folder or order, not exact-case ones', () => {
+    const V = makeVault({
+      '멋쟁이사자처럼/css/!x.md': note(),
+      '멋쟁이사자처럼/js/!x.md': note(),
+      '멋쟁이사자처럼/css/박스.md': note('', '[[!x]]\n'),
+      '자료구조/pop.md': note(),
+      '서버 구조와 기술/POP.md': note(),
+      '서버 구조와 기술/링크.md': note('', '[[pop]]\n'),
+    })
+    const Css = runBatch(V, '멋쟁이사자처럼', newContent(), { dryRun: true })
+    expect(Css.ambiguous).toEqual([{ file: '멋쟁이사자처럼/css/박스.md', target: '!x', chosen: '!x (css) (멋쟁이사자처럼/css/!x.md)', candidates: 2 }])
+    const Server = runBatch(V, '서버 구조와 기술', newContent(), { dryRun: true }).ambiguous
+    expect(Server).toEqual([])
+    const Rep = runCommand(V, '멋쟁이사자처럼', { contentDir: newContent(), reportsDir: mkdtempSync(join(tmpdir(), 'reports-')), dryRun: true })
+    expect(Rep.ambiguous).toHaveLength(1)
+  })
+
+  it('report has the 모호한 링크 section', () => {
+    const V = makeVault({ 'Python/css/!x.md': note(), 'Python/js/!x.md': note(), 'Python/css/a.md': note('', '[[!x]]\n') })
+    const Reports = mkdtempSync(join(tmpdir(), 'reports-'))
+    runCommand(V, 'Python', { contentDir: newContent(), reportsDir: Reports, dryRun: false })
+    const Rep = readFileSync(join(Reports, 'migrate-obsidian-python.md'), 'utf8')
+    expect(Rep).toContain('## 모호한 링크')
+    expect(Rep).toContain('Python/css/a.md → !x → !x (css) (Python/css/!x.md)')
+  })
+})
+
+describe('date source and bad frontmatter in the report', () => {
+  it('counts frontmatter dates and git dates separately', () => {
+    const V = makeVault({ 'Python/G.md': '---\ncreated: 2026-01-02\n---\n본문\n', 'Python/H.md': '본문\n' })
+    gitCommit(V, '2026-03-04T12:00:00+09:00')
+    const R = runBatch(V, 'Python', newContent(), { dryRun: true })
+    expect(R.dateSource).toEqual({ frontmatter: 1, git: 1 })
+    const Rep = renderReport(R)
+    expect(Rep).toContain('Main frontmatter 1편 · git 기록 1편')
+  })
+
+  it('lists notes with unreadable frontmatter', () => {
+    const V = makeVault({ 'Python/B.md': '---\ntags: [x\n  : : bad\n---\n본문\n', 'Python/A.md': note() })
+    gitCommit(V, '2026-03-04T12:00:00+09:00')
+    const R = runBatch(V, 'Python', newContent(), { dryRun: true })
+    expect(R.badFront.map((b) => b.relPath)).toEqual(['Python/B.md'])
+    expect(renderReport(R)).toContain('Python/B.md')
   })
 })

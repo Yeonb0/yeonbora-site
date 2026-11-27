@@ -39,31 +39,37 @@ const walk = (dir: string, prefix = ''): string[] => {
 
 const stemOf = (relPath: string) => (relPath.split('/').pop() ?? relPath).replace(/\.md$/, '')
 
-const parseNote = (relPath: string, text: string): VaultNote => {
+// frontmatter 를 읽지 못한 노트 : 빈 것으로 취급하면 Main 의 키가 조용히 사라지므로 따로 알린다
+export interface BadFront {
+  relPath: string
+  message: string
+}
+
+const parseNote = (relPath: string, text: string): { note: VaultNote; bad?: string } => {
   const M = text.match(FrontRe)
   let Data: Record<string, unknown> = {}
+  let Bad: string | undefined
   if (M) {
     try {
       const P = parse(M[1] ?? '')
       if (P && typeof P === 'object' && !Array.isArray(P)) Data = P as Record<string, unknown>
-    } catch {
-      // frontmatter 오류는 나중 스키마 검사가 잡는다
+      else if (P !== null && P !== undefined) Bad = 'frontmatter 가 키 : 값 형태가 아닙니다'
+    } catch (e) {
+      Bad = `frontmatter 를 읽지 못했습니다 : ${(e instanceof Error ? e.message : String(e)).split('\n')[0]}`
     }
   }
   return {
-    relPath,
-    stem: stemOf(relPath),
-    data: Data,
-    rawFront: M ? (M[1] ?? '') : null,
-    body: M ? text.slice(M[0].length) : text,
+    note: { relPath, stem: stemOf(relPath), data: Data, rawFront: M ? (M[1] ?? '') : null, body: M ? text.slice(M[0].length) : text },
+    bad: Bad,
   }
 }
 
 // Ignored : .md · .base 가 아니면서 images/ 밖에 있어 조용히 건너뛴 파일
-export const listVault = (vaultDir: string): { Notes: VaultNote[]; Excluded: Excluded[]; Ignored: string[] } => {
+export const listVault = (vaultDir: string): { Notes: VaultNote[]; Excluded: Excluded[]; Ignored: string[]; BadFront: BadFront[] } => {
   const Notes: VaultNote[] = []
   const Excluded: Excluded[] = []
   const Ignored: string[] = []
+  const BadFront: BadFront[] = []
   for (const Rel of walk(vaultDir).sort()) {
     const Parts = Rel.split('/')
     const IsMd = Rel.endsWith('.md')
@@ -80,12 +86,13 @@ export const listVault = (vaultDir: string): { Notes: VaultNote[]; Excluded: Exc
       Excluded.push({ relPath: Rel, reason: 'infra' })
       continue
     }
-    const N = parseNote(Rel, readFileSync(join(vaultDir, Rel), 'utf8'))
+    const { note: N, bad } = parseNote(Rel, readFileSync(join(vaultDir, Rel), 'utf8'))
+    if (bad) BadFront.push({ relPath: Rel, message: bad })
     if (N.data.publish === false) Excluded.push({ relPath: Rel, reason: 'publish-false' })
     else if (N.data.status === 'pending') Excluded.push({ relPath: Rel, reason: 'pending' })
     else Notes.push(N)
   }
-  return { Notes, Excluded, Ignored }
+  return { Notes, Excluded, Ignored, BadFront }
 }
 
 // slug 가 같은 노트가 둘 이상인 묶음만 낸다
@@ -125,34 +132,24 @@ export const renameMap = (Clashes: Map<string, VaultNote[]>, All: VaultNote[]): 
   return Out
 }
 
-const toNode = (N: VaultNote): Node => ({
+export const toNode = (N: VaultNote): Node => ({
   collection: 'wiki',
   slug: slugFromPath(N.relPath),
   title: typeof N.data.title === 'string' ? N.data.title : N.stem,
   aliases: Array.isArray(N.data.aliases) ? N.data.aliases.map(String) : [],
   body: N.body,
+  sourcePath: N.relPath,
 })
-
-// 경로형 대상 (a/b/c) 이 Main 노트 경로와 맞는지 : 대소문자 무시, 전체 경로 또는 / 경계의 뒷부분
-const pathMatcher = (Notes: VaultNote[]) => {
-  const Paths = Notes.map((n) => '/' + backlogKey(n.relPath.replace(/\.md$/, '')))
-  return (target: string) => {
-    const T = '/' + backlogKey(target).replace(/\.md$/, '')
-    return Paths.some((p) => p.endsWith(T))
-  }
-}
 
 // 어느 노트로도 해석되지 않는 링크 대상 (소문자 · 중복 없음 · 정렬)
 export const computeBacklog = (Notes: VaultNote[]): string[] => {
   const Graph = buildGraph(Notes.map(toNode))
-  const PathMatch = pathMatcher(Notes)
   const Missing = new Set<string>()
   for (const N of Notes) {
     for (const L of parseWikilinks(N.body)) {
       const T = L.target.trim()
       if (!T) continue
-      if (Graph.resolve(T)) continue
-      if (T.includes('/') && PathMatch(T)) continue
+      if (Graph.resolve(T, N)) continue
       Missing.add(backlogKey(T))
     }
   }

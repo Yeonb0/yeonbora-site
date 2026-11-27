@@ -153,3 +153,26 @@ describe('topicOf', () => {
     expect(() => topicOf('모르는폴더/a.md')).toThrow()
   })
 })
+
+describe('BadFront', () => {
+  it('reports notes whose frontmatter cannot be read, instead of treating them as empty', () => {
+    const Dir = makeVault({
+      'a/ok.md': '---\ntags: [x]\n---\n본문',
+      'a/broken.md': '---\ntags: [x\n  : : bad\n---\n본문',
+      'a/list.md': '---\n- a\n- b\n---\n본문',
+      'a/empty.md': '---\n---\n본문',
+      'a/none.md': '본문',
+    })
+    const { Notes, BadFront } = listVault(Dir)
+    expect(BadFront.map((b) => b.relPath)).toEqual(['a/broken.md', 'a/list.md'])
+    expect(BadFront[0].message).toContain('frontmatter')
+    expect(Notes).toHaveLength(5)
+  })
+})
+
+describe('computeBacklog path links use the graph rule', () => {
+  it('an ambiguous tail (two notes end the same way) is not resolved, like the site', () => {
+    const Dir = makeVault({ 'a/x/note.md': 'x', 'b/x/note.md': 'y', 'z/본문.md': '[[x/note]] [[a/x/note]]' })
+    expect(computeBacklog(listVault(Dir).Notes)).toEqual(['x/note'])
+  })
+})

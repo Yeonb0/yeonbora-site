@@ -1,6 +1,6 @@
-/* posts 섹션 임시 토큰 : 섹션 목업 승인 후 교체 */
+/* 기술 블로그 토큰 : 깃블로그 dark 스킨을 한 단계 어둡게 (바탕화면 desktop.css 와 같은 값) */
 :root:has(.section-posts) {
-  --bg: #f4efe6;
-  --fg: #2b2723;
-  --home-fg: #2b2723;
+  --bg: #232236;
+  --fg: #eaeaea;
+  --home-fg: #aa93c2;
 }

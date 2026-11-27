@@ -1,5 +1,5 @@
 ---
-// posts 섹션 전용 레이아웃 : 허브 아이콘이 이 화면 전체로 확대되며 넘어온다
+// 기술 블로그 레이아웃 : 허브 왼쪽 입구에서 넘어오고, 안은 바탕화면 섬이 채운다
 import Base from '@/shared/Base.astro'
 import { findSection } from '@/sections/registry'
 import './tokens.css'
@@ -20,7 +20,6 @@ const Me = findSection('posts')
 <style>
   main {
     min-height: 100dvh;
-    padding: 88px 24px 24px;
     background: var(--bg);
     color: var(--fg);
     font-family: var(--font-base);

@@ -1,0 +1,27 @@
+/* 인문 블로그 홈 버튼 : 서가 나무판에 박힌 놋쇠 단추 */
+:root:has(.section-humanities) .home-button {
+  border-radius: 50%;
+  color: #2a1a0c;
+  background: radial-gradient(circle at 35% 30%, #f2d998, #c9a45c 55%, #8a6a35);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 240, 200, 0.6),
+    inset 0 -2px 3px rgba(60, 36, 12, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+:root:has(.section-humanities) .home-button svg {
+  width: calc(var(--home-size) * 0.4);
+  height: calc(var(--home-size) * 0.4);
+}
+:root:has(.section-humanities) .home-button:focus-visible {
+  outline: 2px solid #e3c27a;
+  outline-offset: 3px;
+}
+@media (hover: hover) {
+  :root:has(.section-humanities) .home-button:hover {
+    transform: scale(1.06);
+    filter: brightness(1.1);
+  }
+}

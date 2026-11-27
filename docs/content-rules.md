@@ -58,10 +58,15 @@ originalUrl: https://yeonb0.github.io/...
 date: 2025-05-02            # 원래 작성일 (절대 오늘 날짜로 바꾸지 않음)
 tags: [c, network]
 series: ''                  # 있으면 유지 (devlog 포함)
+step: 5                     # 시리즈 안 순서 (있을 때만)
+tier: Gold                  # BOJ 글의 티어 : Bronze · Silver · Gold · Platinum
+description: ''             # 기술 블로그 목록 카드의 요약 (없으면 본문 앞부분)
+book: cpr                   # 인문 블로그 도서관의 책 id (있을 때만)
 ---
 ```
 - `source` · `date` 가 비면 빌드가 실패하도록 스키마에서 필수로 둔다.
 - 원래 플랫폼의 분류 · 시리즈 정보는 tags · series 로 옮기고 버리지 않는다.
+- `book` : 인문 블로그 도서관 (`/humanities/`) 에서 그 책을 펼치면 글 목록에 나온다. id 는 `apps/site/src/sections/humanities/data.ts` 의 `Books` 에 있는 것만 쓴다 (없는 id 면 빌드가 멈춘다). 새 책은 `Books` 에 한 줄 + `tools/shelves.py` 로 책장 그림에 제목을 찍어 더한다.
 
 ## 링크
 - `[[제목]]` · `[[제목|표시]]` · `[[제목#소제목]]` 는 remark 플러그인이 주소로 바꾼다. 찾는 순서 : wiki 제목 → wiki aliases → posts 제목 → posts 파일명 (Obsidian 은 파일명으로 링크하고, 대괄호가 든 제목은 `[[ ]]` 안에 쓸 수 없으므로). 대소문자는 가리지 않는다.

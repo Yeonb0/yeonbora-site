@@ -7,8 +7,15 @@ import { HubSections, findSection } from '@/sections/registry'
 import './tokens.css'
 
 const Rows = [HubSections.slice(0, 3), HubSections.slice(3, 6)]
-// 가장자리 입구 : 아래는 프로필
+// 가장자리 입구 : 아래는 프로필, 왼쪽은 블로그 (위 인문 · 아래 기술로 나뉜 화면이 가득 찬다)
 const Profile = findSection('profile')
+const Humanities = findSection('humanities')
+// 기술 블로그 : 따로 섹션이 생기기 전까지는 서재 (모든 글 목록) 로 보낸다
+const Posts = findSection('posts')
+const Blogs = [
+  { id: Humanities.id, label: Humanities.label, en: Humanities.en, href: Humanities.href, fill: '#3a2a1c', tint: '#e3c27a', icon: Humanities.icon },
+  { id: 'tech', label: '기술 블로그', en: 'Tech', href: Posts.href, fill: Posts.fill, tint: Posts.tint, icon: ['M8 7l-5 5 5 5', 'M16 7l5 5-5 5', 'M13.5 4.5l-3 15'] },
+]
 ---
 
 <Base title="연보라" showHome={false}>
@@ -61,6 +68,28 @@ const Profile = findSection('profile')
   >
     <span class="edge-band" aria-hidden="true"></span>
   </a>
+  <button class="edge edge-left" type="button" aria-label="블로그" aria-expanded="false" aria-controls="blog-panel" style="--fill: #3a2a1c">
+    <span class="edge-band" aria-hidden="true"></span>
+  </button>
+  <nav class="blog-panel" id="blog-panel" aria-label="블로그" inert>
+    {
+      Blogs.map((b) => (
+        <a class="half" href={b.href} aria-label={b.label} data-astro-prefetch="hover" style={`--fill: ${b.fill}; --tint: ${b.tint}`}>
+          <span class="mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              {b.icon.map((d) => (
+                <path d={d} />
+              ))}
+            </svg>
+            <span class="en" aria-hidden="true">
+              {b.en}
+            </span>
+          </span>
+        </a>
+      ))
+    }
+    <span class="panel-edge" aria-hidden="true"></span>
+  </nav>
 </Base>
 
 <script>
@@ -101,6 +130,7 @@ const Profile = findSection('profile')
       Wipe.animate({ clipPath: [From, 'inset(0px)'] }, { duration: Duration, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' }).finished.then(() => navigate(Href))
     })
     bindEdges(Hub)
+    bindBlogs(Hub)
   }
 
   // 가장자리 입구 : 마우스가 가장자리에 머물면 (또는 누르면) 그 쪽에서 방 색이 차올라 화면을 채운 뒤 넘어간다
@@ -148,6 +178,86 @@ const Profile = findSection('profile')
       TouchY = null
     }, { passive: true })
   }
+  // 왼쪽 입구 : 마우스가 왼쪽 가장자리에 머물면 (또는 누르면) 블로그 화면이 왼쪽에서 밀려와 화면을 채운다
+  // 블로그 화면은 위 (인문) · 아래 (기술) 로 나뉘고, 고른 쪽 색이 번진 뒤 넘어간다
+  // 닫기 : 오른쪽 가장자리에 머물기 · Esc · 왼쪽으로 쓸기
+  const bindBlogs = (Hub: HTMLElement) => {
+    const Left = document.querySelector<HTMLButtonElement>('.edge-left')
+    const Panel = document.querySelector<HTMLElement>('.blog-panel')
+    if (!Left || !Panel || Panel.dataset.bound) return
+    Panel.dataset.bound = 'true'
+    // 문서에 붙이는 듣기는 다음 페이지로 넘어갈 때 떼어 낸다
+    const Off = new AbortController()
+    document.addEventListener('astro:before-swap', () => Off.abort(), { once: true })
+    const isOpen = () => Panel.classList.contains('open')
+    const open = () => {
+      if (isOpen() || Hub.classList.contains('leaving')) return
+      Panel.classList.add('open')
+      Panel.inert = false
+      Left.setAttribute('aria-expanded', 'true')
+    }
+    const close = () => {
+      if (!isOpen() || Panel.classList.contains('leaving')) return
+      Panel.classList.remove('open')
+      Panel.inert = true
+      Left.setAttribute('aria-expanded', 'false')
+      Left.focus({ preventScroll: true })
+    }
+    let Timer = 0
+    Left.addEventListener('pointerenter', (e) => {
+      if (e.pointerType === 'mouse') Timer = window.setTimeout(open, Hold)
+    })
+    Left.addEventListener('pointerleave', () => clearTimeout(Timer))
+    Left.addEventListener('click', () => {
+      clearTimeout(Timer)
+      open()
+    })
+    const Back = Panel.querySelector<HTMLElement>('.panel-edge')!
+    let BackTimer = 0
+    Back.addEventListener('pointerenter', (e) => {
+      if (e.pointerType === 'mouse') BackTimer = window.setTimeout(close, Hold)
+    })
+    Back.addEventListener('pointerleave', () => clearTimeout(BackTimer))
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') close()
+    }, { signal: Off.signal })
+    // 반쪽을 누르면 그 반쪽 색이 화면 전체로 번진 뒤 넘어간다 (허브 칸과 같은 연출)
+    Panel.addEventListener('click', (e) => {
+      const Half = (e.target as HTMLElement).closest<HTMLAnchorElement>('.half')
+      if (!Half || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      e.preventDefault()
+      if (Panel.classList.contains('leaving')) return
+      Panel.classList.add('leaving')
+      Hub.classList.add('leaving')
+      const Href = Half.href
+      prefetch(Href, { eagerness: 'immediate' })
+      if (Reduced()) {
+        navigate(Href)
+        return
+      }
+      const R = Half.getBoundingClientRect()
+      const Wipe = document.createElement('div')
+      Wipe.className = 'hub-wipe'
+      Wipe.style.cssText = `position:fixed;inset:0;z-index:200;pointer-events:none;background:${Half.style.getPropertyValue('--fill')}`
+      document.body.appendChild(Wipe)
+      const From = `inset(${R.top}px ${innerWidth - R.right}px ${innerHeight - R.bottom}px ${R.left}px)`
+      Wipe.animate({ clipPath: [From, 'inset(0px)'] }, { duration: Duration, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' }).finished.then(() => navigate(Href))
+    })
+    // 터치 : 왼쪽 가장자리에서 오른쪽으로 쓸면 열고, 열린 화면에서 왼쪽으로 쓸면 닫는다
+    let TouchX: number | null = null
+    document.addEventListener('touchstart', (e) => {
+      const X = e.touches[0].clientX
+      TouchX = isOpen() || X < 30 ? X : null
+    }, { passive: true, signal: Off.signal })
+    document.addEventListener('touchend', (e) => {
+      if (TouchX === null) return
+      const D = e.changedTouches[0].clientX - TouchX
+      if (!isOpen() && D > 40) open()
+      else if (isOpen() && D < -60) close()
+      TouchX = null
+    }, { passive: true, signal: Off.signal })
+  }
+
   document.addEventListener('astro:page-load', bind)
   bind()
 </script>
@@ -286,7 +396,110 @@ const Profile = findSection('profile')
     transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .edge-bottom:is(:hover, :focus-visible) .edge-band {
-    height: 14px;
+    height: 70px;
+  }
+  /* 왼쪽 가장자리 입구 : 아래 입구와 같은 띠가 왼쪽에서 살짝 차오른다 */
+  .edge-left {
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 64px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+  .edge-left .edge-band {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: auto;
+    width: 0;
+    height: auto;
+    transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .edge-left:is(:hover, :focus-visible) .edge-band {
+    width: 70px;
+  }
+  /* 블로그 화면 : 왼쪽에서 밀려와 화면을 채우고, 위 (인문) · 아래 (기술) 로 나뉜다. 나누는 선과 넓어지는 방식은 허브 칸과 같다 */
+  .blog-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--hub-line);
+    clip-path: inset(0 100% 0 0);
+    visibility: hidden;
+    transition:
+      clip-path 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+      visibility 0s linear 0.7s;
+  }
+  .blog-panel.open {
+    clip-path: inset(0 0 0 0);
+    visibility: visible;
+    transition:
+      clip-path 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+      visibility 0s;
+  }
+  .blog-panel.leaving,
+  .blog-panel.leaving * {
+    transition: none !important;
+    pointer-events: none;
+  }
+  .half {
+    flex: 1 1 0;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    background: var(--hub-bg);
+    color: var(--tint);
+    outline: none;
+    transition:
+      flex-grow var(--hub-speed) var(--hub-ease),
+      background var(--hub-speed) var(--hub-ease),
+      color var(--hub-speed) var(--hub-ease);
+  }
+  .half:is(:hover, :focus-visible) {
+    background: var(--fill);
+    color: var(--hub-icon-active);
+  }
+  @media (hover: hover) {
+    .half:is(:hover, :focus-visible) {
+      flex-grow: var(--hub-grow);
+    }
+  }
+  .half svg {
+    width: clamp(88px, 18vmin, 176px);
+    height: auto;
+    transition: transform var(--hub-speed) var(--hub-ease);
+  }
+  .half:is(:hover, :focus-visible) svg {
+    transform: scale(1.12);
+  }
+  .half:is(:hover, :focus-visible) .en {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  /* 오른쪽 가장자리에 머물면 블로그 화면이 다시 왼쪽으로 물러난다 */
+  .panel-edge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 48px;
+  }
+  @media (hover: none) {
+    .half:not(:active, :focus-visible) {
+      background: var(--hub-bg);
+    }
+    .half:not(:active, :focus-visible) svg {
+      transform: none;
+    }
+    .half:is(:hover, :active, :focus-visible) .en {
+      color: var(--hub-icon-active);
+    }
   }
   /* 터치 기기에서는 띠를 보이지 않고 쓸어 올리기만 받는다 */
   @media (hover: none) {
@@ -307,8 +520,14 @@ const Profile = findSection('profile')
     .cell,
     .cell svg,
     .en,
-    .edge-band {
+    .edge-band,
+    .half,
+    .half svg {
       transition: none;
+    }
+    .blog-panel,
+    .blog-panel.open {
+      transition-duration: 0.15s;
     }
   }
 </style>

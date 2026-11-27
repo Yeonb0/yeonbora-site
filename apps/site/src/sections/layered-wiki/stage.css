@@ -1,0 +1,546 @@
+/* Layered Wiki 무대 : 발표 · 시연 · 설명 세 탭 + 아래 가장자리 호버 막대 */
+/* 설계 : docs/superpowers/specs/2026-11-27-layered-wiki-project-page-design.md */
+:root:has(.lw) {
+  --bg: #1a1a1a;
+  --fg: #e0e0e0;
+  --quiet: #9592a0;
+  --rule: #2c2a33;
+  --raise: #222027;
+  --accent: #a88bfa;
+  /* 층 띠 : 위에서부터 전사 · 팀 · 개인. 같은 보라를 진하기로만 나눈다 */
+  --layer-org: #a88bfa;
+  --layer-team: #7a63c2;
+  --layer-me: #4e4180;
+  --ok: #6fcf97;
+  --down: #ef6b6b;
+  --bar-h: 56px;
+  /* 막대를 부르는 띠 : 시연 화면 아래쪽 버튼을 가리지 않게 좁게 */
+  --edge-h: 10px;
+}
+
+.lw {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-base);
+}
+
+/* ---------- 탭 패널 : 모두 살아 있고 보이기만 바뀐다 (언마운트 금지) ---------- */
+.lw-panel {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+.lw[data-tab='home'] .lw-panel[data-panel='home'],
+.lw[data-tab='slides'] .lw-panel[data-panel='slides'],
+.lw[data-tab='demo'] .lw-panel[data-panel='demo'],
+.lw[data-tab='wiki'] .lw-panel[data-panel='wiki'] {
+  visibility: visible;
+}
+
+/* ---------- 첫 화면 : 시연 · 발표 · 설명 카드 셋 (9.3) ---------- */
+.lw-panel[data-panel='home'] {
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
+.lw-home-body {
+  width: min(960px, 100%);
+}
+.lw-home-body h1 {
+  margin: 0 0 28px;
+  font: 800 clamp(28px, 4vw, 44px) / 1.2 var(--font-point);
+  letter-spacing: -0.01em;
+}
+.lw-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.lw-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 180px;
+  padding: 22px 20px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--raise);
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.lw-card:hover {
+  border-color: var(--accent);
+}
+.lw-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.lw-card b {
+  font: 800 22px/1.3 var(--font-point);
+}
+.lw-card > span {
+  color: var(--quiet);
+}
+.lw-card-status {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--fg);
+}
+.lw-card kbd {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  font: 12px/1 var(--font-base);
+  color: var(--quiet);
+}
+/* 첫 화면에서는 막대도 막대를 부르는 띠도 없다 */
+.lw[data-tab='home'] .lw-bar,
+.lw[data-tab='home'] .lw-edge {
+  display: none;
+}
+
+/* ---------- 아래 가장자리 막대 ---------- */
+.lw-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--edge-h);
+  z-index: 20;
+}
+.lw-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  height: var(--bar-h);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 16px;
+  background: rgba(26, 26, 26, 0.96);
+  /* 닫혔을 때는 윗변의 층 띠 (6px) 까지 화면 밖으로 : 프로젝터에 아무것도 남지 않게, 호버 띠도 가리지 않게 */
+  transform: translateY(calc(100% + 6px));
+  transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+/* 막대 윗변 = 층 세 겹 : 이 페이지에서 유일하게 꾸민 곳 */
+.lw-bar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -6px;
+  height: 6px;
+  background: linear-gradient(var(--layer-org) 0 2px, var(--layer-team) 2px 4px, var(--layer-me) 4px 6px);
+}
+.lw[data-bar='open'] .lw-bar {
+  transform: translateY(0);
+}
+.lw-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--quiet);
+  font: 15px/1 var(--font-point);
+  cursor: pointer;
+}
+.lw-tab:hover {
+  color: var(--fg);
+  background: var(--raise);
+}
+.lw-tab[aria-selected='true'] {
+  color: var(--fg);
+  background: var(--raise);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.lw-tab:focus-visible,
+.lw-home:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.lw-tab kbd {
+  font: 12px/1 var(--font-base);
+  color: var(--quiet);
+  opacity: 0.7;
+}
+.lw-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--quiet);
+}
+.lw-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--quiet);
+}
+.lw[data-api='up'] .lw-dot {
+  background: var(--ok);
+}
+.lw[data-api='down'] .lw-dot {
+  background: var(--down);
+}
+.lw-home {
+  margin-left: auto;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: var(--quiet);
+  font: 14px/1 var(--font-base);
+  text-decoration: none;
+}
+.lw-home:hover {
+  color: var(--fg);
+}
+
+/* ---------- 발표 : 16 : 9 무대를 화면 가운데 꽉 차게 ---------- */
+.lw-panel[data-panel='slides'] {
+  display: grid;
+  place-items: center;
+}
+.lw-stage {
+  position: relative;
+  width: min(100vw, calc(100dvh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  container-type: inline-size;
+}
+.lw-slide {
+  position: absolute;
+  inset: 0;
+  padding: 6cqw 7cqw;
+  display: none;
+}
+.lw-slide[data-current] {
+  display: block;
+}
+.lw-slide h1,
+.lw-slide h2 {
+  margin: 0;
+  font-family: var(--font-point);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.lw-slide h2 {
+  font-size: 3.4cqw;
+  line-height: 1.25;
+}
+.lw-slide {
+  word-break: keep-all;
+}
+.lw-slide p {
+  margin: 0;
+  font-size: 1.6cqw;
+  line-height: 1.6;
+  color: var(--quiet);
+}
+
+/* ---------- 시연 ---------- */
+.lw-demo-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: none;
+}
+/* 한 번 불러온 시연은 연결이 잠깐 끊겨도 화면에서 치우지 않는다 (상태 유지) : 끊김은 막대의 점과 잠깐 올라오는 막대로만 알린다 */
+.lw[data-demo='loaded'] .lw-demo-frame {
+  display: block;
+}
+.lw[data-demo='loaded'] .lw-offline {
+  display: none;
+}
+.lw-offline {
+  height: 100%;
+  display: grid;
+  place-content: center;
+  padding: 24px;
+}
+.lw-offline-body {
+  max-width: 34em;
+}
+.lw-offline h2 {
+  margin: 0 0 12px;
+  font: 800 28px/1.3 var(--font-point);
+}
+.lw-offline p {
+  margin: 0 0 20px;
+  color: var(--quiet);
+  line-height: 1.7;
+}
+.lw-servers {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+.lw-servers li {
+  display: grid;
+  grid-template-columns: 7.5em 1fr;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+  line-height: 1.5;
+}
+.lw-servers code {
+  font-family: var(--font-base);
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+.lw-servers span {
+  color: var(--quiet);
+}
+
+/* ---------- 설명 : 목차 + 두 창 ---------- */
+.lw-panel[data-panel='wiki'] {
+  display: grid;
+  grid-template-columns: 15rem 1fr;
+}
+.lw-toc {
+  overflow-y: auto;
+  padding: 40px 0 40px 24px;
+  border-right: 1px solid var(--rule);
+}
+.lw-toc h2 {
+  margin: 0 0 4px;
+  font: 800 18px/1.3 var(--font-point);
+}
+.lw-toc-repo {
+  display: inline-block;
+  margin-bottom: 28px;
+  color: var(--quiet);
+  font-size: 13px;
+  text-underline-offset: 3px;
+}
+.lw-toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lw-toc ol a {
+  display: grid;
+  grid-template-columns: 2.6em 1fr;
+  padding: 9px 16px 9px 0;
+  color: var(--quiet);
+  text-decoration: none;
+  line-height: 1.45;
+  border-right: 2px solid transparent;
+}
+.lw-toc ol a:hover {
+  color: var(--fg);
+}
+.lw-toc ol a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.lw-toc ol a[aria-current='true'] {
+  color: var(--fg);
+  border-right-color: var(--accent);
+}
+.lw-toc ol a[data-empty] {
+  opacity: 0.45;
+}
+.lw-toc b {
+  font: 800 14px/1.45 var(--font-point);
+  font-variant-numeric: tabular-nums;
+}
+
+.lw-week {
+  display: none;
+  min-height: 0;
+}
+.lw-week[data-current] {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+/* 한 판만 있거나 한 판을 넓혔을 때 */
+.lw-week[data-single] {
+  grid-template-columns: 1fr;
+}
+.lw-week[data-wide='submitted'] {
+  grid-template-columns: 1fr 0;
+}
+.lw-week[data-wide='latest'] {
+  grid-template-columns: 0 1fr;
+}
+.lw-pane {
+  min-width: 0;
+  overflow-y: auto;
+  padding: 0 40px 80px;
+}
+.lw-pane + .lw-pane {
+  border-left: 1px solid var(--rule);
+}
+.lw-week[data-wide='submitted'] .lw-pane[data-edition='latest'],
+.lw-week[data-wide='latest'] .lw-pane[data-edition='submitted'] {
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+}
+.lw-pane-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 28px 0 14px;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  background: var(--bg);
+  color: var(--fg);
+  font: 800 15px/1 var(--font-point);
+  text-align: left;
+  cursor: pointer;
+}
+.lw-pane-head:disabled {
+  cursor: default;
+}
+.lw-pane-head time,
+.lw-pane-head small {
+  font: 13px/1 var(--font-base);
+  color: var(--quiet);
+  font-variant-numeric: tabular-nums;
+}
+.lw-pane-head small {
+  margin-left: auto;
+}
+.lw-pane-head:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.lw-empty {
+  padding: 64px 40px;
+  color: var(--quiet);
+  line-height: 1.7;
+}
+
+/* 읽는 글 : 한 줄 40자 안팎 (한글) */
+.lw-prose {
+  max-width: 42em;
+  font-size: 16px;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+.lw-prose h1 {
+  margin: 28px 0 20px;
+  font: 800 26px/1.3 var(--font-point);
+  letter-spacing: -0.01em;
+}
+.lw-prose h2 {
+  margin: 44px 0 12px;
+  font: 800 20px/1.35 var(--font-point);
+}
+.lw-prose h3 {
+  margin: 32px 0 8px;
+  font: 800 17px/1.4 var(--font-point);
+}
+.lw-prose p,
+.lw-prose ul,
+.lw-prose ol {
+  margin: 0 0 14px;
+}
+.lw-prose li + li {
+  margin-top: 4px;
+}
+.lw-prose strong {
+  font-family: var(--font-base-bold);
+  color: #f0eef5;
+}
+.lw-prose a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+.lw-prose table {
+  width: 100%;
+  margin: 8px 0 22px;
+  border-collapse: collapse;
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+.lw-prose th,
+.lw-prose td {
+  padding: 9px 12px 9px 0;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+.lw-prose th {
+  font-family: var(--font-point);
+  font-weight: 800;
+  color: var(--quiet);
+  border-bottom-color: #3a3744;
+}
+.lw-prose code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--raise);
+  font-size: 0.92em;
+}
+
+/* ---------- 좁은 화면 : 무대는 발표 PC 용이지만 깨지지만 않게 ---------- */
+@media (max-width: 860px) {
+  .lw-panel[data-panel='wiki'] {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .lw-toc {
+    padding: 20px 16px 8px;
+    border-right: 0;
+    border-bottom: 1px solid var(--rule);
+    max-height: 32vh;
+  }
+  .lw-week[data-current] {
+    grid-template-columns: 1fr;
+  }
+  .lw-pane {
+    padding: 0 18px 80px;
+  }
+  .lw-pane + .lw-pane {
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+  }
+  /* 터치에는 호버가 없다 : 막대를 늘 띄운다 */
+  .lw-bar {
+    transform: none;
+  }
+  .lw-tab kbd {
+    display: none;
+  }
+}
+@media (pointer: coarse) {
+  .lw-bar {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lw-bar {
+    transition: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .lw-cards {
+    grid-template-columns: 1fr;
+  }
+  .lw-card {
+    min-height: 0;
+  }
+}

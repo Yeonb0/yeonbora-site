@@ -37,8 +37,8 @@ describe('buildWikiGraphData', () => {
     expect(D.nodes.find((n) => n.id === '/wiki/c')?.topic).toBe('etc')
     expect(D.nodes.find((n) => n.id === '/wiki/d')?.topic).toBe('os')
     expect(D.topics).toEqual([
-      { id: 'os', name: '운영체제', color: '#ff9e64' },
-      { id: 'network', name: '네트워크', color: '#5cc8e6' },
+      { id: 'os', name: '운영체제', color: '#e87373' },
+      { id: 'network', name: '네트워크', color: '#c173e8' },
       { id: 'etc', name: '기타', color: '#8e8da6' },
     ])
   })

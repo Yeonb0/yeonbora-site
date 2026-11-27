@@ -14,3 +14,6 @@ reports/
 # Obsidian 개인 작업 상태
 apps/site/src/content/.obsidian/workspace*.json
 apps/site/src/content/.obsidian/cache
+
+# 서브에이전트 작업 기록 (로컬 전용)
+.superpowers/

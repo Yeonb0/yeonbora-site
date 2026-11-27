@@ -103,7 +103,7 @@ const suffixFolder = (N: VaultNote): string => {
 }
 
 // 충돌한 노트의 새 stem : `<stem> (<접미사 폴더>)`, 새 이름도 slug 가 겹치면 던진다
-export const renameMap = (Clashes: Map<string, VaultNote[]>): Map<string, string> => {
+export const renameMap = (Clashes: Map<string, VaultNote[]>, All: VaultNote[] = []): Map<string, string> => {
   const Out = new Map<string, string>()
   for (const Group of Clashes.values()) {
     const Seen = new Map<string, VaultNote>()
@@ -113,6 +113,8 @@ export const renameMap = (Clashes: Map<string, VaultNote[]>): Map<string, string
       const Prev = Seen.get(Key)
       if (Prev) throw new Error(`이름 충돌을 풀 수 없음 : ${Prev.relPath} / ${N.relPath}`)
       Seen.set(Key, N)
+      const Other = All.find((M) => M !== N && slugFromPath(M.relPath) === Key)
+      if (Other) throw new Error(`이름 충돌을 풀 수 없음 : ${Other.relPath} / ${N.relPath}`)
       Out.set(N.relPath, Name)
     }
   }
@@ -127,15 +129,27 @@ const toNode = (N: VaultNote): Node => ({
   body: N.body,
 })
 
+// 경로형 대상 (a/b/c) 이 Main 노트 경로와 맞는지 : 대소문자 무시, 전체 경로 또는 / 경계의 뒷부분
+const pathMatcher = (Notes: VaultNote[]) => {
+  const Paths = Notes.map((n) => '/' + n.relPath.replace(/\.md$/, '').toLowerCase())
+  return (target: string) => {
+    const T = '/' + target.toLowerCase().replace(/\.md$/, '')
+    return Paths.some((p) => p.endsWith(T))
+  }
+}
+
 // 어느 노트로도 해석되지 않는 링크 대상 (소문자 · 중복 없음 · 정렬)
 export const computeBacklog = (Notes: VaultNote[]): string[] => {
   const Graph = buildGraph(Notes.map(toNode))
+  const PathMatch = pathMatcher(Notes)
   const Missing = new Set<string>()
   for (const N of Notes) {
     for (const L of parseWikilinks(N.body)) {
       const T = L.target.trim()
       if (!T) continue
-      if (!Graph.resolve(T)) Missing.add(T.toLowerCase())
+      if (Graph.resolve(T)) continue
+      if (T.includes('/') && PathMatch(T)) continue
+      Missing.add(T.toLowerCase())
     }
   }
   return [...Missing].sort()

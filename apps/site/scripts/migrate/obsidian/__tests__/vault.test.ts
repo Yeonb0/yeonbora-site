@@ -85,6 +85,12 @@ describe('findSlugClashes / renameMap', () => {
     expect(R.get('정보처리기사/데이터베이스 구축/데이터 전환/데이터 전환.md')).toBe('데이터 전환 (데이터베이스 구축)')
   })
 
+  it('throws when new stem collides with another vault note', () => {
+    const Dir2 = makeVault({ 'a/N.md': '1', 'b/N.md': '2', 'c/N (a).md': '3' })
+    const { Notes: Ns } = listVault(Dir2)
+    expect(() => renameMap(findSlugClashes(Ns), Ns)).toThrow(/c\/N \(a\)\.md/)
+  })
+
   it('throws when new stems still collide', () => {
     const Dir2 = makeVault({ 'a/x/N.md': '1', 'b/x/N.md': '2' })
     const C = findSlugClashes(listVault(Dir2).Notes)
@@ -98,6 +104,33 @@ describe('computeBacklog', () => {
       'a/있음.md': '---\naliases: [별칭]\n---\n[[없음]] [[있음]] [[별칭]] [[#소제목]] ![[임베드]]\n```\n[[코드]]\n```\n`[[인라인]]` [[Zeta|표시]] [[없음#h]] [[ 없음 ]]',
     })
     expect(computeBacklog(listVault(Dir).Notes)).toEqual(['zeta', '없음'])
+  })
+})
+
+describe('computeBacklog path and table links', () => {
+  it('treats path targets by Main path match', () => {
+    const Dir = makeVault({
+      'folder/note.md': 'x',
+      'a/sub/note2.md': 'y',
+      'z/본문.md': '[[folder/note]] [[Folder/NOTE]] [[sub/note2]] [[a/sub/note2.md]] [[nope/none]]',
+    })
+    expect(computeBacklog(listVault(Dir).Notes)).toEqual(['nope/none'])
+  })
+
+  it('resolves table link with escaped pipe', () => {
+    const Dir = makeVault({ 'a/a.md': 'x', 'a/b.md': '| [[a\\|b]] |' })
+    expect(computeBacklog(listVault(Dir).Notes)).toEqual([])
+  })
+})
+
+describe('frontmatter edge cases', () => {
+  it('handles CRLF and closing --- at EOF', () => {
+    const Dir = makeVault({ 'a/crlf.md': '---\r\na: 1\r\n---\r\nbody', 'a/eof.md': '---\na: 1\n---' })
+    const N = Object.fromEntries(listVault(Dir).Notes.map((n) => [n.stem, n]))
+    expect(N['crlf'].data).toEqual({ a: 1 })
+    expect(N['crlf'].body).toBe('body')
+    expect(N['eof'].data).toEqual({ a: 1 })
+    expect(N['eof'].body).toBe('')
   })
 })
 

@@ -3,7 +3,9 @@ title: React 변수
 aliases: []
 tags: []
 field: computer
-topic: likelion
+topic: web
+course:
+  - likelion
 source: obsidian
 sourcePath: 멋쟁이사자처럼/프론트엔드/React/React 변수.md
 created: 2026-07-30

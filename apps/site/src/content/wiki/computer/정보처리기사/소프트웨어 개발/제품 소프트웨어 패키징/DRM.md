@@ -6,7 +6,9 @@ aliases:
   - 디지털 저작권 관리(DRM)
 tags: []
 field: computer
-topic: engineer-cert
+topic: se
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/소프트웨어 개발/제품 소프트웨어 패키징/DRM.md
 created: 2026-07-30

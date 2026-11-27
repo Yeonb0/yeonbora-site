@@ -35,6 +35,7 @@ aliases: [GC, Garbage Collection]
 tags: [java, jvm]
 field: computer
 topic: 컴퓨터 방의 폴더 이름
+course: [engineer-cert]     # 배운 곳 (코스), 코스 폴더의 노트만
 source: obsidian            # 원래 있던 곳
 sourcePath: 서버 구조와 기술/가비지 컬렉션.md   # Main 상대 경로 (이름이 바뀐 노트도 원래 경로)
 created: 2026-07-29         # 원래 작성일
@@ -42,6 +43,7 @@ autolink: true              # Main 규칙 그대로 (autolink · autolink-in)
 ---
 ```
 
+- `topic` 은 무엇을 배웠는지 (주제), `course` 는 어디서 배웠는지 (코스) 다. 멋쟁이사자처럼 · 정보처리기사 · 빅데이터분석기사처럼 여러 주제가 섞인 폴더는 노트마다 하위 경로로 topic 을 나누고 course 로 묶는다. 규칙은 `apps/site/scripts/migrate/obsidian/topics.ts` 의 `CourseFolders`, 코스 이름 · 배운 순서는 `apps/site/src/lib/content/wiki-courses.ts` 의 `Courses` 에 둔다 (2026-11-27 결정).
 - Main 노트에 `source:` 키가 있으면 위 `source` 와 겹치므로 `sourceDoc` 으로 이름을 바꿔 옮긴다 (값은 그대로). Main 에만 있는 다른 키는 이름 그대로 뒤에 둔다.
 
 ### posts

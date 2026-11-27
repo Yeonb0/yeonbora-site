@@ -3,7 +3,9 @@ title: 소프트웨어 생명 주기 V-모델
 aliases: []
 tags: []
 field: computer
-topic: engineer-cert
+topic: se
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/소프트웨어 개발/애플리케이션 테스트 관리/소프트웨어 생명 주기 V-모델.md
 created: 2026-07-30

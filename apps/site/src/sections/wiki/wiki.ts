@@ -1,5 +1,6 @@
 // 위키 화면 클라이언트 동작 : 카테고리 트리, 칸 너비 조절, 본문 링크 → 그래프 강조, 목차 위치 표시
 // 그래프 섬과는 window 이벤트로 주고받는다 : wiki:topic (보낼 카테고리), wiki:focus (강조할 노드 id), wiki:topic-changed (섬이 Esc 로 풀었을 때)
+// 코스 : wiki:course (보낼 코스), wiki:course-changed (섬에서 마름모를 누르거나 Esc 로 풀었을 때)
 import { navigate } from 'astro:transitions/client'
 
 const PaneKey = 'wiki-panes'
@@ -30,6 +31,27 @@ export function initWiki() {
     Cleanup.push(() => t.removeEventListener(type, fn))
   }
 
+  const focus = (id: string | null) => window.dispatchEvent(new CustomEvent('wiki:focus', { detail: id }))
+  const setParam = (Key: string, V: string | null) => {
+    const U = new URL(location.href)
+    if (V) U.searchParams.set(Key, V)
+    else U.searchParams.delete(Key)
+    history.replaceState(history.state, '', U)
+  }
+
+  // 코스 : 고른 코스 표시 · 배운 순서 패널 (첫 화면만)
+  const Items = [...Main.querySelectorAll<HTMLButtonElement>('.wc-item')]
+  const Panels = [...Main.querySelectorAll<HTMLElement>('.wiki-course')]
+  let Picked: string | null = null
+  const panel = (id: string | null) => {
+    for (const P of Panels) P.classList.toggle('on', P.dataset.course === id)
+  }
+  const markCourse = (id: string | null) => {
+    Picked = id
+    for (const B of Items) B.setAttribute('aria-pressed', String(B.dataset.course === id))
+    panel(id)
+  }
+
   // 카테고리
   const Cats = [...Main.querySelectorAll<HTMLElement>('.wt-cat')]
   const mark = (id: string | null) => {
@@ -40,25 +62,64 @@ export function initWiki() {
       C.querySelector('.wt-head')?.setAttribute('aria-expanded', String(Hit))
     }
   }
-  if (Home) mark(new URLSearchParams(location.search).get('topic'))
+  if (Home) {
+    const Q = new URLSearchParams(location.search)
+    mark(Q.get('topic'))
+    if (!Q.get('topic')) markCourse(Q.get('course'))
+  }
   for (const C of Cats) {
     const Id = C.dataset.topic!
     on(C.querySelector('.wt-head')!, 'click', () => {
       if (!Home) return void navigate(`/wiki/?topic=${encodeURIComponent(Id)}`)
       const Next = C.classList.contains('sel') ? null : Id
       mark(Next)
-      const U = new URL(location.href)
-      if (Next) U.searchParams.set('topic', Next)
-      else U.searchParams.delete('topic')
-      history.replaceState(history.state, '', U)
+      setParam('topic', Next)
+      if (Next && Picked) {
+        markCourse(null)
+        setParam('course', null)
+      }
       window.dispatchEvent(new CustomEvent('wiki:topic', { detail: Next }))
     })
   }
   on(window, 'wiki:topic-changed', () => {
     mark(null)
-    const U = new URL(location.href)
-    U.searchParams.delete('topic')
-    history.replaceState(history.state, '', U)
+    setParam('topic', null)
+  })
+
+  for (const B of Items) {
+    const Id = B.dataset.course!
+    // 호버 · 포커스 : 그래프에서 그 코스 노트가 밝아지고, 첫 화면이면 배운 순서가 잠깐 나온다
+    const enter = () => {
+      focus(B.dataset.node ?? null)
+      if (Home) panel(Id)
+    }
+    const leave = () => {
+      focus(null)
+      if (Home) panel(Picked)
+    }
+    on(B, 'pointerenter', enter)
+    on(B, 'pointerleave', leave)
+    on(B, 'focus', enter)
+    on(B, 'blur', leave)
+    on(B, 'click', () => {
+      if (!Home) return void navigate(`/wiki/?course=${encodeURIComponent(Id)}`)
+      const Next = Picked === Id ? null : Id
+      markCourse(Next)
+      setParam('course', Next)
+      if (Next) {
+        mark(null)
+        setParam('topic', null)
+      }
+      window.dispatchEvent(new CustomEvent('wiki:course', { detail: Next }))
+    })
+  }
+  on(window, 'wiki:course-changed', (e: CustomEvent<string | null>) => {
+    markCourse(e.detail)
+    setParam('course', e.detail)
+    if (e.detail) {
+      mark(null)
+      setParam('topic', null)
+    }
   })
 
   // 칸 너비
@@ -101,9 +162,8 @@ export function initWiki() {
     })
   }
 
-  // 본문 링크 · 역링크에 호버하면 그래프의 그 노드가 밝아진다
-  const focus = (id: string | null) => window.dispatchEvent(new CustomEvent('wiki:focus', { detail: id }))
-  for (const El of Main.querySelectorAll('.article-body a.wikilink, .article-body .wikilink-broken, .wiki-backlinks a')) {
+  // 본문 링크 · 역링크 · 배운 순서 단원에 호버하면 그래프의 그 노드가 밝아진다
+  for (const El of Main.querySelectorAll('.article-body a.wikilink, .article-body .wikilink-broken, .wiki-backlinks a, .wiki-course a')) {
     on(El, 'pointerenter', () => focus(nodeIdOf(El)))
     on(El, 'pointerleave', () => focus(null))
     on(El, 'focus', () => focus(nodeIdOf(El)))

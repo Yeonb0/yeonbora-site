@@ -3,7 +3,9 @@ title: Event Loop
 aliases: []
 tags: []
 field: computer
-topic: likelion
+topic: web
+course:
+  - likelion
 source: obsidian
 sourcePath: 멋쟁이사자처럼/프론트엔드/JS/Event Loop.md
 created: 2026-07-30

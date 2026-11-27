@@ -1,6 +1,6 @@
 // Main 노트 한 편을 wiki 노트로 바꾼다 : frontmatter 만 새로 쓰고 본문은 그대로 붙인다
 import { stringify } from 'yaml'
-import { topicOf } from './topics'
+import { courseOf, topicOf } from './topics'
 import type { VaultNote } from './vault'
 
 export interface ConvertOpts {
@@ -9,7 +9,7 @@ export interface ConvertOpts {
 }
 
 // 새 frontmatter 가 직접 쓰는 키 : 나머지 Main 키는 원래 순서대로 뒤에 붙는다
-const Handled = new Set(['title', 'aliases', 'tags', 'field', 'topic', 'source', 'sourcePath', 'created', 'autolink'])
+const Handled = new Set(['title', 'aliases', 'tags', 'field', 'topic', 'course', 'source', 'sourcePath', 'created', 'autolink'])
 
 const toList = (v: unknown): unknown[] => {
   if (v === null || v === undefined) return []
@@ -43,6 +43,7 @@ export const convertNote = (Note: VaultNote, Opts: ConvertOpts): { path: string;
     tags: toList(Note.data.tags),
     field: 'computer',
     topic: topicOf(Note.relPath),
+    ...(courseOf(Note.relPath) ? { course: [courseOf(Note.relPath)] } : {}),
     source: 'obsidian',
     sourcePath: Note.relPath,
   }

@@ -5,7 +5,9 @@ aliases:
   - Ant(Another Neat Tool)
 tags: []
 field: computer
-topic: engineer-cert
+topic: se
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/소프트웨어 개발/통합 구현/Ant.md
 created: 2026-07-30

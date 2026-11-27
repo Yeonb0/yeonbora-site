@@ -5,7 +5,9 @@ aliases:
   - DBMS 접속(DBMS Connection)
 tags: []
 field: computer
-topic: engineer-cert
+topic: database
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/데이터베이스 구축/SQL 활용/DBMS 접속.md
 created: 2026-09-15

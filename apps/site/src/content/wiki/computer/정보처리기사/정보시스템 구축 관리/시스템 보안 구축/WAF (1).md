@@ -7,7 +7,9 @@ aliases:
   - 웹 방화벽(Web Application Firewall)
 tags: []
 field: computer
-topic: engineer-cert
+topic: security
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/정보시스템 구축 관리/시스템 보안 구축/WAF (1).md
 created: 2026-09-15

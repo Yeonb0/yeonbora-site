@@ -5,7 +5,9 @@ aliases:
   - EQUI JOIN(동등 조인)
 tags: []
 field: computer
-topic: engineer-cert
+topic: database
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/데이터베이스 구축/SQL 응용/EQUI JOIN.md
 created: 2026-09-15

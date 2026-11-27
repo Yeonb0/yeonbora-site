@@ -5,7 +5,9 @@ aliases:
   - S-HTTP(Secure Hypertext Transfer Protocol)
 tags: []
 field: computer
-topic: engineer-cert
+topic: se
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/소프트웨어 개발/인터페이스 구현/S-HTTP.md
 created: 2026-09-04

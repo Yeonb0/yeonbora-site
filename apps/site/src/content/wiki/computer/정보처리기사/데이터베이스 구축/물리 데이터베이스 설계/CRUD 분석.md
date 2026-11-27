@@ -5,7 +5,9 @@ aliases:
   - CRUD 분석(CRUD Analysis)
 tags: []
 field: computer
-topic: engineer-cert
+topic: database
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/데이터베이스 구축/물리 데이터베이스 설계/CRUD 분석.md
 created: 2026-09-15

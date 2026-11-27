@@ -3,7 +3,9 @@ title: 절차형 SQL
 aliases: []
 tags: []
 field: computer
-topic: engineer-cert
+topic: se
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/소프트웨어 개발/데이터 입·출력 구현/절차형 SQL.md
 created: 2026-07-30

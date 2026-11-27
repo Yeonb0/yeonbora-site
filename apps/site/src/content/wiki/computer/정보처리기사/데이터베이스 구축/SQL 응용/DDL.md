@@ -6,7 +6,9 @@ aliases:
   - DDL(Data Define Language)
 tags: []
 field: computer
-topic: engineer-cert
+topic: database
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/데이터베이스 구축/SQL 응용/DDL.md
 created: 2026-09-15

@@ -7,7 +7,9 @@ aliases:
   - LOC 기법(source Line Of Code)
 tags: []
 field: computer
-topic: engineer-cert
+topic: se
+course:
+  - engineer-cert
 source: obsidian
 sourcePath: 정보처리기사/정보시스템 구축 관리/소프트웨어 개발 방법론 활용/LOC 기법.md
 created: 2026-09-15

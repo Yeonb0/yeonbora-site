@@ -4,7 +4,9 @@ aliases:
   - 노드, Node
 tags: []
 field: computer
-topic: likelion
+topic: web
+course:
+  - likelion
 source: obsidian
 sourcePath: 멋쟁이사자처럼/프론트엔드/JS/node.md
 created: 2026-07-30

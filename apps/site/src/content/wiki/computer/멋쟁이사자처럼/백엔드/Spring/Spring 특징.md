@@ -3,7 +3,9 @@ title: Spring 특징
 aliases: []
 tags: []
 field: computer
-topic: likelion
+topic: spring
+course:
+  - likelion
 source: obsidian
 sourcePath: 멋쟁이사자처럼/백엔드/Spring/Spring 특징.md
 created: 2026-07-30

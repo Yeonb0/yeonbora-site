@@ -139,13 +139,21 @@ export default function WikiGraph({ current }: Props) {
       LinksOf.get(L.b)!.push(L)
     }
     const PostNodes = Nodes.filter((n) => n.kind === 'post')
+    // 코스 노드 (마름모) 와 그 코스 노트들 : 호버하면 코스 노트 전체가, 고르면 그 노트들로 확대된다
+    const CourseMembers = new Map(
+      Nodes.filter((n) => n.kind === 'course').map((c) => [c.id, new Set(Nodes.filter((n) => n.courses?.includes(c.id.slice(1))).map((n) => n.id))]),
+    )
+    const inCourse = (n: SNode, id: string) => n.id === `@${id}` || !!n.courses?.includes(id)
     // 점 크기 : 이어진 선이 많을수록 크게 (지금 글은 한 단계 더)
     const radius = (n: SNode) => (n.id === Cur ? Math.max(9, nodeRadius(n, n.deg) + 2) : nodeRadius(n, n.deg))
 
     // 상태
     let Cur: string | null = null
     let Topic: string | null = null
+    let Course: string | null = null
     let Hot = new Set<string>()
+    // 코스 강조 중이면 강조한 노드끼리의 선을 모두 밝힌다 (보통은 호버한 노드에 닿은 선만)
+    let HotAll = false
     let Posts = readPosts()
     let Local: Map<string, number> | null = null
     let HW = 1
@@ -154,13 +162,15 @@ export default function WikiGraph({ current }: Props) {
     let VRaf = 0
     const postsOn = () => (Cur ? Posts.card : Posts.home)
     const live = (n: SNode) => n.kind !== 'post' || postsOn()
+    // 힘 배치에는 코스 노드를 넣지 않는다 (빌드 때 배치와 같게, 자리는 코스 노트들의 가운데)
+    const simmed = (n: SNode) => live(n) && n.kind !== 'course'
 
     // DOM : 만들어만 두고, 붙이는 건 첫 화면 연출 (reveal) 이나 appendAll 이 한다
     const ColorOf = new Map(data.topics.map((t) => [t.id, t.color]))
     for (const N of Nodes) {
       const g = document.createElementNS(NS, 'g')
       g.setAttribute('class', `wg-node ${N.kind}`)
-      const Dot = document.createElementNS(NS, N.kind === 'post' ? 'rect' : 'circle')
+      const Dot = document.createElementNS(NS, N.kind === 'post' ? 'rect' : N.kind === 'course' ? 'polygon' : 'circle')
       const T = document.createElementNS(NS, 'text')
       T.textContent = N.title
       if (N.kind === 'wiki') Dot.setAttribute('fill', ColorOf.get(N.topic) ?? '#8e8da6')
@@ -171,6 +181,7 @@ export default function WikiGraph({ current }: Props) {
       g.addEventListener('pointerdown', (e) => startDrag(e, N))
     }
     const setR = (n: SNode, r: number) => {
+      if (n.kind === 'course') return n.dot!.setAttribute('points', `0,${-r} ${r},0 0,${r} ${-r},0`)
       if (n.kind !== 'post') return n.dot!.setAttribute('r', String(r))
       const h = r * 0.9
       n.dot!.setAttribute('x', String(-h))
@@ -205,8 +216,8 @@ export default function WikiGraph({ current }: Props) {
     })
     Sim.on('end', layoutLabels)
     const feed = () => {
-      Sim.nodes(Nodes.filter(live))
-      ;(Sim.force('link') as ReturnType<typeof forceLink<SNode, SLink>>).links(Links.filter((l) => live(ById.get(l.a)!) && live(ById.get(l.b)!)).map((l) => ({ ...l, source: l.a, target: l.b })))
+      Sim.nodes(Nodes.filter(simmed))
+      ;(Sim.force('link') as ReturnType<typeof forceLink<SNode, SLink>>).links(Links.filter((l) => simmed(ById.get(l.a)!) && simmed(ById.get(l.b)!)).map((l) => ({ ...l, source: l.a, target: l.b })))
     }
 
     // 그리기
@@ -256,7 +267,7 @@ export default function WikiGraph({ current }: Props) {
         if (Far && (A.kind === 'ghost' || B.kind === 'ghost') && L.a !== HotId && L.b !== HotId) continue
         const Cross = A.topic !== B.topic
         const P =
-          HotId && (L.a === HotId || L.b === HotId)
+          HotId && (HotAll ? Hot.has(L.a) && Hot.has(L.b) : L.a === HotId || L.b === HotId)
             ? Paths.hot
             : inFocus(A) && inFocus(B)
               ? Cross
@@ -280,7 +291,8 @@ export default function WikiGraph({ current }: Props) {
       stroke(Paths.dimSame, '#565569', Base * 0.12)
       stroke(Paths.cross, '#565569', Base * 0.3)
       stroke(Paths.same, '#565569', Base)
-      stroke(Paths.hot, '#aa93c2', 1)
+      // 코스 강조는 선이 많아 옅게
+      stroke(Paths.hot, '#aa93c2', HotAll ? 0.45 : 1)
       Ctx.globalAlpha = 1
     }
     // 확대해도 점 · 글씨 크기가 그대로이도록 노드마다 거꾸로 축소한다
@@ -304,10 +316,12 @@ export default function WikiGraph({ current }: Props) {
       queueEdges()
     }
     const shown = (n: SNode) => live(n) && (!Local || Local.has(n.id))
-    const inFocus = (n: SNode) => shown(n) && (Local ? true : !Topic || n.topic === Topic)
+    const inFocus = (n: SNode) => shown(n) && (Local ? true : Topic ? n.topic === Topic : Course ? inCourse(n, Course) : true)
+    // 이름표를 꼭 보일 강조 노드 : 코스 강조는 노트가 많아 코스 노드만
+    const forced = (n: SNode) => n.id === Cur || (Hot.has(n.id) && (!HotAll || n.id === HotId))
     function labelVisible(n: SNode) {
       if (!shown(n)) return false
-      if (Hot.has(n.id) || n.id === Cur) return true
+      if (forced(n) || n.kind === 'course') return true
       // 멀리서는 링크가 많은 노드만, 가까이 갈수록 모두
       if (f() < 0.75 && !Local && n.deg < HubDeg) return false
       if (n.kind !== 'ghost') return true
@@ -322,7 +336,7 @@ export default function WikiGraph({ current }: Props) {
         const r = radius(n) * F + 1
         return { id: n.id, x: sx(n) - r, y: sy(n) - r, w: r * 2, h: r * 2 }
       })
-      const score = (n: SNode) => (n.id === Cur ? 1e6 : 0) + (Hot.has(n.id) ? 1e5 : 0) + (inFocus(n) ? 0 : -1e4) + (n.kind === 'ghost' ? -1e3 : 0) + n.deg
+      const score = (n: SNode) => (n.id === Cur ? 1e6 : 0) + (forced(n) ? 1e5 : 0) + (n.kind === 'course' ? 5e4 : 0) + (Hot.has(n.id) ? 1e3 : 0) + (inFocus(n) ? 0 : -1e4) + (n.kind === 'ghost' ? -1e3 : 0) + n.deg
       const inView = (n: SNode) => {
         const x = sx(n)
         const y = sy(n)
@@ -332,7 +346,7 @@ export default function WikiGraph({ current }: Props) {
       for (const N of Nodes) if (!Order.includes(N)) N.el!.classList.add('nolabel')
       const Items: LabelItem[] = Order.map((n) => {
         n.w ??= n.label!.getComputedTextLength() || n.title.length * 6
-        return { id: n.id, x: sx(n), y: sy(n), r: radius(n) * F, w: n.w + 4, force: n.id === Cur || Hot.has(n.id) }
+        return { id: n.id, x: sx(n), y: sy(n), r: radius(n) * F, w: n.w + 4, force: forced(n) }
       })
       const Spots = placeLabels(Items, Dots, HW, HH)
       for (const N of Order) {
@@ -372,13 +386,22 @@ export default function WikiGraph({ current }: Props) {
       }
       VRaf = requestAnimationFrame(step)
     }
-    const aspect = (x0: number, y0: number, w: number, h: number): View => {
-      if (w / h > HW / HH) {
-        const nh = (w * HH) / HW
+    const aspect = (x0: number, y0: number, w: number, h: number, BW = HW, BH = HH): View => {
+      if (w / h > BW / BH) {
+        const nh = (w * BH) / BW
         return { x: x0, y: y0 - (nh - h) / 2, w, h: nh }
       }
-      const nw = (h * HW) / HH
+      const nw = (h * BW) / BH
       return { x: x0 - (nw - w) / 2, y: y0, w: nw, h }
+    }
+    // 첫 화면에서 코스를 고르면 배운 순서 패널 (CoursePanel.astro) 이 오른쪽 (모바일은 아래) 을 가린다 : 남은 칸에 맞춘다
+    const fitBeside = (x0: number, y0: number, w: number, h: number): View => {
+      if (!Course || Cur) return aspect(x0, y0, w, h)
+      const Wide = innerWidth > 860
+      const BW = Wide ? HW - Math.min(300, HW * 0.8) : HW
+      const BH = Wide ? HH : HH * 0.55
+      const T = aspect(x0, y0, w, h, BW, BH)
+      return { x: T.x, y: T.y, w: (T.w * HW) / BW, h: (T.h * HH) / BH }
     }
     function target(Pos?: Map<SNode, { x: number; y: number }>): View {
       const List = Nodes.filter(inFocus)
@@ -400,7 +423,7 @@ export default function WikiGraph({ current }: Props) {
       const Pad = 70
       const x0 = Math.min(...xs) - Pad
       const y0 = Math.min(...ys) - Pad
-      return aspect(x0, y0, Math.max(...xs) + Pad - x0, Math.max(...ys) + Pad - y0)
+      return fitBeside(x0, y0, Math.max(...xs) + Pad - x0, Math.max(...ys) + Pad - y0)
     }
 
     // 지금 글에서 2단계까지 : 2단계의 빈 점은 뺀다. 2단계까지가 너무 많으면 (카드가 빽빽해서) 1단계만
@@ -514,12 +537,12 @@ export default function WikiGraph({ current }: Props) {
       }
       for (const El of FrontEls) moveTo(El, BackN)
       FrontEls = []
-      if (Topic || Local) {
+      if (Topic || Course || Local) {
         for (const N of Nodes) if (inFocus(N)) FrontEls.push(N.el!)
         for (const El of FrontEls) moveTo(El, FrontN)
       }
       queueEdges()
-      Back.classList.toggle('dim', !!Topic && !Local)
+      Back.classList.toggle('dim', !!(Topic || Course) && !Local)
       Back.classList.toggle('gone', !!Local)
       Fit = target(Local ? (Moves ?? undefined) : undefined)
       Toggle.setAttribute('aria-pressed', String(postsOn()))
@@ -535,7 +558,9 @@ export default function WikiGraph({ current }: Props) {
         Rest.get(El)?.append(El)
       }
       HotEls = []
-      Hot = new Set(id && ById.has(id) ? [id, ...Adj.get(id)!] : [])
+      const Members = id ? CourseMembers.get(id) : undefined
+      HotAll = !!Members
+      Hot = new Set(id && ById.has(id) ? [id, ...(Members ?? Adj.get(id)!)] : [])
       for (const h of Hot) {
         const N = ById.get(h)!
         if (shown(N) && Rest.has(N.el!)) HotEls.push(N.el!)
@@ -561,7 +586,7 @@ export default function WikiGraph({ current }: Props) {
       const Y0 = e.clientY
       const move = (ev: PointerEvent) => {
         if (Math.hypot(ev.clientX - X0, ev.clientY - Y0) > 3) Moved = true
-        if (!Moved) return
+        if (!Moved || N.kind === 'course') return
         const R = svg.getBoundingClientRect()
         const X = V.x + ((ev.clientX - R.left) / R.width) * V.w
         const Y = V.y + ((ev.clientY - R.top) / R.height) * V.h
@@ -582,7 +607,11 @@ export default function WikiGraph({ current }: Props) {
         g.removeEventListener('pointerup', up)
         g.removeEventListener('pointercancel', up)
         N.fx = N.fy = null
-        if (!Moved && N.kind !== 'ghost') navigate(N.id)
+        if (Moved || N.kind === 'ghost') return
+        if (N.kind !== 'course') return void navigate(N.id)
+        const Key = N.id.slice(1)
+        if (Cur) return void navigate(`/wiki/?course=${encodeURIComponent(Key)}`)
+        pickCourse(Course === Key ? null : Key)
       }
       g.addEventListener('pointermove', move)
       g.addEventListener('pointerup', up)
@@ -675,17 +704,33 @@ export default function WikiGraph({ current }: Props) {
     const onTopic = (e: Event) => {
       if (Cur) return
       Topic = (e as CustomEvent<string | null>).detail
+      if (Topic) Course = null
+      apply(700)
+    }
+    // 코스 고르기 : 트리 (wiki:course) 또는 그래프의 마름모. 트리 · 주소 · 배운 순서 패널은 wiki.ts 가 맞춘다
+    function pickCourse(id: string | null) {
+      Course = id
+      if (id) Topic = null
+      window.dispatchEvent(new CustomEvent('wiki:course-changed', { detail: id }))
+      apply(700)
+    }
+    const onCourse = (e: Event) => {
+      if (Cur) return
+      Course = (e as CustomEvent<string | null>).detail
+      if (Course) Topic = null
       apply(700)
     }
     const onFocus = (e: Event) => focus((e as CustomEvent<string | null>).detail)
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !Cur && Topic) {
+      if (e.key !== 'Escape' || Cur) return
+      if (Topic) {
         Topic = null
         window.dispatchEvent(new CustomEvent('wiki:topic-changed', { detail: null }))
         apply(700)
-      }
+      } else if (Course) pickCourse(null)
     }
     window.addEventListener('wiki:topic', onTopic)
+    window.addEventListener('wiki:course', onCourse)
     window.addEventListener('wiki:focus', onFocus)
     window.addEventListener('keydown', onKey)
 
@@ -742,7 +787,9 @@ export default function WikiGraph({ current }: Props) {
     Api.current = {
       setCurrent(c) {
         Cur = c && ById.has(c) ? c : null
-        Topic = Cur ? null : new URLSearchParams(location.search).get('topic')
+        const Q = new URLSearchParams(location.search)
+        Topic = Cur ? null : Q.get('topic')
+        Course = Cur || Topic ? null : Q.get('course')
         Hot = new Set()
         svg.classList.remove('focus')
         feed()
@@ -773,6 +820,7 @@ export default function WikiGraph({ current }: Props) {
       Sim.stop()
       cancelAnimationFrame(VRaf)
       window.removeEventListener('wiki:topic', onTopic)
+      window.removeEventListener('wiki:course', onCourse)
       window.removeEventListener('wiki:focus', onFocus)
       window.removeEventListener('keydown', onKey)
       svg.remove()

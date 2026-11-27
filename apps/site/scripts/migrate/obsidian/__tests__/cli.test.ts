@@ -198,6 +198,42 @@ describe('code fence handling', () => {
   })
 })
 
+describe('marks inside callouts', () => {
+  const Body = '앞\n\n> [!note] 제목\n> asymtotic 설명\n> 다음 줄\n'
+  const withMark = (Mark: string) => `---\ntitle: M\n---\n앞\n\n> [!note] 제목\n> asymtotic 설명\n${Mark}\n> 다음 줄\n`
+
+  it('a > %% typo? %% line inside a callout is same and passes verify', () => {
+    const V = makeVault({ 'Python/M.md': note('', Body) })
+    const C = newContent()
+    put(C, 'wiki/computer/Python/M.md', withMark('> %% typo? : "asymtotic" → "asymptotic" %%'))
+    expect(runBatch(V, 'Python', C, { dryRun: false }).skipped[0].reason).toBe('same')
+    expect(verifyVault(V, C)).toEqual({ ok: 1, missing: [], changed: [] })
+  })
+
+  it('a nested > > %% line is ignored too', () => {
+    const V = makeVault({ 'Python/M.md': note('', Body) })
+    const C = newContent()
+    put(C, 'wiki/computer/Python/M.md', withMark('> > %% typo? %%'))
+    expect(runBatch(V, 'Python', C, { dryRun: false }).skipped[0].reason).toBe('same')
+    expect(verifyVault(V, C).changed).toEqual([])
+  })
+
+  it('a real edit inside a callout is still a conflict', () => {
+    const V = makeVault({ 'Python/M.md': note('', Body) })
+    const C = newContent()
+    put(C, 'wiki/computer/Python/M.md', withMark('> %% typo? %%').replace('다음 줄', '바뀐 줄'))
+    expect(runBatch(V, 'Python', C, { dryRun: false }).skipped[0].reason).toBe('conflict')
+    expect(verifyVault(V, C).changed).toEqual(['Python/M.md'])
+  })
+
+  it('a %% line inside a code fence in a callout-free body is still kept', () => {
+    const V = makeVault({ 'Python/M.md': note('', '앞\n\n```\n> %% x %%\n```\n') })
+    const C = newContent()
+    put(C, 'wiki/computer/Python/M.md', '---\ntitle: M\n---\n앞\n\n```\n```\n')
+    expect(runBatch(V, 'Python', C, { dryRun: false }).skipped[0].reason).toBe('conflict')
+  })
+})
+
 describe('verifyVault', () => {
   it('verify fails on changed body', () => {
     const V = makeVault({ 'Python/A.md': note('', '원문\n'), 'Python/B.md': note('', '같음\n'), 'Python/C.md': note('', '없음\n') })

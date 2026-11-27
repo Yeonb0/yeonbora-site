@@ -24,7 +24,7 @@ export default function Library({ urls, posts }: Props) {
         <nav aria-label="분류" />
       </aside>
       <div className="room">
-        <div className="lib overview">
+        <div className="lib overview wait">
           <div className="world" />
         </div>
         <div className="scroller">

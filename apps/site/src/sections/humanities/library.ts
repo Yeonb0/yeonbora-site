@@ -682,6 +682,13 @@ export function mountLibrary({ root, urls, posts }: LibraryOptions): () => void 
   View = Layout.view
   Scene.style.setProperty('--ratio', String(ViewW / ViewH))
   requestAnimationFrame(setCam)
+  // 카메라를 맞추고 처음 보이는 진한 그림을 다 푼 뒤에 한 번에 보인다 (그림이 늦어도 1.5초 뒤에는 보인다)
+  const Shown = Promise.all(Cases.flat().map((id) => ready(shelfSrc(id, true))))
+  Promise.race([Shown, wait(1500)]).then(() => {
+    if (Off.signal.aborted) return
+    setCam()
+    Lib.classList.remove('wait')
+  })
 
   return () => {
     Off.abort()

@@ -147,6 +147,35 @@ describe('runBatch', () => {
   })
 })
 
+describe('code fence handling', () => {
+  const Body = '앞\n\n```mermaid\n%%{init: {}}%%\ngraph TD\n```\n'
+  it('a %% line inside a code fence is same on re-run and passes verify', () => {
+    const V = makeVault({ 'Python/M.md': note('', Body) })
+    const C = newContent()
+    runBatch(V, 'Python', C, { dryRun: false })
+    const R = runBatch(V, 'Python', C, { dryRun: false })
+    expect(R.skipped).toEqual([{ path: 'wiki/computer/Python/M.md', reason: 'same' }])
+    expect(verifyVault(V, C)).toEqual({ ok: 1, missing: [], changed: [] })
+  })
+
+  it('a real edit inside a code fence is a conflict', () => {
+    const V = makeVault({ 'Python/M.md': note('', Body) })
+    const C = newContent()
+    runBatch(V, 'Python', C, { dryRun: false })
+    const P = join(C, 'wiki/computer/Python/M.md')
+    writeFileSync(P, readFileSync(P, 'utf8').replace('graph TD', 'graph LR'))
+    expect(runBatch(V, 'Python', C, { dryRun: false }).skipped[0].reason).toBe('conflict')
+    expect(verifyVault(V, C).changed).toEqual(['Python/M.md'])
+  })
+
+  it('still ignores viz fences and %% lines outside fences', () => {
+    const V = makeVault({ 'Python/M.md': note('', Body) })
+    const C = newContent()
+    put(C, 'wiki/computer/Python/M.md', '---\ntitle: M\n---\n앞\n%% typo? %%\n\n```mermaid\n%%{init: {}}%%\ngraph TD\n```\n\n```viz m\ncaption: c\n```\n')
+    expect(runBatch(V, 'Python', C, { dryRun: false }).skipped[0].reason).toBe('same')
+  })
+})
+
 describe('verifyVault', () => {
   it('verify fails on changed body', () => {
     const V = makeVault({ 'Python/A.md': note('', '원문\n'), 'Python/B.md': note('', '같음\n'), 'Python/C.md': note('', '없음\n') })

@@ -45,15 +45,41 @@ const bodyOf = (text: string): string => {
   return M ? text.slice(M[0].length) : text
 }
 
-// 비교용 : viz 블록 (뒤 빈 줄 하나까지) 과 %% 주석만 있는 줄을 빼고 끝 줄바꿈을 정리한다
-const comparable = (body: string): string =>
-  body
-    .replace(/^```viz[^\n]*\n[\s\S]*?^```[ \t]*(?:\n|$)(?:[ \t]*\n)?/gm, '')
-    .replace(/^[ \t]*%%.*%%[ \t]*(?:\n|$)/gm, '')
-    .replace(/\n+$/, '')
+// 비교용 : 코드 펜스 밖의 %% 주석만 있는 줄과 viz 펜스 (뒤 빈 줄 하나까지) 를 빼고 끝 줄바꿈을 정리한다
+const comparable = (body: string): string => {
+  const Out: string[] = []
+  let Fence: { mark: string; viz: boolean } | null = null
+  let SkipBlank = false
+  for (const Line of body.split('\n')) {
+    if (Fence) {
+      const Close = Line.match(/^[ \t]*(`{3,}|~{3,})[ \t]*$/)
+      if (!Fence.viz) Out.push(Line)
+      if (Close && Close[1][0] === Fence.mark[0] && Close[1].length >= Fence.mark.length) {
+        SkipBlank = Fence.viz
+        Fence = null
+      }
+      continue
+    }
+    const Open = Line.match(/^[ \t]*(`{3,}|~{3,})(.*)$/)
+    if (Open) {
+      SkipBlank = false
+      Fence = { mark: Open[1], viz: /^viz(?:\s|$)/.test(Open[2].trim()) }
+      if (!Fence.viz) Out.push(Line)
+      continue
+    }
+    if (SkipBlank && Line.trim() === '') {
+      SkipBlank = false
+      continue
+    }
+    SkipBlank = false
+    if (/^[ \t]*%%.*%%[ \t]*$/.test(Line)) continue
+    Out.push(Line)
+  }
+  return Out.join('\n').replace(/\n+$/, '')
+}
 
 // 이미 있는 파일과 새 본문이 같은지 (frontmatter 는 보지 않는다)
-const sameBody = (existingText: string, newBody: string): boolean => comparable(bodyOf(existingText)) === newBody.replace(/\n+$/, '')
+const sameBody = (existingText: string, newBody: string): boolean => comparable(bodyOf(existingText)) === comparable(newBody)
 
 const parseFront = (text: string): Record<string, unknown> => {
   const M = text.match(FrontRe)
@@ -103,7 +129,7 @@ const suspectsOf = (body: string): SuspectKind[] => {
 }
 
 export const runBatch = (vaultDir: string, folder: string, contentDir: string, Opts: BatchOpts): BatchResult => {
-  if (folder !== '.' && !Topics[folder]) throw new Error(`Main 최상위 폴더가 아닙니다 : ${folder} (루트 파일은 . )`)
+  if (folder !== '.' && !Object.hasOwn(Topics, folder)) throw new Error(`Main 최상위 폴더가 아닙니다 : ${folder} (루트 파일은 . )`)
   const { Notes: All, Excluded, Ignored } = listVault(vaultDir)
   const Batch = All.filter((n) => {
     const Parts = n.relPath.split('/')
@@ -112,7 +138,7 @@ export const runBatch = (vaultDir: string, folder: string, contentDir: string, O
   const Renames = renameMap(findSlugClashes(All), All)
 
   // 작성일 : Main frontmatter 에 없을 때만 git 기록을 읽는다
-  const NeedGit = Batch.some((n) => convertNote(n, {}).text.indexOf('\ncreated:') < 0)
+  const NeedGit = Batch.some((n) => parseFront(convertNote(n, {}).text).created === undefined)
   const Dates = NeedGit ? readCreatedDates(vaultDir) : new Map<string, string>()
 
   const Converted = Batch.map((N) => {
@@ -128,6 +154,8 @@ export const runBatch = (vaultDir: string, folder: string, contentDir: string, O
   }
   if (Bad.length > 0) throw new Error(`frontmatter 검사에 실패해 아무것도 쓰지 않았습니다 :\n${Bad.join('\n')}`)
 
+  const Images = copyImages(Batch, join(vaultDir, 'images'), join(contentDir, '_assets'), Opts.dryRun)
+
   const Written: string[] = []
   const Skipped: BatchResult['skipped'] = []
   for (const C of Converted) {
@@ -136,14 +164,17 @@ export const runBatch = (vaultDir: string, folder: string, contentDir: string, O
       Skipped.push({ path: C.path, reason: sameBody(readFileSync(Abs, 'utf8'), C.Note.body) ? 'same' : 'conflict' })
       continue
     }
-    Written.push(C.path)
     if (!Opts.dryRun) {
-      mkdirSync(dirname(Abs), { recursive: true })
-      writeFileSync(Abs, C.text)
+      try {
+        mkdirSync(dirname(Abs), { recursive: true })
+        writeFileSync(Abs, C.text)
+      } catch (e) {
+        throw new Error(`쓰기 실패 (${C.path}) : 이미 쓴 노트 ${Written.length}편\n${e instanceof Error ? e.message : String(e)}`)
+      }
     }
+    Written.push(C.path)
   }
 
-  const Images = copyImages(Batch, join(vaultDir, 'images'), join(contentDir, '_assets'), Opts.dryRun)
 
   // 링크 분류 : 사이트 그래프 → backlog → Main 그래프 → 깨짐
   const SiteNodes = loadNodes(contentDir)
@@ -175,7 +206,7 @@ export const runBatch = (vaultDir: string, folder: string, contentDir: string, O
     total: Batch.length,
     written: Written,
     skipped: Skipped,
-    excluded: Excluded.filter((e) => (folder === '.' ? !Topics[e.relPath.split('/')[0]] : e.relPath.startsWith(`${folder}/`))),
+    excluded: Excluded.filter((e) => (folder === '.' ? !Object.hasOwn(Topics, e.relPath.split('/')[0]) : e.relPath.startsWith(`${folder}/`))),
     renamed: Batch.filter((n) => Renames.has(n.relPath)).map((n) => [n.relPath, Renames.get(n.relPath)!] as [string, string]),
     images: Images,
     noDate: Converted.filter((c) => !c.hasDate).map((c) => c.Note.relPath),

@@ -45,7 +45,7 @@ export const renderReport = (R: BatchResult): string => {
     '### 없음',
     List(R.images.Missing.map((m) => `${m.name} (${m.note})`)),
     '',
-    '## 링크',
+    '## 링크 (개수는 링크 하나하나를 센 값, 대상 종류 수가 아님)',
     `- 깨짐 ${R.links.broken} · backlog ${R.links.backlog} · 아직 안 옮김 ${R.links.notYetMigrated}`,
     '### 깨진 대상',
     List(R.brokenList.map((b) => `${b.target} : ${b.files.join(', ')}`)),

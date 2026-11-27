@@ -1,5 +1,6 @@
 // 콘텐츠 폴더를 직접 읽어 그래프를 만든다 : remark 플러그인은 astro:content 를 쓸 수 없어서
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'yaml'
 import { buildGraph, type Collection, type Graph, type Node } from './graph'
@@ -45,33 +46,38 @@ export const loadNodes = (contentDir: string): Node[] => {
   return Nodes
 }
 
-// 파일 수 + 가장 늦은 mtime : 개발 서버에서 노트를 더하거나 고치면 바뀐다
-const signature = (contentDir: string): string => {
-  let Count = 0
-  let Latest = 0
-  for (const C of ['wiki', 'posts', '_assets']) {
-    for (const F of listFiles(join(contentDir, C))) {
-      Count++
-      Latest = Math.max(Latest, statSync(join(contentDir, C, F)).mtimeMs)
-    }
-  }
-  return `${Count}:${Latest}`
+// 한 번 읽으면 invalidateContentIndex 전까지 그대로 쓴다 : 렌더마다 폴더를 다시 훑지 않는다
+// 개발 서버에서는 graph-loader 의 watcher 가 노트가 바뀔 때 무효화한다
+type Indexed = { graph: Graph; assets: Map<string, string>; nodes: Node[] }
+// astro.config (remark) 와 content.config (loader) 가 서로 다른 모듈 인스턴스로 불러도 같은 캐시를 보게 globalThis 에 둔다
+const Global = globalThis as typeof globalThis & { __contentIndex?: Map<string, Indexed> }
+const Cache = (Global.__contentIndex ??= new Map<string, Indexed>())
+
+export const invalidateContentIndex = (contentDir: string) => {
+  Cache.delete(contentDir)
 }
 
-const Cache = new Map<string, { sig: string; graph: Graph; assets: Map<string, string> }>()
-
 const load = (contentDir: string) => {
-  const Sig = signature(contentDir)
   const Hit = Cache.get(contentDir)
-  if (Hit && Hit.sig === Sig) return Hit
+  if (Hit) return Hit
   const Assets = new Map<string, string>()
   for (const F of listFiles(join(contentDir, '_assets'))) {
     const Name = F.split('/').pop() ?? F
     if (Name.includes('.') && !Assets.has(Name)) Assets.set(Name, `_assets/${F}`)
   }
-  const Entry = { sig: Sig, graph: buildGraph(loadNodes(contentDir)), assets: Assets }
+  const Nodes = loadNodes(contentDir)
+  const Entry = { graph: buildGraph(Nodes), assets: Assets, nodes: Nodes }
   Cache.set(contentDir, Entry)
   return Entry
+}
+
+// 링크 해석에 영향을 주는 것만 (제목 · aliases · slug · 첨부 이름) : 본문은 빠진다
+export const getGraphSignature = (contentDir: string): string => {
+  const { nodes, assets } = load(contentDir)
+  const Lines = nodes.map((n) => [n.collection, n.slug, n.title, ...n.aliases].join('\u0001')).sort()
+  return createHash('sha1')
+    .update([...Lines, ...[...assets.keys()].sort()].join('\n'))
+    .digest('hex')
 }
 
 export const getGraph = (contentDir: string): Graph => load(contentDir).graph
@@ -93,6 +99,8 @@ export const findBrokenLinks = (contentDir: string): BrokenLink[] => {
       const Body = maskCode(Text.replace(FrontRe, '')).replace(/%%[\s\S]*?%%/g, (m) => ' '.repeat(m.length))
       for (const M of Body.matchAll(EmbedRe)) {
         const L = parseInner(M[0], M[2])
+        // [[#소제목]] 은 같은 노트 안 링크
+        if (!M[1] && !L.target && L.heading) continue
         const Missing = M[1] ? ImageRe.test(L.target) && !assets.has(L.target) : !graph.resolve(L.target)
         if (Missing) Out.set(`${C}/${F}\u0000${L.target}`, { file: `${C}/${F}`, target: L.target })
       }

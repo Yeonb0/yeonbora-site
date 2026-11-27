@@ -6,7 +6,7 @@ import { visit } from 'unist-util-visit'
 import type { VFile } from 'vfile'
 import type { BrokenLink } from '../content/broken-report'
 import type { Graph } from '../content/graph'
-import { parseInner } from '../content/wikilink'
+import { headingSlug, parseInner } from '../content/wikilink'
 
 export interface WikilinkOptions {
   contentDir: string
@@ -56,8 +56,10 @@ export function remarkWikilink(opts: WikilinkOptions) {
           if (Link.label && /^\d+$/.test(Link.label)) Img.data = { hProperties: { width: Number(Link.label) } }
           Made = Img
         } else {
-          const Href = Graph.href(Link)
-          const Shown = Link.label ?? Link.target
+          // [[#소제목]] : 같은 노트 안의 소제목
+          const Same = !Link.target && Link.heading ? `#${headingSlug(Link.heading)}` : undefined
+          const Href = Same ?? Graph.href(Link)
+          const Shown = Link.label ?? (Same ? Link.heading! : Link.target)
           if (Href) {
             const A: Link = { type: 'link', url: Href, children: [{ type: 'text', value: Shown }], data: { hProperties: { className: ['wikilink'] } } }
             Made = A

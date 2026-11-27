@@ -49,6 +49,13 @@ describe('remarkWikilink', () => {
     expect(Broken).toEqual([{ file: 'wiki/computer/노트.md', target: '없음' }])
   })
 
+  it('same-note heading', async () => {
+    const { html, Broken } = await render('[[#세대 구분]] [[#세대 구분|여기]]')
+    expect(html).toContain('<a href="#세대-구분" class="wikilink">세대 구분</a>')
+    expect(html).toContain('<a href="#세대-구분" class="wikilink">여기</a>')
+    expect(Broken).toEqual([])
+  })
+
   it('code untouched', async () => {
     const { html } = await render('`[[GC]]`\n\n```\n[[GC]]\n```')
     expect(html).not.toContain('<a')

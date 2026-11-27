@@ -26,6 +26,12 @@ describe('remarkStripComments', () => {
     expect((await render('가\n\n%%\n여러 줄\n\n주석\n%%\n\n나')).html).toBe('<p>가</p>\n<p>나</p>')
   })
 
+  it('inline with formatting', async () => {
+    expect((await render('앞 %% 비밀 *강조* 메모 %% 뒤')).html).toBe('<p>앞  뒤</p>')
+    expect((await render('가 %% TODO `x` %% 나')).html).toBe('<p>가  나</p>')
+    expect((await render('가 %% check https://example.com 원본 %% 나')).html).toBe('<p>가  나</p>')
+  })
+
   it('code untouched', async () => {
     expect((await render('`%% a %%`')).html).toBe('<p><code>%% a %%</code></p>')
   })

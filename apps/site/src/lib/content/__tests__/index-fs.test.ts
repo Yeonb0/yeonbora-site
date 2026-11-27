@@ -1,8 +1,8 @@
-import { mkdirSync, mkdtempSync, utimesSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { findBrokenLinks, getAssets, getGraph, loadNodes } from '../index-fs'
+import { findBrokenLinks, getAssets, getGraph, getGraphSignature, invalidateContentIndex, loadNodes } from '../index-fs'
 
 const vault = () => {
   const Dir = mkdtempSync(join(tmpdir(), 'vault-'))
@@ -36,13 +36,39 @@ describe('getGraph', () => {
     expect(getGraph(Dir)).toBe(getGraph(Dir))
   })
 
+  it('no rescan until invalidated', () => {
+    const Dir = vault()
+    expect(getGraph(Dir).resolve('새 노트')).toBeUndefined()
+    writeFileSync(join(Dir, 'wiki/computer/새 노트.md'), '새')
+    expect(getGraph(Dir).resolve('새 노트')).toBeUndefined()
+  })
+
   it('cache invalidates', () => {
     const Dir = vault()
     expect(getGraph(Dir).resolve('새 노트')).toBeUndefined()
-    const F = join(Dir, 'wiki/computer/새 노트.md')
-    writeFileSync(F, '새')
-    utimesSync(F, new Date(), new Date(Date.now() + 5000))
+    writeFileSync(join(Dir, 'wiki/computer/새 노트.md'), '새')
+    invalidateContentIndex(Dir)
     expect(getGraph(Dir).resolve('새 노트')?.slug).toBe('새-노트')
+  })
+
+  it('slug collision is a duplicate', () => {
+    const Dir = vault()
+    writeFileSync(join(Dir, 'wiki/computer/C.md'), 'c')
+    writeFileSync(join(Dir, 'wiki/computer/C++.md'), 'c++')
+    expect(getGraph(Dir).duplicates).toContain('c')
+  })
+})
+
+describe('getGraphSignature', () => {
+  it('changes with titles and aliases, not with bodies', () => {
+    const Dir = vault()
+    const A = getGraphSignature(Dir)
+    writeFileSync(join(Dir, 'wiki/computer/Stop-and-Wait.md'), '---\naliases: [정지-대기]\n---\n본문만 바뀜')
+    invalidateContentIndex(Dir)
+    expect(getGraphSignature(Dir)).toBe(A)
+    writeFileSync(join(Dir, 'wiki/computer/Stop-and-Wait.md'), '---\naliases: [정지-대기, SW]\n---\n본문만 바뀜')
+    invalidateContentIndex(Dir)
+    expect(getGraphSignature(Dir)).not.toBe(A)
   })
 })
 
@@ -56,6 +82,8 @@ describe('findBrokenLinks', () => {
   it('lists unresolved links and image embeds, skipping comments and code', () => {
     const Dir = vault()
     writeFileSync(join(Dir, 'wiki/computer/ACK.md'), '[[Stop-and-Wait]] [[없음]] ![[그림 1.png]] ![[없는.png]] ![[노트]] %% [[주석 안]] %% `[[코드]]`')
+    writeFileSync(join(Dir, 'wiki/computer/TCP.md'), '[[#혼잡 제어]] [[#흐름|여기]]')
+    invalidateContentIndex(Dir)
     expect(findBrokenLinks(Dir)).toEqual([
       { file: 'wiki/computer/ACK.md', target: '없는.png' },
       { file: 'wiki/computer/ACK.md', target: '없음' },

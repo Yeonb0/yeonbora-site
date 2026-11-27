@@ -36,13 +36,41 @@ const cut = (block: Parent, side: 'after' | 'before') => {
   })
 }
 
+// 바로 아래 text 자식들의 %% 위치를 차례로 짝지어 그 사이를 지운다 (짝이 안 맞는 마지막 하나는 2단계 몫)
+const stripInline = (P: Parent) => {
+  const Kids = P.children as { type: string; value?: string }[]
+  const Marks: [number, number][] = []
+  Kids.forEach((k, i) => {
+    if (k.type !== 'text') return
+    let At = k.value!.indexOf(Mark)
+    while (At >= 0) {
+      Marks.push([i, At])
+      At = k.value!.indexOf(Mark, At + Mark.length)
+    }
+  })
+  const Pairs = Math.floor(Marks.length / 2)
+  // 뒤쪽 짝부터 지워야 앞쪽 위치가 그대로다
+  for (let p = Pairs - 1; p >= 0; p--) {
+    const [I, A] = Marks[2 * p]
+    const [J, B] = Marks[2 * p + 1]
+    if (I === J) {
+      Kids[I].value = Kids[I].value!.slice(0, A) + Kids[I].value!.slice(B + Mark.length)
+    } else {
+      Kids[I].value = Kids[I].value!.slice(0, A)
+      Kids[J].value = Kids[J].value!.slice(B + Mark.length)
+      Kids.splice(I + 1, J - I - 1)
+    }
+  }
+  if (Pairs > 0) P.children = (Kids as typeof P.children).filter((k) => k.type !== 'text' || (k as Text).value !== '')
+}
+
 const isEmpty = (block: Parent) => textsOf(block).every((t) => t.value.trim() === '') && textsOf(block).length === block.children.length
 
 export function remarkStripComments(opts: CommentOptions = {}) {
   return (tree: Root) => {
-    // 1. 한 text 노드 안에서 짝이 맞는 주석
-    visit(tree, 'text', (t: Text) => {
-      if (count(t.value) >= 2) t.value = t.value.replace(/%%[\s\S]*?%%/g, '')
+    // 1. 한 블록 안에서 짝이 맞는 주석 : 강조 · 코드 · 링크가 섞여 있어도 형제 노드를 건너 지운다
+    visit(tree, (node) => {
+      if ('children' in node) stripInline(node as Parent)
     })
 
     // 2. 여러 블록에 걸친 주석 : 짝이 안 맞는 블록부터 다음 짝이 안 맞는 블록까지

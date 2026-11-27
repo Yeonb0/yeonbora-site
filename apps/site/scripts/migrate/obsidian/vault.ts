@@ -149,7 +149,7 @@ export const computeBacklog = (Notes: VaultNote[]): string[] => {
     for (const L of parseWikilinks(N.body)) {
       const T = L.target.trim()
       if (!T) continue
-      if (Graph.resolve(T, N)) continue
+      if (Graph.resolve(T, { sourcePath: N.relPath })) continue
       Missing.add(backlogKey(T))
     }
   }

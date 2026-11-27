@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import 'katex/dist/katex.min.css'
+import '../components/content/content-extras.css'
 import './drafts.css'
 import { readManifest } from './manifest'
 import { Role } from '../viz/palette'

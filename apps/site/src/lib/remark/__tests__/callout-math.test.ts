@@ -104,6 +104,29 @@ describe('remarkHighlight', () => {
     expect(Html).toContain('katex')
   })
 
+  it('dollar amounts do not block highlight', async () => {
+    expect(await render('\\$5 ==할인== \\$6')).toContain('<mark>할인</mark>')
+  })
+
+  it('spans a wikilink', async () => {
+    expect(await render('==([[ARQ]])==')).toMatch(/<mark>\(<a href="\/wiki\/arq" class="wikilink">ARQ<\/a>\)<\/mark>/)
+  })
+
+  it('spans strong', async () => {
+    expect(await render('==**굵게**==')).toContain('<mark><strong>굵게</strong></mark>')
+    expect(await render('앞 ==가 **굵게** 나== 뒤')).toContain('<mark>가 <strong>굵게</strong> 나</mark>')
+  })
+
+  it('spans inline code', async () => {
+    expect(await render('==(`next` 의 offset)==')).toContain('<mark>(<code>next</code> 의 offset)</mark>')
+  })
+
+  it('unclosed across siblings stays literal', async () => {
+    const Html = await render('==가 **굵게** 나')
+    expect(Html).not.toContain('<mark>')
+    expect(Html).toContain('==가')
+  })
+
   it('inside a wikilink label does not break', async () => {
     const Html = await render('[[ARQ|==b==]]')
     expect(Html).toContain('class="wikilink"')

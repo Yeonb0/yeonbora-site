@@ -473,6 +473,13 @@
   align-items: center;
   justify-content: center;
 }
+.thumb img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  background: #fff;
+}
 .thumb svg {
   width: 46px;
   height: 46px;
@@ -644,5 +651,58 @@
   }
   .book-ico {
     animation: none;
+  }
+}
+
+/* 글 화면 (ArticleDesk) : 목록 창 안에 글을 펼친다. 폴더 · 책 · 경로는 목록으로 가는 링크 */
+.tech-desk a.ico,
+.tech-desk a.tb,
+.tech-desk a.crumb,
+.tech-desk a.crumb-book {
+  color: inherit;
+  text-decoration: none;
+}
+.tech-desk a.crumb {
+  color: #c9c8d8;
+}
+.tech-desk a.crumb-book {
+  color: var(--yellow);
+}
+.tech-desk a.crumb:hover,
+.tech-desk a.crumb-book:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.tech-desk a.tb:hover {
+  background: var(--line-strong);
+}
+.crumb-book:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.reader {
+  padding: 8px 12px 28px;
+}
+/* 읽기 틀 (article.css) 의 색을 창 색으로 바꾼다 */
+.reader .article {
+  --a-bg: transparent;
+  --a-fg: var(--text);
+  --a-dim: var(--sub);
+  --a-line: var(--line);
+  --a-link: var(--accent);
+  --a-code: #2c2b42;
+  width: min(76ch, 100%);
+  padding: 24px clamp(8px, 3vw, 28px) 32px;
+  border-radius: 0;
+}
+.reader .article-body h2,
+.reader .article-body h3,
+.reader .article-body h4 {
+  scroll-margin-top: 16px;
+}
+@media (max-width: 899px) {
+  /* 좁은 화면에서는 읽을 자리를 넓힌다 : 책은 경로의 시리즈 링크가 대신한다 */
+  .reading .books {
+    display: none;
   }
 }

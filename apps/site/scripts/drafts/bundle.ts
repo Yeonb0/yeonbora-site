@@ -29,7 +29,7 @@ async function main() {
   const { Viz, postPaths } = collectPending(SiteDir)
   await build(draftsConfig(Viz.map((v) => v.id), OutDir))
 
-  const Posts: Record<string, string> = {}
+  const Posts: DraftsManifest['Posts'] = {}
   for (const P of postPaths) {
     const Post = renderPost(postFile(SiteDir, P), ContentDir)
     for (const Img of Post.Images) {
@@ -41,7 +41,7 @@ async function main() {
     const Name = `data/post-${hash(Json)}.json`
     mkdirSync(join(OutDir, 'data'), { recursive: true })
     writeFileSync(join(OutDir, Name), Json)
-    Posts[P] = Name
+    Posts[P] = { title: Post.title, file: Name }
   }
 
   const Manifest: DraftsManifest = { builtAt: new Date().toISOString(), Viz, Posts }

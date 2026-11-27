@@ -4,8 +4,8 @@ import type { DraftViz } from '../../scripts/drafts/collect'
 export interface DraftsManifest {
   builtAt: string
   Viz: DraftViz[]
-  // 글 경로 → data/post-<hash>.json
-  Posts: Record<string, string>
+  // 글 경로 → 제목 · data/post-<hash>.json
+  Posts: Record<string, { title: string; file: string }>
 }
 
 export function readManifest(): DraftsManifest {

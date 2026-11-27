@@ -71,7 +71,7 @@ series: ''                  # 있으면 유지 (devlog 포함)
 - 찾지 못한 링크는 빌드를 멈추지 않고 경고한다. 대상 노트가 Main 에 처음부터 없던 링크는 backlog (나중에 쓸 노트) 로 따로 본다 : 목록은 `docs/migration/wiki-backlog.json`, 리포트는 `reports/wiki-backlog.md`, 사이트에서는 흐린 글자로 표시한다. 그 밖의 실제 깨진 링크는 `reports/broken-links.md` 에 기록한다. "깨진 링크 0" 은 backlog 를 뺀 수로 센다. 두 리포트는 `pnpm build` · `pnpm dev` 를 시작할 때 콘텐츠 폴더에서 다시 계산한다 (커밋하지 않음).
 
 ## 처리기
-- Astro 7 기본 처리기 (Sätteri) 대신 `@astrojs/markdown-remark` 의 `unified()` 를 쓴다. 플러그인 순서 : 주석 제거 → viz → 콜아웃 → 수식 → 링크.
+- Astro 7 기본 처리기 (Sätteri) 대신 `@astrojs/markdown-remark` 의 `unified()` 를 쓴다. 플러그인 순서 : 주석 제거 → viz → 콜아웃 → 형광펜 → 수식 → 링크. Obsidian `==형광펜==` 은 `<mark>` 로 바뀐다.
 
 ## 시각화 · 그림
 본문에는 코드 블록 하나만 넣는다. Obsidian에서는 코드 블록으로 보이고, 사이트에서는 컴포넌트로 바뀐다.

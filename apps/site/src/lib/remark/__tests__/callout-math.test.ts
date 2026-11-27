@@ -5,6 +5,7 @@ import remarkMath from 'remark-math'
 import { describe, expect, it } from 'vitest'
 import { buildGraph, type Node } from '../../content/graph'
 import { remarkCallout } from '../callout'
+import { remarkHighlight } from '../highlight'
 import { remarkWikilink } from '../wikilink'
 
 const Arq: Node = { collection: 'wiki', slug: 'arq', title: 'ARQ', aliases: [], body: '' }
@@ -15,6 +16,7 @@ const render = async (md: string) => {
     syntaxHighlight: false,
     remarkPlugins: [
       remarkCallout,
+      remarkHighlight,
       remarkMath,
       [remarkWikilink, { contentDir: '/vault', getGraph: () => G, getAssets: () => new Map(), onBroken: () => {} }],
     ],
@@ -72,5 +74,43 @@ describe('math', () => {
   it('table cell wikilink with escaped pipe and br', async () => {
     const Html = await render('| a |\n|---|\n| [[ARQ\\|자동 재전송]]<br>둘째 줄 |')
     expect(Html).toMatch(/<a [^>]*>자동 재전송<\/a><br ?\/?>/)
+  })
+})
+
+describe('remarkHighlight', () => {
+  it('basic', async () => {
+    expect(await render('앞 ==강조== 뒤')).toContain('<p>앞 <mark>강조</mark> 뒤</p>')
+  })
+
+  it('two in one line', async () => {
+    expect(await render('==a== 와 ==b==')).toContain('<mark>a</mark> 와 <mark>b</mark>')
+  })
+
+  it('inside inline code untouched', async () => {
+    const Html = await render('`==a==` 와 ==b==')
+    expect(Html).toContain('<code>==a==</code>')
+    expect(Html).toContain('<mark>b</mark>')
+  })
+
+  it('spaces inside, empty, and line break stay literal', async () => {
+    expect(await render('== a ==')).not.toContain('<mark>')
+    expect(await render('====')).not.toContain('<mark>')
+    expect(await render('==가\n나==')).not.toContain('<mark>')
+  })
+
+  it('not inside math', async () => {
+    const Html = await render('$a==b==c$')
+    expect(Html).not.toContain('<mark>')
+    expect(Html).toContain('katex')
+  })
+
+  it('inside a wikilink label does not break', async () => {
+    const Html = await render('[[ARQ|==b==]]')
+    expect(Html).toContain('class="wikilink"')
+  })
+
+  it('table cell', async () => {
+    const Html = await render('| a |\n|---|\n| ==x== |')
+    expect(Html).toContain('<td><mark>x</mark></td>')
   })
 })

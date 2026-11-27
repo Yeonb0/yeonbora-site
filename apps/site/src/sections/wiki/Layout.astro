@@ -1,29 +1,151 @@
 ---
-// wiki 섹션 레이아웃 : 허브 칸이 아니라 글 안의 링크로 들어온다
+// 위키 레이아웃 : 왼쪽 카테고리 트리 · 가운데 · 오른쪽 (글 화면만). 허브 오른쪽 입구에서 들어온다
 import Base from '@/shared/Base.astro'
 import { findSection } from '@/sections/registry'
+import Tree, { type TreeTopic } from './Tree.astro'
 import './tokens.css'
+import './home.css'
 
 interface Props {
   title?: string
+  mode: 'home' | 'note'
+  topics: TreeTopic[]
+  open?: string
+  current?: string
 }
 
 const Me = findSection('wiki')
-const { title } = Astro.props
+const { title, mode, topics, open, current } = Astro.props
 ---
 
 <Base title={`${title ?? Me.label} · 연보라`}>
-  <main class="section-wiki" transition:name={`section-${Me.id}`}>
-    <slot />
+  <Fragment slot="home">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7" /><path d="M5.5 9.5V20h13V9.5" /></svg>
+  </Fragment>
+  <main class="section-wiki" data-mode={mode} transition:name={`section-${Me.id}`}>
+    <script is:inline data-astro-rerun>
+      // 저장해 둔 칸 너비를 그리기 전에 적용한다
+      try {
+        const S = JSON.parse(localStorage.getItem('wiki-panes') ?? 'null')
+        if (S) {
+          document.currentScript.parentElement.style.setProperty('--lw', S[0] + 'px')
+          document.currentScript.parentElement.style.setProperty('--rw', S[1] + 'px')
+        }
+      } catch {}
+    </script>
+    <Tree topics={topics} open={open} current={current} />
+    <div class="wiki-center">
+      <slot />
+    </div>
+    {
+      mode === 'note' && (
+        <aside class="wiki-side">
+          <slot name="side" />
+        </aside>
+      )
+    }
+    <div class="wiki-rz" data-side="l" aria-hidden="true"></div>
+    {mode === 'note' && <div class="wiki-rz" data-side="r" aria-hidden="true" />}
   </main>
 </Base>
 
+<script>
+  import { initWiki } from './wiki'
+  document.addEventListener('astro:page-load', initWiki)
+</script>
+
 <style>
   main {
-    min-height: 100dvh;
-    padding: 96px 20px 48px;
-    background: var(--bg);
-    color: var(--fg);
+    position: fixed;
+    inset: 0;
+    display: grid;
+    grid-template-columns: var(--lw) minmax(0, 1fr);
+    grid-template-areas: 'tree center';
+    background: var(--w-bg);
+    color: var(--w-fg);
     font-family: var(--font-base);
+  }
+  main[data-mode='note'] {
+    grid-template-columns: var(--lw) minmax(0, 1fr) var(--rw);
+    grid-template-areas: 'tree center side';
+  }
+  .wiki-center {
+    grid-area: center;
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+  }
+  main[data-mode='note'] .wiki-center {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--w-line-strong) transparent;
+  }
+  .wiki-side {
+    grid-area: side;
+    display: grid;
+    grid-template-rows: var(--rw) minmax(0, 1fr);
+    min-width: 0;
+    min-height: 0;
+    background: var(--w-pane);
+    border-left: 1px solid var(--w-line);
+  }
+
+  /* 칸 경계 손잡이 : 끌어서 너비, 더블클릭으로 기본값 */
+  .wiki-rz {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    z-index: 5;
+    width: 9px;
+    margin-left: -4px;
+    cursor: col-resize;
+    touch-action: none;
+  }
+  .wiki-rz[data-side='l'] {
+    left: var(--lw);
+  }
+  .wiki-rz[data-side='r'] {
+    left: calc(100% - var(--rw));
+  }
+  .wiki-rz::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 4px;
+    width: 1px;
+    background: var(--w-accent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .wiki-rz:hover::after,
+  .wiki-rz.on::after {
+    opacity: 1;
+  }
+  main.dragging {
+    cursor: col-resize;
+    user-select: none;
+  }
+
+  /* 모바일 : 카테고리 칩 줄 아래로 그래프 (글 화면은 220px 띠) 와 글 */
+  @media (max-width: 860px) {
+    main,
+    main[data-mode='note'] {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      grid-template-areas: 'tree' 'center';
+    }
+    main[data-mode='note'] {
+      grid-template-rows: auto 220px minmax(0, 1fr);
+      grid-template-areas: 'tree' 'side' 'center';
+    }
+    .wiki-side {
+      display: block;
+      border-left: 0;
+      border-bottom: 1px solid var(--w-line);
+    }
+    .wiki-rz {
+      display: none;
+    }
   }
 </style>

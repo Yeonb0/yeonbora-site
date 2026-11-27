@@ -1,0 +1,145 @@
+/* 위키 그래프 섬 : 색은 tokens.css 의 위키 토큰 */
+.wiki-graph {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* 첫 화면 가운데 → 글 화면 오른쪽 카드로 옮겨 갈 때 View Transitions 가 잇는다 */
+  view-transition-name: wiki-graph;
+}
+.wg-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.wg-edge {
+  stroke: var(--w-line-strong);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  transition:
+    stroke 0.3s,
+    opacity 0.4s;
+}
+.wg-node {
+  cursor: pointer;
+  transition: opacity 0.4s;
+}
+.wg-node circle {
+  fill: var(--w-node);
+  transition: fill 0.3s;
+}
+.wg-node.post rect {
+  fill: var(--w-post);
+}
+.wg-node.ghost {
+  cursor: default;
+}
+.wg-node.ghost circle {
+  fill: var(--w-bg);
+  stroke: var(--w-ghost);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  vector-effect: non-scaling-stroke;
+}
+.wg-node.me circle {
+  fill: var(--w-accent);
+}
+.wg-node text {
+  fill: var(--w-sub);
+  font-family: var(--font-base);
+  font-size: 11px;
+  pointer-events: none;
+  transition:
+    opacity 0.4s,
+    fill 0.3s;
+}
+.wg-node.me text {
+  fill: var(--w-fg);
+  font-family: var(--font-base-bold);
+  font-size: 12px;
+}
+.wg-node.nolabel text {
+  opacity: 0;
+}
+.wg-svg .wg-node.off,
+.wg-svg .wg-edge.off {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+.wg-node.hidden,
+.wg-edge.hidden {
+  display: none;
+}
+.wg-svg.zoomed .wg-node.out,
+.wg-svg.zoomed .wg-edge.out {
+  opacity: 0.12;
+}
+.wg-svg.focus .wg-edge:not(.off) {
+  opacity: 0.12;
+}
+.wg-svg.focus .wg-edge.hot:not(.off) {
+  opacity: 1;
+  stroke: var(--w-accent);
+}
+.wg-svg.focus .wg-node:not(.off) {
+  opacity: 0.22;
+}
+.wg-svg.focus .wg-node.hot:not(.off) {
+  opacity: 1;
+}
+.wg-svg.focus .wg-node.hot text {
+  fill: var(--w-fg);
+}
+
+/* 글 노드 켜고 끄기 : 노란 정사각형 테두리, 켜지면 채움 */
+.wg-posts {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--w-line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--w-pane) 85%, transparent);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.wg-posts::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--w-post);
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+.wg-posts[aria-pressed='true']::before {
+  background: var(--w-post);
+}
+.wg-posts:focus-visible {
+  outline: 2px solid var(--w-accent);
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  .wg-posts:hover {
+    border-color: var(--w-post);
+  }
+}
+
+::view-transition-group(wiki-graph) {
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .wg-edge,
+  .wg-node,
+  .wg-node *,
+  .wg-posts,
+  .wg-posts::before {
+    transition-duration: 0.01s !important;
+  }
+}

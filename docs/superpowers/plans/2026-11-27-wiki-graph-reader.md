@@ -31,14 +31,14 @@
 ### Task 1: 그래프 데이터
 
 **Files:**
-- Create: `apps/site/src/lib/content/wiki-graph.ts`, `apps/site/src/sections/wiki/topics.ts`
+- Create: `apps/site/src/lib/content/wiki-graph.ts`, `apps/site/src/lib/content/wiki-topics.ts`
 - Test: `apps/site/src/lib/content/__tests__/wiki-graph.test.ts`
 
 **Interfaces:**
 - Produces: `buildWikiGraphData(Nodes: (Node & { topic?: string })[], G: Graph): WikiGraphData`
   - `WikiGraphData = { nodes: GNode[]; links: [string, string][]; topics: { id: string; name: string }[] }`
   - `GNode = { id: string; title: string; kind: 'wiki' | 'post' | 'ghost'; topic: string }` — id 는 위키 `/wiki/<slug>`, 글 `/posts/<slug>`, 빈 점 `?<소문자 이름>`. 글 · 빈 점의 topic 은 이웃 위키 노트 중 첫 번째의 topic
-  - `topicName(id: string): string`, `TopicOrder: string[]` (topics.ts). topic 없음 → `etc` / "기타"
+  - `topicName(id: string): string`, `Topics` · `sortTopics` (wiki-topics.ts). topic 없음 → `etc` / "기타"
 
 - [ ] Step 1 : 테스트 — `[[B]] [[B]]` · B 가 A 를 링크하면 links 길이 1, `[[없음]]` 은 `?없음` ghost, `[[#제목]]` · `![[a.png]]` · 자기 링크는 무시, 위키를 링크 안 한 글은 nodes 에 없음, topic 없는 노트는 `etc`, topics 는 노트가 있는 것만 TopicOrder 순서
 - [ ] Step 2 : 실행해 실패 확인 `pnpm vitest run src/lib/content/__tests__/wiki-graph.test.ts`

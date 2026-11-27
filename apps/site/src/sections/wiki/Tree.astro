@@ -1,0 +1,173 @@
+---
+// 왼쪽 카테고리 트리 : 첫 화면에서는 그래프 확대, 글 화면에서는 첫 화면의 그 카테고리로 간다
+export interface TreeTopic {
+  id: string
+  name: string
+  notes: { href: string; title: string }[]
+}
+
+interface Props {
+  topics: TreeTopic[]
+  // 펼쳐 둘 카테고리 · 강조할 글 주소
+  open?: string
+  current?: string
+}
+
+const { topics, open, current } = Astro.props
+---
+
+<nav class="wiki-tree" aria-label="위키 카테고리">
+  {
+    topics.map((t) => (
+      <div class:list={['wt-cat', { open: t.id === open }]} data-topic={t.id}>
+        <button type="button" class="wt-head" aria-expanded={t.id === open ? "true" : "false"}>
+          {t.name}
+        </button>
+        <div class="wt-notes">
+          <div>
+            {t.notes.map((n) => (
+              <a href={n.href} class:list={{ me: n.href === current }} aria-current={n.href === current ? 'page' : undefined}>
+                {n.title}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    ))
+  }
+</nav>
+
+<style>
+  .wiki-tree {
+    grid-area: tree;
+    overflow-y: auto;
+    padding: 72px 14px 24px;
+    background: var(--w-pane);
+    border-right: 1px solid var(--w-line);
+    font-size: 0.92rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--w-line-strong) transparent;
+  }
+  .wt-cat {
+    margin: 0 0 2px;
+  }
+  .wt-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--w-sub);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    word-break: keep-all;
+    transition:
+      background 0.2s,
+      color 0.2s;
+  }
+  .wt-head::before {
+    content: '';
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 0.3s var(--w-ease);
+  }
+  .wt-cat.open > .wt-head {
+    color: var(--w-fg);
+  }
+  .wt-cat.open > .wt-head::before {
+    transform: rotate(45deg);
+  }
+  .wt-cat.sel > .wt-head {
+    color: var(--w-accent);
+    background: var(--w-hover);
+  }
+  .wt-head:focus-visible {
+    outline: 2px solid var(--w-accent);
+    outline-offset: -2px;
+  }
+  @media (hover: hover) {
+    .wt-head:hover {
+      background: var(--w-hover);
+      color: var(--w-fg);
+    }
+  }
+  .wt-notes {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.4s var(--w-ease);
+  }
+  .wt-cat.open .wt-notes {
+    grid-template-rows: 1fr;
+  }
+  .wt-notes > div {
+    overflow: hidden;
+  }
+  .wt-notes a {
+    display: block;
+    margin-left: 13px;
+    padding: 4px 12px;
+    border-left: 1px solid var(--w-line);
+    color: var(--w-sub);
+    text-decoration: none;
+    word-break: keep-all;
+    transition:
+      color 0.2s,
+      border-color 0.2s;
+  }
+  .wt-notes a.me {
+    color: var(--w-accent);
+    border-color: var(--w-accent);
+  }
+  .wt-notes a:focus-visible {
+    outline: 2px solid var(--w-accent);
+    outline-offset: -2px;
+  }
+  @media (hover: hover) {
+    .wt-notes a:hover {
+      color: var(--w-fg);
+    }
+  }
+
+  /* 모바일 : 카테고리는 위쪽 가로 칩 */
+  @media (max-width: 860px) {
+    .wiki-tree {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 12px 12px 12px 64px;
+      border-right: 0;
+      border-bottom: 1px solid var(--w-line);
+    }
+    .wt-cat {
+      margin: 0;
+    }
+    .wt-notes {
+      display: none;
+    }
+    .wt-head {
+      white-space: nowrap;
+      padding: 6px 12px;
+      border: 1px solid var(--w-line);
+      border-radius: 999px;
+    }
+    .wt-head::before {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wt-head,
+    .wt-head::before,
+    .wt-notes,
+    .wt-notes a {
+      transition-duration: 0.01s !important;
+    }
+  }
+</style>

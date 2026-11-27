@@ -1,26 +1,182 @@
 ---
+// 위키 글 화면 : 왼쪽 트리 · 가운데 글 · 오른쪽 그래프 카드 + 목차 · 역링크
 import { getCollection, render } from 'astro:content'
 import Layout from '@/sections/wiki/Layout.astro'
+import WikiGraph from '@/sections/wiki/WikiGraph'
 import Article from '@/components/content/Article.astro'
-import LinkList from '@/components/content/LinkList.astro'
 import VizMount from '@/components/content/VizMount.astro'
-import { formatDate, getSiteGraph } from '@/lib/content/site-graph'
+import { formatDate, getSiteGraph, getWikiGraph } from '@/lib/content/site-graph'
+import { EtcTopic } from '@/lib/content/wiki-topics'
 
 export async function getStaticPaths() {
   return (await getCollection('wiki')).map((entry) => ({ params: { slug: entry.id }, props: { entry } }))
 }
 
 const { entry } = Astro.props
-const { Content } = await render(entry)
-const Graph = await getSiteGraph()
-const Backlinks = Graph.backlinks(entry.id).map((n) => ({ href: `/${n.collection}/${n.slug}`, title: n.title }))
-const Meta = entry.data.created ? [{ text: formatDate(entry.data.created) }] : []
+const { Content, headings } = await render(entry)
+const G = await getSiteGraph()
+const { data, tree } = await getWikiGraph()
+const Here = `/wiki/${entry.id}`
+const Backlinks = G.backlinks(entry.id).map((n) => ({ href: `/${n.collection}/${n.slug}`, title: n.title, post: n.collection === 'posts' }))
+const Meta = [...(entry.data.aliases[0] ? [{ text: entry.data.aliases[0] }] : []), ...(entry.data.created ? [{ text: formatDate(entry.data.created) }] : [])]
+const Heads = headings.filter((h) => h.depth >= 2 && h.depth <= 4)
+const MinDepth = Math.min(...Heads.map((h) => h.depth))
 ---
 
-<Layout title={entry.data.title}>
+<Layout title={entry.data.title} mode="note" topics={tree} open={entry.data.topic || EtcTopic.id} current={Here}>
   <Article title={entry.data.title} meta={Meta}>
     <Content />
-    <LinkList slot="after" heading="이 개념을 다룬 글" items={Backlinks} />
   </Article>
+  <Fragment slot="side">
+    <div class="wiki-card">
+      <WikiGraph client:load data={data} current={Here} transition:persist="wiki-graph" />
+    </div>
+    <div class="wiki-panel">
+      {
+        Heads.length > 0 && (
+          <nav class="wiki-toc" aria-label="목차">
+            <h2>목차</h2>
+            <ol>
+              {Heads.map((h) => (
+                <li style={`--d: ${h.depth - MinDepth}`}>
+                  <a href={`#${h.slug}`}>{h.text}</a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )
+      }
+      {
+        Backlinks.length > 0 && (
+          <section class="wiki-backlinks">
+            <h2>역링크</h2>
+            <ul>
+              {Backlinks.map((b) => (
+                <li>
+                  <a href={b.href} class:list={{ post: b.post }} data-node={b.href}>
+                    {b.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+    </div>
+  </Fragment>
   <VizMount />
 </Layout>
+
+<style>
+  /* 가운데 글 : 읽기 틀 (article.css) 을 위키 색으로 */
+  :global(.section-wiki .article) {
+    --a-bg: transparent;
+    --a-fg: var(--w-fg);
+    --a-dim: var(--w-dim);
+    --a-line: var(--w-line);
+    --a-link: var(--w-accent);
+    --a-code: #2c2b42;
+    width: min(70ch, 100%);
+    padding: 64px clamp(20px, 4vw, 36px) 120px;
+    border-radius: 0;
+  }
+  :global(.section-wiki .article-body .wikilink) {
+    text-decoration-color: color-mix(in srgb, var(--w-accent) 45%, transparent);
+    transition:
+      background 0.2s,
+      color 0.2s;
+  }
+  :global(.section-wiki .article-body .wikilink:hover) {
+    color: var(--w-accent-hi);
+    background: color-mix(in srgb, var(--w-accent) 18%, transparent);
+  }
+  :global(.section-wiki .article-body mark) {
+    background: none;
+    color: var(--w-post);
+    font-family: var(--font-base-bold);
+  }
+
+  .wiki-card {
+    min-height: 0;
+    border-bottom: 1px solid var(--w-line);
+  }
+  .wiki-panel {
+    overflow-y: auto;
+    padding: 24px;
+    font-size: 0.9rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--w-line-strong) transparent;
+  }
+  .wiki-panel h2 {
+    margin: 0 0 10px;
+    color: var(--w-dim);
+    font-family: var(--font-base-bold);
+    font-size: 0.8rem;
+    font-weight: normal;
+  }
+  .wiki-panel ol,
+  .wiki-panel ul {
+    list-style: none;
+    margin: 0 0 32px;
+    padding: 0;
+  }
+  .wiki-panel a {
+    display: block;
+    color: var(--w-sub);
+    text-decoration: none;
+    word-break: keep-all;
+    transition:
+      color 0.2s,
+      border-color 0.2s;
+  }
+  .wiki-panel a:focus-visible {
+    outline: 2px solid var(--w-accent);
+    outline-offset: 2px;
+  }
+  .wiki-toc a {
+    padding: 5px 10px 5px calc(10px + var(--d, 0) * 12px);
+    border-left: 1px solid var(--w-line);
+  }
+  .wiki-toc a:global(.active) {
+    color: var(--w-accent);
+    border-color: var(--w-accent);
+  }
+  .wiki-backlinks a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+  }
+  .wiki-backlinks a::before {
+    content: '';
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--w-node);
+  }
+  .wiki-backlinks a.post::before {
+    border-radius: 2px;
+    background: var(--w-post);
+  }
+  @media (hover: hover) {
+    .wiki-panel a:hover {
+      color: var(--w-fg);
+    }
+    .wiki-toc a:hover {
+      border-color: var(--w-accent);
+    }
+  }
+  @media (max-width: 860px) {
+    .wiki-card {
+      height: 100%;
+      border-bottom: 0;
+    }
+    .wiki-panel {
+      display: none;
+    }
+    :global(.section-wiki .article) {
+      padding-top: 32px;
+    }
+  }
+</style>

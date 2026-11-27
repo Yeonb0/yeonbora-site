@@ -5,6 +5,7 @@ import Layout from '@/sections/posts/Layout.astro'
 import ArticleDesk from '@/sections/posts/ArticleDesk.tsx'
 import type { DeskPost } from '@/sections/posts/desk'
 import Article from '@/components/content/Article.astro'
+import PostArticle from '@/sections/posts/PostArticle.astro'
 import LinkList from '@/components/content/LinkList.astro'
 import VizMount from '@/components/content/VizMount.astro'
 import { formatDate, getSiteGraph } from '@/lib/content/site-graph'
@@ -21,19 +22,38 @@ const Meta = [{ text: formatDate(entry.data.date) }, { text: entry.data.source, 
 
 // 컴퓨터 글은 기술 블로그 바탕화면 창 안에서 읽는다 : 폴더 목록 · 글 수는 목록 화면과 같은 기준
 const OnDesk = entry.data.field === 'computer'
-const DeskPosts: DeskPost[] = OnDesk
-  ? (await getCollection('posts', (p) => p.data.field === 'computer')).map((p) => ({ id: p.id, title: p.data.title, date: formatDate(p.data.date), topic: p.data.topic, tags: [], summary: '' }))
+const Computer = OnDesk ? await getCollection('posts', (p) => p.data.field === 'computer') : []
+const DeskPosts: DeskPost[] = Computer.map((p) => ({ id: p.id, title: p.data.title, date: formatDate(p.data.date), topic: p.data.topic, tags: [], summary: '' }))
+
+// 깃블로그 글 화면의 시리즈 목록 · 이전 / 다음 : 같은 시리즈 글을 step (없으면 날짜) 순서로
+const SeriesName = entry.data.series
+const SeriesPosts = SeriesName
+  ? Computer.filter((p) => p.data.series === SeriesName).sort((a, b) => (a.data.step ?? 0) - (b.data.step ?? 0) || a.data.date.getTime() - b.data.date.getTime())
   : []
+const Here = SeriesPosts.findIndex((p) => p.id === entry.id)
+const toLink = (p: (typeof SeriesPosts)[number] | undefined) => (p ? { href: `/posts/${p.id}/`, title: p.data.title } : undefined)
+const Series = SeriesName ? { name: SeriesName, items: SeriesPosts.map((p) => ({ title: p.data.title, href: p.id === entry.id ? undefined : `/posts/${p.id}/` })) } : undefined
+const Prev = Here > 0 ? toLink(SeriesPosts[Here - 1]) : undefined
+const Next = Here >= 0 ? toLink(SeriesPosts[Here + 1]) : undefined
 ---
 
 <Layout>
   {
     OnDesk ? (
       <ArticleDesk posts={DeskPosts} title={entry.data.title} topic={entry.data.topic} series={entry.data.series}>
-        <Article title={entry.data.title} meta={Meta}>
+        <PostArticle
+          title={entry.data.title}
+          date={formatDate(entry.data.date)}
+          tags={entry.data.tags}
+          source={entry.data.source}
+          originalUrl={entry.data.originalUrl}
+          series={Series}
+          prev={Prev}
+          next={Next}
+          related={Related}
+        >
           <Content />
-          <LinkList slot="after" heading="관련 개념" items={Related} />
-        </Article>
+        </PostArticle>
       </ArticleDesk>
     ) : (
       <Article title={entry.data.title} meta={Meta}>

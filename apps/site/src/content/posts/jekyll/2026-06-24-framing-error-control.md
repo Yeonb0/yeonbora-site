@@ -5,7 +5,7 @@ context: course
 course: 컴퓨터네트워크
 topic: network
 source: jekyll
-originalUrl: https://yeonb0.github.io/network/[network]-framing---error-control/
+originalUrl: https://yeonb0.github.io/network/network-framing-error-control/
 date: '2026-06-24T10:20:00.000+09:00'
 tags:
   - 데이터 링크 계층

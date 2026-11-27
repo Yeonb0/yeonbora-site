@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { buildGraph, type Node } from '../graph'
 import { buildWikiGraphData } from '../wiki-graph'
 
-const W = (slug: string, title: string, body: string, topic?: string): Node & { topic?: string } => ({ collection: 'wiki', slug, title, aliases: [], body, topic })
+const W = (slug: string, title: string, body: string, topic?: string, created?: Date): Node & { topic?: string; created?: Date } => ({ collection: 'wiki', slug, title, aliases: [], body, topic, created })
 const P = (slug: string, title: string, body: string): Node => ({ collection: 'posts', slug, title, aliases: [], body })
 
 const Nodes = [
   W('a', 'A', '[[B]] 와 [[B]] 그리고 [[없음]] [[#소제목]] ![[a.png]] [[A]]', 'network'),
-  W('b', 'B', '[[A]]', 'network'),
+  W('b', 'B', '[[A]]', 'network', new Date('2026-08-01T00:00:00Z')),
   W('c', 'C', '본문', undefined),
   W('d', 'D', '본문', 'Operating-System'),
   P('p', '글', '[[A]] 설명'),
@@ -17,6 +17,11 @@ const D = buildWikiGraphData(Nodes, buildGraph(Nodes))
 const ids = () => D.nodes.map((n) => n.id).sort()
 
 describe('buildWikiGraphData', () => {
+  it('작성 시각 t : 있으면 넣고 없으면 비운다', () => {
+    expect(D.nodes.find((n) => n.id === '/wiki/b')?.t).toBe(Date.parse('2026-08-01T00:00:00Z'))
+    expect(D.nodes.find((n) => n.id === '/wiki/a')?.t).toBeUndefined()
+  })
+
   it('nodes', () => {
     expect(ids()).toEqual(['/posts/p', '/wiki/a', '/wiki/b', '/wiki/c', '/wiki/d', '?없음'])
     expect(D.nodes.find((n) => n.id === '?없음')).toMatchObject({ kind: 'ghost', title: '없음', topic: 'network' })
@@ -32,9 +37,9 @@ describe('buildWikiGraphData', () => {
     expect(D.nodes.find((n) => n.id === '/wiki/c')?.topic).toBe('etc')
     expect(D.nodes.find((n) => n.id === '/wiki/d')?.topic).toBe('os')
     expect(D.topics).toEqual([
-      { id: 'os', name: '운영체제' },
-      { id: 'network', name: '네트워크' },
-      { id: 'etc', name: '기타' },
+      { id: 'os', name: '운영체제', color: '#ff9e64' },
+      { id: 'network', name: '네트워크', color: '#5cc8e6' },
+      { id: 'etc', name: '기타', color: '#8e8da6' },
     ])
   })
 })

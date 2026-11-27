@@ -1,7 +1,7 @@
 // 위키 그래프 화면용 데이터 : 위키 노트 + 위키를 링크한 글 + 아직 없는 노트 (빈 점)
 import type { Graph, Node } from './graph'
 import { parseWikilinks } from './wikilink'
-import { EtcTopic, normalizeTopic, sortTopics, topicName } from './wiki-topics'
+import { EtcTopic, normalizeTopic, sortTopics, topicColor, topicName } from './wiki-topics'
 
 export type GKind = 'wiki' | 'post' | 'ghost'
 
@@ -11,6 +11,8 @@ export interface GNode {
   title: string
   kind: GKind
   topic: string
+  // 작성 시각 (ms) : 첫 화면에서 노드가 이 순서로 나타난다
+  t?: number
   // 빌드 때 미리 잡은 자리 (wiki-layout.ts)
   x?: number
   y?: number
@@ -19,10 +21,10 @@ export interface GNode {
 export interface WikiGraphData {
   nodes: GNode[]
   links: [string, string][]
-  topics: { id: string; name: string }[]
+  topics: { id: string; name: string; color: string }[]
 }
 
-type WikiNode = Node & { topic?: string }
+type WikiNode = Node & { topic?: string; created?: Date }
 
 const idOf = (n: Node) => `/${n.collection}/${n.slug}`
 const ghostId = (target: string) => `?${target.trim().toLowerCase()}`
@@ -57,8 +59,9 @@ export const buildWikiGraphData = (Nodes: WikiNode[], G: Graph): WikiGraphData =
       }
     }
     for (const T of Targets) link(Me, T)
-    if (N.collection === 'wiki') Out.set(Me, { id: Me, title: N.title, kind: 'wiki', topic: Topic.get(Me)! })
-    else if (Targets.some((t) => t !== Me)) Out.set(Me, { id: Me, title: N.title, kind: 'post', topic: '' })
+    const T = N.created ? { t: N.created.getTime() } : {}
+    if (N.collection === 'wiki') Out.set(Me, { id: Me, title: N.title, kind: 'wiki', topic: Topic.get(Me)!, ...T })
+    else if (Targets.some((t) => t !== Me)) Out.set(Me, { id: Me, title: N.title, kind: 'post', topic: '', ...T })
   }
 
   // 글 · 빈 점은 이어진 위키 노트 중 첫 번째의 카테고리를 따른다
@@ -73,6 +76,6 @@ export const buildWikiGraphData = (Nodes: WikiNode[], G: Graph): WikiGraphData =
   return {
     nodes: [...Out.values()],
     links: Pairs.filter(([a, b]) => Out.has(a) && Out.has(b)),
-    topics: Used.map((id) => ({ id, name: topicName(id) })),
+    topics: Used.map((id) => ({ id, name: topicName(id), color: topicColor(id) })),
   }
 }

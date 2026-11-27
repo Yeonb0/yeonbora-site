@@ -17,11 +17,15 @@ export const getSiteGraph = (): Promise<Graph> =>
 export const formatDate = (d: Date): string => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(d)
 
 // 위키 그래프 화면 데이터 + 왼쪽 트리 : 두 위키 페이지가 같은 값을 쓴다
-let WikiCached: Promise<{ data: WikiGraphData; tree: { id: string; name: string; notes: { href: string; title: string }[] }[] }> | undefined
+let WikiCached: Promise<{ data: WikiGraphData; tree: { id: string; name: string; color: string; notes: { href: string; title: string }[] }[] }> | undefined
 
 export const getWikiGraph = () =>
   (WikiCached ??= Promise.all([getCollection('wiki'), getCollection('posts'), getSiteGraph()]).then(([W, P, G]) => {
-    const Nodes = toNodes(W, P).map((n) => (n.collection === 'wiki' ? { ...n, topic: W.find((w) => w.id === n.slug)?.data.topic } : n))
+    const WikiBy = new Map(W.map((w) => [w.id, w]))
+    const PostBy = new Map(P.map((p) => [p.id, p]))
+    const Nodes = toNodes(W, P).map((n) =>
+      n.collection === 'wiki' ? { ...n, topic: WikiBy.get(n.slug)?.data.topic, created: WikiBy.get(n.slug)?.data.created } : { ...n, created: PostBy.get(n.slug)?.data.date },
+    )
     const data = buildWikiGraphData(Nodes, G)
     const tree = data.topics.map((t) => ({
       ...t,

@@ -3,6 +3,7 @@
 export interface TreeTopic {
   id: string
   name: string
+  color: string
   notes: { href: string; title: string }[]
 }
 
@@ -20,7 +21,8 @@ const { topics, open, current } = Astro.props
   {
     topics.map((t) => (
       <div class:list={['wt-cat', { open: t.id === open }]} data-topic={t.id}>
-        <button type="button" class="wt-head" aria-expanded={t.id === open ? "true" : "false"}>
+        <button type="button" class="wt-head" aria-expanded={t.id === open ? 'true' : 'false'} style={`--c: ${t.color}`}>
+          <span class="wt-dot" aria-hidden="true" />
           {t.name}
         </button>
         <div class="wt-notes">
@@ -78,6 +80,15 @@ const { topics, open, current } = Astro.props
     border-bottom: 1px solid currentColor;
     transform: rotate(-45deg);
     transition: transform 0.3s var(--w-ease);
+  }
+  /* 그래프 점과 같은 카테고리 색 */
+  .wt-dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--c);
   }
   .wt-cat.open > .wt-head {
     color: var(--w-fg);

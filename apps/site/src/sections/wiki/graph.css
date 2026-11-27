@@ -12,17 +12,49 @@
   width: 100%;
   height: 100%;
   touch-action: none;
+  cursor: grab;
+}
+.wg-svg.panning {
+  cursor: grabbing;
 }
 .wg-edge {
   stroke: var(--w-line-strong);
+  stroke-opacity: var(--wg-edge-o, 1);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 .wg-node {
   cursor: pointer;
 }
-.wg-node circle {
+/* 멀리서 보면 점만 작게 (WikiGraph 가 --wg-f 를 0.4 ~ 1 로 바꾼다) */
+.wg-node > circle,
+.wg-node > rect {
+  transform: scale(var(--wg-f, 1));
+}
+.wg-node circle:not([fill]) {
   fill: var(--w-node);
+}
+/* 다른 카테고리를 잇는 선은 옅게 */
+.wg-edge.cross {
+  stroke-opacity: calc(var(--wg-edge-o, 1) * 0.3);
+}
+/* 첫 화면 : 작성 순서로 하나씩 나타난다 */
+.wg-node.pop {
+  animation: wg-fade 0.5s ease-out both;
+}
+.wg-node.pop > circle,
+.wg-node.pop > rect {
+  animation: wg-grow 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes wg-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes wg-grow {
+  from {
+    scale: 0;
+  }
 }
 .wg-node.post rect {
   fill: var(--w-post);

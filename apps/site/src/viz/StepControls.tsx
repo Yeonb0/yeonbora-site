@@ -32,7 +32,7 @@ function Btn({ label, path, onClick, disabled, color }: { label: string; path: s
       title={label}
       disabled={disabled}
       onClick={onClick}
-      style={{ width: 44, height: 44, display: 'grid', placeItems: 'center', background: 'none', border: `1px solid ${color ?? Line}`, borderRadius: 10, color: Fg, opacity: disabled ? 0.35 : 1, cursor: disabled ? 'default' : 'pointer', touchAction: 'manipulation' }}
+      style={{ boxSizing: 'border-box', width: 44, height: 44, minHeight: 44, padding: 0, display: 'grid', placeItems: 'center', background: 'none', border: `1px solid ${color ?? Line}`, borderRadius: 10, color: Fg, opacity: disabled ? 0.35 : 1, cursor: disabled ? 'default' : 'pointer', touchAction: 'manipulation' }}
     >
       <svg viewBox="0 0 24 24" width={20} height={20} aria-hidden="true">
         <path d={path} fill="currentColor" />

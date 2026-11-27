@@ -30,6 +30,12 @@ describe('StepControls', () => {
     expect(mount(0, false).btn('이전').disabled).toBe(true)
     expect(mount(4, false).btn('다음').disabled).toBe(true)
   })
+  it('buttons ignore page button padding', () => {
+    // 작업대처럼 button 에 여백을 주는 페이지에서도 아이콘이 가운데에 오도록
+    const { Div } = mount(2, false)
+    Div.querySelectorAll('button').forEach((b) => expect(b.style.padding).toBe('0px'))
+  })
+
   it('shows step position', () => {
     expect(mount(2, false).Div.textContent).toContain('3 / 5')
   })

@@ -1,0 +1,24 @@
+---
+title: GoogLeNet
+aliases:
+  - 구글넷
+  - GoogLeNet(구글넷)
+tags: []
+field: computer
+topic: ml
+source: obsidian
+sourcePath: 머신러닝/GoogLeNet.md
+created: 2026-08-24
+---
+
+- 세로 + 가로 방향 모두 깊은 [[합성곱 신경망|CNN]]
+
+![[딥러닝-07.png]]
+- 복잡해 보이나 기존 [[합성곱 신경망|CNN]] 과 구조 차이 X
+
+### 인셉션 구조
+![[딥러닝-08.png]]
+- 가로 방향의 폭 담당
+- 크기가 다른 여러 [[필터]] 적용 -> 결과 결합
+- ==1 × 1== 크기 필터의 [[합성곱 계층]] 다수 사용 -> 채널 쪽 크기 ↓
+	- 매개변수 제거 & 고속 처리

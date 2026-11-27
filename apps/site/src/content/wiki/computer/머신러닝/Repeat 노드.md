@@ -1,0 +1,21 @@
+---
+title: Repeat 노드
+aliases:
+  - Repeat Node
+  - Repeat 노드(Repeat Node)
+  - 반복 노드
+tags: []
+field: computer
+topic: ml
+source: obsidian
+sourcePath: 머신러닝/Repeat 노드.md
+created: 2026-08-24
+---
+
+- [[분기 노드]] 를 N 개로 확장한 [[node]]
+
+### 형태
+- [[순전파]] : 입력 1개 -> N 개로 [[레플리케이션|복제]] ([[브로드캐스트]] 에 대응)
+- [[역전파]] : N 개 [[기울기]] 총합 -> 1개로 축약
+- ==ex)== [[편향]] $b$ 를 [[미니배치 학습|미니배치]] 크기 N 만큼 복제해 더함
+- [[Sum 노드]] 와 정반대 관계

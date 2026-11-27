@@ -10,7 +10,7 @@
 ## 폴더
 ```
 apps/site/src/content/
-  wiki/<분야>/<제목>.md        위키 노트 (원자 단위 개념)
+  wiki/<분야>/<출처 폴더 경로>/<제목>.md   위키 노트 (원자 단위 개념)
   posts/<출처>/<slug>.md       블로그 글
   courses/<code>.md            과목
   _assets/<출처>/...           이미지 · 스캔 원본 (Obsidian 첨부 폴더도 여기로 지정)
@@ -22,6 +22,8 @@ apps/site/src/viz/<id>/
 ```
 - 분야 : computer · philosophy · religion · etc
 - 출처 : jekyll · velog · tistory · notion · obsidian · paper
+- wiki 는 원래 출처의 폴더 구조를 그대로 둔다 : `wiki/<분야>/<원래 출처의 폴더 경로>/<제목>.md` (obsidian 은 Main 상대 경로 그대로). 주소는 파일명 slug 이므로 폴더를 옮겨도 주소는 바뀌지 않는다 (2026-11-27 결정).
+- 이름 충돌 : 같은 slug 가 둘 이상이면 파일명 뒤에 ` (<바로 위 폴더>)` 를 붙이고, 원래 이름을 aliases 맨 앞에 넣는다.
 
 ## frontmatter
 
@@ -66,10 +68,10 @@ series: ''                  # 있으면 유지 (devlog 포함)
 - 주소 : wiki 는 `/wiki/<slug>`, posts 는 `/posts/<slug>`. slug 는 파일명 (한글 허용). 제목 중복은 금지 (Main 규칙 그대로).
 - 같은 대상은 글 하나에 한 번만 링크한다. 조사는 링크 밖에 둔다 (`[[가비지 컬렉션]]은`).
 - 역링크 : wiki 페이지 아래에 "이 개념을 다룬 글" (그 노트를 링크한 posts) 을 자동으로 붙인다. posts 페이지에는 "관련 개념" (본문에서 링크한 wiki) 을 붙인다.
-- 찾지 못한 링크는 빌드를 멈추지 않고 경고 + `reports/broken-links.md` 에 기록한다. 리포트는 `pnpm build` · `pnpm dev` 를 시작할 때 콘텐츠 폴더에서 다시 계산한다 (커밋하지 않음).
+- 찾지 못한 링크는 빌드를 멈추지 않고 경고한다. 대상 노트가 Main 에 처음부터 없던 링크는 backlog (나중에 쓸 노트) 로 따로 본다 : 목록은 `docs/migration/wiki-backlog.json`, 리포트는 `reports/wiki-backlog.md`, 사이트에서는 흐린 글자로 표시한다. 그 밖의 실제 깨진 링크는 `reports/broken-links.md` 에 기록한다. "깨진 링크 0" 은 backlog 를 뺀 수로 센다. 두 리포트는 `pnpm build` · `pnpm dev` 를 시작할 때 콘텐츠 폴더에서 다시 계산한다 (커밋하지 않음).
 
 ## 처리기
-- Astro 7 기본 처리기 (Sätteri) 대신 `@astrojs/markdown-remark` 의 `unified()` 를 쓴다. 플러그인 순서 : 주석 제거 → viz → 링크.
+- Astro 7 기본 처리기 (Sätteri) 대신 `@astrojs/markdown-remark` 의 `unified()` 를 쓴다. 플러그인 순서 : 주석 제거 → viz → 콜아웃 → 수식 → 링크.
 
 ## 시각화 · 그림
 본문에는 코드 블록 하나만 넣는다. Obsidian에서는 코드 블록으로 보이고, 사이트에서는 컴포넌트로 바뀐다.

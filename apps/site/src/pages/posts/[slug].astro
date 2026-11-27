@@ -3,6 +3,7 @@ import { getCollection, render } from 'astro:content'
 import Layout from '@/sections/posts/Layout.astro'
 import Article from '@/components/content/Article.astro'
 import LinkList from '@/components/content/LinkList.astro'
+import VizMount from '@/components/content/VizMount.astro'
 import { formatDate, getSiteGraph } from '@/lib/content/site-graph'
 
 export async function getStaticPaths() {
@@ -21,4 +22,5 @@ const Meta = [{ text: formatDate(entry.data.date) }, { text: entry.data.source, 
     <Content />
     <LinkList slot="after" heading="관련 개념" items={Related} />
   </Article>
+  <VizMount />
 </Layout>

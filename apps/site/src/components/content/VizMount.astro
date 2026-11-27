@@ -1,0 +1,8 @@
+---
+// 본문의 figure[data-viz] 를 화면에 보일 때 시각화 컴포넌트로 채운다 (client:visible 과 같은 동작)
+---
+
+<script>
+  import { observeViz, siteLoader } from '@/viz/mount'
+  observeViz(document, siteLoader)
+</script>

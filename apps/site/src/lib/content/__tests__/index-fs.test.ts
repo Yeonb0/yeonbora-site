@@ -2,7 +2,8 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { findBrokenLinks, getAssets, getGraph, getGraphSignature, invalidateContentIndex, loadNodes } from '../index-fs'
+import { loadBacklog } from '../backlog'
+import { findBrokenLinks, getAssets, getGraph, getGraphSignature, invalidateContentIndex, isBacklog, loadNodes, setBacklogPath } from '../index-fs'
 
 const vault = () => {
   const Dir = mkdtempSync(join(tmpdir(), 'vault-'))
@@ -85,8 +86,69 @@ describe('findBrokenLinks', () => {
     writeFileSync(join(Dir, 'wiki/computer/TCP.md'), '[[#혼잡 제어]] [[#흐름|여기]]')
     invalidateContentIndex(Dir)
     expect(findBrokenLinks(Dir)).toEqual([
-      { file: 'wiki/computer/ACK.md', target: '없는.png' },
-      { file: 'wiki/computer/ACK.md', target: '없음' },
+      { file: 'wiki/computer/ACK.md', target: '없는.png', kind: 'broken' },
+      { file: 'wiki/computer/ACK.md', target: '없음', kind: 'broken' },
     ])
+  })
+})
+
+describe('backlog', () => {
+  const withBacklog = (List: string[]) => {
+    const Dir = vault()
+    const File = join(Dir, 'backlog.json')
+    writeFileSync(File, JSON.stringify(List))
+    writeFileSync(join(Dir, 'wiki/computer/ACK.md'), '[[Stop-and-Wait]] [[아직 없음]] [[  진짜 깨짐 ]] ![[아직 없음.png]]')
+    setBacklogPath(Dir, File)
+    return { Dir, File }
+  }
+
+  it('loadBacklog returns an empty Set when the file is missing', () => {
+    expect(loadBacklog('/nonexistent/backlog.json').size).toBe(0)
+  })
+
+  it('loadBacklog lowercases and trims', () => {
+    const { File } = withBacklog([' TCP ', '아직 없음'])
+    expect([...loadBacklog(File)]).toEqual(['tcp', '아직 없음'])
+  })
+
+  it('loadBacklog and isBacklog normalise typographic apostrophes', () => {
+    const { Dir, File } = withBacklog(['Jensen\u2019s Device'])
+    expect([...loadBacklog(File)]).toEqual(["jensen's device"])
+    expect(isBacklog(Dir, "Jensen's Device")).toBe(true)
+    expect(isBacklog(Dir, 'Jensen\u2019s Device')).toBe(true)
+  })
+
+  it('backlog target is classified as backlog', () => {
+    const { Dir } = withBacklog(['아직 없음'])
+    expect(findBrokenLinks(Dir).find((l) => l.target === '아직 없음' && l.file.endsWith('ACK.md'))).toMatchObject({ kind: 'backlog' })
+    expect(isBacklog(Dir, ' 아직 없음 ')).toBe(true)
+  })
+
+  it('other unresolved stays broken, and image embeds are never backlog', () => {
+    const { Dir } = withBacklog(['아직 없음'])
+    const Links = findBrokenLinks(Dir)
+    expect(Links.find((l) => l.target === '진짜 깨짐')).toMatchObject({ kind: 'broken' })
+    expect(Links.find((l) => l.target === '아직 없음.png')).toMatchObject({ kind: 'broken' })
+  })
+
+  it('resolved backlog target is not reported', () => {
+    const { Dir } = withBacklog(['stop-and-wait'])
+    expect(findBrokenLinks(Dir).some((l) => l.target === 'Stop-and-Wait')).toBe(false)
+  })
+
+  it('backlog changes the graph signature', () => {
+    const A = withBacklog(['a'])
+    const B = withBacklog(['b'])
+    const Same = withBacklog(['a'])
+    expect(getGraphSignature(A.Dir)).toBe(getGraphSignature(Same.Dir))
+    expect(getGraphSignature(A.Dir)).not.toBe(getGraphSignature(B.Dir))
+  })
+
+  it('findBrokenLinks fills sourcePath-based resolution', () => {
+    const { Dir } = withBacklog([])
+    writeFileSync(join(Dir, 'wiki/computer/새 이름.md'), '---\nsourcePath: 폴더/옛 이름.md\n---\n')
+    writeFileSync(join(Dir, 'wiki/computer/ACK.md'), '[[폴더/옛 이름]] [[없는/경로]]')
+    invalidateContentIndex(Dir)
+    expect(findBrokenLinks(Dir)).toMatchObject([{ target: '없는/경로', kind: 'broken' }])
   })
 })

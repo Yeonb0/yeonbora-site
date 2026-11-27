@@ -39,6 +39,14 @@ export const parseWikilinks = (md: string): Wikilink[] => {
   return Links
 }
 
+// 링크 비교 키 : 곡선 따옴표 (‘ ’ ʼ) 를 곧은 ' 로, 앞뒤 공백 제거, 소문자
+// smartypants 는 꺼 두었지만 원문에 곡선 따옴표가 실제로 있는 글이 있을 수 있어 정규화를 안전장치로 둔다 (빌드와 CLI 가 같은 키를 쓴다)
+export const exactKey = (s: string): string => s.replace(/[\u2018\u2019\u02BC]/g, "'").trim()
+export const linkKey = (s: string): string => exactKey(s).toLowerCase()
+
+// 콘텐츠 폴더 기준 경로 (wiki/<field>/<Main 경로>) 에서 Main 상대 경로를 꺼낸다 : 링크를 건 노트의 위치를 알 때 쓴다
+export const sourcePathFromRel = (rel: string): string | undefined => rel.match(/^wiki\/[^/]+\/(.+)$/)?.[1]
+
 // 주소용 slug : 폴더는 버리고 파일명만 쓴다 (제목 중복 금지라 겹치지 않는다)
 export const slugFromPath = (path: string): string => {
   const Name = path.split('/').pop() ?? path

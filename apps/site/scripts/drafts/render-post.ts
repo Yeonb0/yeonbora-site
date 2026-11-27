@@ -4,19 +4,26 @@ import { readFileSync } from 'node:fs'
 import { dirname, extname, basename, relative, resolve } from 'node:path'
 import type { Element, Root as HastRoot } from 'hast'
 import type { Root as MdastRoot } from 'mdast'
+import rehypeKatex from 'rehype-katex'
 import rehypeRaw from 'rehype-raw'
 import rehypeStringify from 'rehype-stringify'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import { unified } from 'unified'
 import { visit } from 'unist-util-visit'
 import { VFile } from 'vfile'
 import { parse } from 'yaml'
-import { getAssets, getGraph } from '../../src/lib/content/index-fs'
+import { fileURLToPath } from 'node:url'
+import { getAssets, getGraph, isBacklog, setBacklogPath } from '../../src/lib/content/index-fs'
 import { remarkStripComments } from '../../src/lib/remark/comments'
+import { remarkCallout } from '../../src/lib/remark/callout'
+import { remarkHighlight } from '../../src/lib/remark/highlight'
 import { remarkViz } from '../../src/lib/remark/viz'
 import { remarkWikilink } from '../../src/lib/remark/wikilink'
+
+const BacklogPath = fileURLToPath(new URL('../../../../docs/migration/wiki-backlog.json', import.meta.url))
 
 export interface Block {
   start: number
@@ -51,6 +58,7 @@ const hashName = (file: string) => {
 }
 
 export function renderPost(file: string, contentDir: string): DraftPost {
+  setBacklogPath(contentDir, BacklogPath)
   const Text = readFileSync(file, 'utf8')
   const M = Text.match(FrontRe)
   const Front = (M ? parse(M[1]) : {}) ?? {}
@@ -94,10 +102,14 @@ export function renderPost(file: string, contentDir: string): DraftPost {
       .use(remarkGfm)
       .use(remarkStripComments, { onWarn: warn })
       .use(remarkViz, { onWarn: warn })
-      .use(remarkWikilink, { contentDir, getGraph: () => getGraph(contentDir), getAssets: () => getAssets(contentDir), onBroken: warn })
+      .use(remarkCallout)
+      .use(remarkHighlight)
+      .use(remarkMath)
+      .use(remarkWikilink, { contentDir, getGraph: () => getGraph(contentDir), getAssets: () => getAssets(contentDir), isBacklog: (t: string) => isBacklog(contentDir, t), onBroken: warn })
       .use(remarkRehype, { allowDangerousHtml: true })
       .use(tagBlocks)
       .use(rehypeRaw)
+      .use(rehypeKatex)
       .use(rehypeStringify)
       .processSync(new VFile({ path: file, value: markdown })),
   )

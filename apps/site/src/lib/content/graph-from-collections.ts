@@ -3,11 +3,11 @@ import type { Node } from './graph'
 
 interface EntryLike {
   id: string
-  data: { title: string; aliases?: string[] }
+  data: { title: string; aliases?: string[]; sourcePath?: string }
   body?: string
 }
 
 export const toNodes = (Wiki: EntryLike[], Posts: EntryLike[]): Node[] => [
-  ...Wiki.map((e) => ({ collection: 'wiki' as const, slug: e.id, title: e.data.title, aliases: e.data.aliases ?? [], body: e.body ?? '' })),
+  ...Wiki.map((e) => ({ collection: 'wiki' as const, slug: e.id, title: e.data.title, aliases: e.data.aliases ?? [], body: e.body ?? '', sourcePath: e.data.sourcePath })),
   ...Posts.map((e) => ({ collection: 'posts' as const, slug: e.id, title: e.data.title, aliases: [], body: e.body ?? '' })),
 ]

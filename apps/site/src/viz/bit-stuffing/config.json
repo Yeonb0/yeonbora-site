@@ -1,0 +1,42 @@
+{
+  "input": {
+    "type": "text",
+    "value": "1111110",
+    "label": "입력 비트"
+  },
+  "speed": {
+    "type": "range",
+    "min": 0.2,
+    "max": 3,
+    "step": 0.1,
+    "value": 1.5,
+    "label": "속도"
+  },
+  "accent": {
+    "type": "color",
+    "value": "#796586",
+    "label": "끼운 비트 색"
+  },
+  "size": {
+    "type": "range",
+    "min": 280,
+    "max": 640,
+    "step": 10,
+    "value": 450,
+    "label": "크기 (px)"
+  },
+  "loop": {
+    "type": "toggle",
+    "value": false,
+    "label": "반복"
+  },
+  "labels": {
+    "type": "text",
+    "value": {
+      "input": "보낼 데이터",
+      "output": "stuffing 후",
+      "count": "연속된 1 횟수"
+    },
+    "label": "라벨 문구"
+  }
+}

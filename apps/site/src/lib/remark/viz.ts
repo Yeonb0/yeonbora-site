@@ -1,4 +1,4 @@
-// ```viz <id>``` 코드 블록을 시각화 자리표시 <figure> 로 바꾼다 (컴포넌트를 띄우는 런타임은 M2)
+// ```viz <id>``` 코드 블록을 시각화 자리 <figure> 로 바꾼다 (컴포넌트는 src/viz/mount.ts 가 붙인다)
 import type { Code, Root } from 'mdast'
 import { visit } from 'unist-util-visit'
 import type { VFile } from 'vfile'

@@ -55,6 +55,10 @@ toc: true
   - 원래 data 에서 `7D` → `7D 5D`
 → 수신 측에서 원래대로 복원
 
+```viz bit-stuffing
+caption: Bit Stuffing
+```
+
 ### ◆ Ethernet Framing
 
 

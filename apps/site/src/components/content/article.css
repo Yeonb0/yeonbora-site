@@ -92,14 +92,17 @@
   text-decoration: underline dotted var(--a-dim);
   text-underline-offset: 3px;
 }
-/* 시각화 자리 : 컴포넌트는 M2 런타임이 채운다 */
+/* 시각화 자리 : 컴포넌트는 src/viz/mount.ts 가 보일 때 채운다 */
 .article-body figure.viz {
   margin: 20px 0;
 }
 .article-body .viz-mount {
-  height: var(--viz-height, 240px);
-  border: 1px dashed var(--a-line);
   border-radius: 8px;
+}
+/* 아직 불러오기 전 : 자리만 잡아 둔다 */
+.article-body .viz-mount:empty {
+  min-height: var(--viz-height, 240px);
+  border: 1px dashed var(--a-line);
 }
 .article-body figcaption {
   margin-top: 6px;

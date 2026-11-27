@@ -3,7 +3,7 @@ project: yeonbora-site
 publish_target: jekyll
 current_phase: 1
 # 글 옮기기 프로젝트 (docs/migration/project-instructions.md) 의 현재 Phase
-current_migration_phase: M1
+current_migration_phase: M2
 phases:
   - id: 1
     title: 허브 화면

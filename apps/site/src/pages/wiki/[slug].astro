@@ -3,6 +3,7 @@ import { getCollection, render } from 'astro:content'
 import Layout from '@/sections/wiki/Layout.astro'
 import Article from '@/components/content/Article.astro'
 import LinkList from '@/components/content/LinkList.astro'
+import VizMount from '@/components/content/VizMount.astro'
 import { formatDate, getSiteGraph } from '@/lib/content/site-graph'
 
 export async function getStaticPaths() {
@@ -21,4 +22,5 @@ const Meta = entry.data.created ? [{ text: formatDate(entry.data.created) }] : [
     <Content />
     <LinkList slot="after" heading="이 개념을 다룬 글" items={Backlinks} />
   </Article>
+  <VizMount />
 </Layout>

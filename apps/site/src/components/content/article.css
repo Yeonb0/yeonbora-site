@@ -97,11 +97,11 @@
   margin: 20px 0;
 }
 .article-body .viz-mount {
-  min-height: var(--viz-height, 240px);
   border-radius: 8px;
 }
-/* 아직 불러오기 전 */
+/* 아직 불러오기 전 : 자리만 잡아 둔다 */
 .article-body .viz-mount:empty {
+  min-height: var(--viz-height, 240px);
   border: 1px dashed var(--a-line);
 }
 .article-body figcaption {

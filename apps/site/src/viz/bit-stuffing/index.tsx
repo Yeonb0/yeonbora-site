@@ -1,0 +1,131 @@
+// bit stuffing : 입력 비트가 한 칸씩 나가며 1 이 5개 이어지면 0 이 끼워진다
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { VizProps } from '../types'
+import { useReducedMotion } from '../useReducedMotion'
+import { frames, type Frame } from './stuff'
+
+const Cell = 30
+const Gap = 4
+const Pad = 16
+const LabelW = 96
+// 한 칸이 넘어가는 기본 시간 (ms)
+const StepMs = 650
+// 끝 화면을 보여 주는 시간 (ms)
+const HoldMs = 1800
+
+const Bg = '#1a1a1a'
+const Fg = '#e0e0e0'
+const Dim = '#8a8a8a'
+const Line = '#3a3a3a'
+
+type Labels = { input: string; output: string; count: string }
+
+const readLabels = (v: unknown): Labels => {
+  const L = (typeof v === 'object' && v ? v : {}) as Partial<Labels>
+  return { input: L.input ?? '', output: L.output ?? '', count: L.count ?? '' }
+}
+
+export default function BitStuffing({ values }: VizProps) {
+  const Input = String(values.input ?? '')
+  const Speed = Number(values.speed) || 1
+  const Accent = String(values.accent ?? '#7209B7')
+  const Size = Number(values.size) || 420
+  const Loop = values.loop !== false
+  const Lab = readLabels(values.labels)
+  const Reduced = useReducedMotion()
+
+  const Frames = useMemo<Frame[]>(() => {
+    try {
+      return frames(Input)
+    } catch {
+      return []
+    }
+  }, [Input])
+
+  const [k, setK] = useState(0)
+  const [playing, setPlaying] = useState(true)
+  const Timer = useRef<number>(0)
+  const LastIdx = Math.max(Frames.length - 1, 0)
+
+  useEffect(() => setK(Reduced ? LastIdx : 0), [Frames, Reduced, LastIdx])
+
+  useEffect(() => {
+    if (Reduced || !playing || Frames.length === 0) return
+    const atEnd = k >= LastIdx
+    if (atEnd && !Loop) return
+    const wait = atEnd ? HoldMs : StepMs / Speed
+    Timer.current = window.setTimeout(() => setK(atEnd ? 0 : k + 1), wait)
+    return () => window.clearTimeout(Timer.current)
+  }, [k, playing, Reduced, Loop, Speed, LastIdx, Frames.length])
+
+  if (Frames.length === 0) return <div style={{ background: Bg, borderRadius: 8, minHeight: 120 }} />
+
+  const F = Frames[k]
+  // 0 을 끼우는 칸에서는 다섯 칸을 모두 강조
+  const Filled = F.stuffed ? 5 : F.count
+  const Final = Frames[LastIdx]
+  const Inserted = new Set(Frames.filter((f) => f.stuffed).map((f) => f.out.length - 1))
+  const Cols = Math.max(Input.length, Final.out.length)
+  const W = Pad * 2 + LabelW + Cols * (Cell + Gap)
+  const cellX = (i: number) => Pad + LabelW + i * (Cell + Gap)
+  const RowIn = Pad
+  const RowOut = RowIn + Cell + 24
+  const RowCount = RowOut + Cell + 28
+  const H = RowCount + 10 + Pad
+
+  const toggle = () => {
+    if (Reduced) return
+    if (!playing && k >= LastIdx) setK(0)
+    setPlaying((p) => !p)
+  }
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      role="img"
+      aria-label={`${Lab.input} ${Input} → ${Lab.output} ${Final.out}`}
+      onClick={toggle}
+      style={{ display: 'block', width: `min(${Size}px, 100%)`, margin: '0 auto', background: Bg, borderRadius: 8, cursor: Reduced ? 'default' : 'pointer', touchAction: 'manipulation' }}
+    >
+      <text x={Pad} y={RowIn + Cell / 2} fill={Dim} fontSize={12} dominantBaseline="middle">
+        {Lab.input}
+      </text>
+      <text x={Pad} y={RowOut + Cell / 2} fill={Dim} fontSize={12} dominantBaseline="middle">
+        {Lab.output}
+      </text>
+
+      {Input.split('').map((b, i) => {
+        const Done = i <= F.inPos
+        const Now = i === F.inPos
+        return (
+          <g key={`in${i}`} opacity={Done ? 0.45 : 1}>
+            <rect x={cellX(i)} y={RowIn} width={Cell} height={Cell} rx={4} fill="none" stroke={Now ? Fg : Line} strokeWidth={Now ? 2 : 1} />
+            <text x={cellX(i) + Cell / 2} y={RowIn + Cell / 2 + 1} fill={Fg} fontSize={15} fontFamily="ui-monospace, monospace" textAnchor="middle" dominantBaseline="middle">
+              {b}
+            </text>
+          </g>
+        )
+      })}
+
+      {F.out.split('').map((b, i) => {
+        const Stuffed = Inserted.has(i)
+        const Newest = i === F.out.length - 1
+        return (
+          <g key={`out${i}`}>
+            <rect x={cellX(i)} y={RowOut} width={Cell} height={Cell} rx={4} fill={Stuffed ? Accent : 'none'} stroke={Stuffed ? Accent : Newest ? Fg : Line} strokeWidth={Newest ? 2 : 1} />
+            <text x={cellX(i) + Cell / 2} y={RowOut + Cell / 2 + 1} fill={Fg} fontSize={15} fontFamily="ui-monospace, monospace" textAnchor="middle" dominantBaseline="middle">
+              {b}
+            </text>
+          </g>
+        )
+      })}
+
+      <text x={Pad} y={RowCount} fill={Dim} fontSize={12} dominantBaseline="middle">
+        {Lab.count}
+      </text>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <circle key={`c${i}`} cx={Pad + LabelW + i * 18 + 6} cy={RowCount} r={6} fill={i < Filled ? (F.stuffed ? Accent : Fg) : 'none'} stroke={F.stuffed ? Accent : Line} />
+      ))}
+    </svg>
+  )
+}

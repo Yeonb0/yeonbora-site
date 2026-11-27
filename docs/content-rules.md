@@ -106,6 +106,33 @@ caption: TLB 에서 주소를 찾는 과정
 - 반려 메모 (note) 는 다음 작업에서 가장 먼저 읽고 반영한다.
 - 작업대 (아티팩트) 에서 누른 승인 / 반려는 "시안 반영" 때 이 파일로 옮겨진다. 저장소에서는 이 파일이 최종 기록이다.
 
+## 시안 작업대
+Claude 아티팩트 하나 ("시안 작업대") 를 계속 갱신해 쓴다. 주소는 `docs/migration/drafts-artifact.json`.
+
+### 묶기 · 올리기
+- `pnpm drafts:bundle` : review.json status 가 pending 인 시각화와 그 글을 저장소 루트 `.drafts-dist/` 로 묶는다 (커밋하지 않음).
+- index.html 말고는 모두 내용 해시 이름이다 (`assets/*-<hash>.js` · `data/post-<hash>.json` · `img/<이름>-<hash>.<ext>`). 글의 로컬 그림도 함께 묶는다.
+- 올리기 : `list_files` 결과와 `.drafts-dist/files.json` 을 비교해 index.html + 목록에 없는 경로만 `publish_files` (patch) 로 올리고, 아티팩트에만 있는 경로는 `remove` 로 지운다.
+- 아티팩트 db 선언 : `{ db: { rules: [{ path: "edits", read: "admin", write: "admin" }] }, user: {} }`
+
+### 기록 (db)
+컬렉션 `edits`, 수정 한 건 = 문서 하나 (id 는 시각 + 난수). 모든 기록에 `at` (ISO 시각) · `vizId` · `applied` (`false` 또는 `{ commit, at }`) 가 있다.
+```json
+{ "kind": "config", "key": "speed", "value": 1.4 }
+{ "kind": "body", "post": "posts/jekyll/2026-06-24-framing-error-control", "find": "블록 원문", "replace": "고친 원문" }
+{ "kind": "review", "status": "rejected", "note": "메모" }
+```
+- config : 슬라이더는 놓았을 때 한 건. body : 블록 (문단 · 목록 · 표 하나) 단위로 원문 전체를 find 로 둔다.
+
+### 반영 ("시안 반영해 줘")
+1. `db_query` (collection `edits`, where `applied == false`, orderBy `at`) 결과를 `{ id, ...data }` 배열로 임시 파일에 쓴다.
+2. 브랜치 `drafts/apply-<날짜>` 에서 `pnpm drafts:apply <파일>` → `pnpm test` → 커밋 (반영 · 건너뛴 건수).
+3. Applied 의 각 문서에 `db_write` update `{ applied: { commit, at } }` (ifVersion 포함).
+4. Skipped 는 이유와 함께 사용자에게 보고하고 표시하지 않는다 (작업대에 계속 남음).
+- 같은 키를 여러 번 바꿨으면 시간순으로 마지막 값이 남는다. 범위 밖 값 · 없는 키 · 없는 시각화는 건너뛴다.
+- body 는 find 가 글에 정확히 한 번 나올 때만 바꾼다. 같은 블록을 여러 번 고쳤으면 마지막 것만 적용한다.
+- 반영이 끝나면 다시 묶어 올린다 (approved · rejected 는 목록에서 빠진다).
+
 ## 주석 (원문을 고치지 않고 표시만)
 Obsidian 주석 문법을 쓴다. 사이트 빌드에서는 remark 플러그인이 지운다.
 ```md

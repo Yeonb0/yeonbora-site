@@ -17,8 +17,8 @@ apps/site/src/content/
   .obsidian/                   Obsidian 설정 (Astro glob 에서 제외)
 apps/site/src/viz/<id>/
   index.tsx                    시각화 컴포넌트
-  config.json                  조절 가능한 값 (작업대가 읽고 씀)
-  review.json                  검토 상태
+  config.json                  조절 가능한 값 (작업대가 읽고, 반영 때 Claude가 씀)
+  review.json                  검토 상태 (저장소 쪽 기록)
 ```
 - 분야 : computer · philosophy · religion · etc
 - 출처 : jekyll · velog · tistory · notion · obsidian · paper
@@ -99,6 +99,7 @@ caption: TLB 에서 주소를 찾는 과정
 ```
 - status : pending (검토 대기) · approved · rejected
 - 반려 메모 (note) 는 다음 작업에서 가장 먼저 읽고 반영한다.
+- 작업대 (아티팩트) 에서 누른 승인 / 반려는 "시안 반영" 때 이 파일로 옮겨진다. 저장소에서는 이 파일이 최종 기록이다.
 
 ## 주석 (원문을 고치지 않고 표시만)
 Obsidian 주석 문법을 쓴다. 사이트 빌드에서는 remark 플러그인이 지운다.
@@ -107,7 +108,7 @@ Obsidian 주석 문법을 쓴다. 사이트 빌드에서는 remark 플러그인�
 %% check : 원문 이미지가 깨져 있음 (tistory 원본 확인 필요) %%
 %% unclear : 스캔 글씨를 읽지 못함 — 사용자에게 확인 %%
 ```
-- 오타로 보이는 부분은 고치지 않고 `typo?` 로 표시한다. 고치는 것은 사용자가 작업대나 Obsidian에서 한다.
+- 오타로 보이는 부분은 고치지 않고 `typo?` 로 표시한다. 고치는 것은 사용자가 작업대 (아티팩트) 나 Obsidian에서 한다.
 
 ## canonical
 - 원래 플랫폼에 글을 남겨 두면, 새 사이트 글이 canonical 이 되도록 한다. 원래 플랫폼 쪽 처리 (삭제 · 비공개 · 링크 남기기) 는 사용자가 정한다.

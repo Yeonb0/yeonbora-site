@@ -102,12 +102,11 @@ migration_phases:
       - content 폴더를 Obsidian 볼트로 열어 확인
   - id: M2
     title: 시안 작업대 + 첫 시각화
-    goal: 그림을 보고 고치고 승인한다
+    goal: 별도 URL에서 그림을 보고 고치고 승인한다
     done:
-      - /_drafts 목록 (dev 전용)
-      - config.json 조절판 저장
-      - 본문 · 라벨 텍스트 저장
-      - 승인 / 반려 메모
+      - pnpm drafts:bundle
+      - 시안 작업대 아티팩트 (목록 · 조절판 · 텍스트 수정 · 승인 / 반려 메모, db 기록)
+      - 시안 반영으로 저장소 커밋
       - 샘플 글 1편에 직접 그린 SVG 또는 애니메이션
       - 휴대폰에서 확인
   - id: M3

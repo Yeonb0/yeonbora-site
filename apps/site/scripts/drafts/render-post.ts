@@ -4,9 +4,11 @@ import { readFileSync } from 'node:fs'
 import { dirname, extname, basename, relative, resolve } from 'node:path'
 import type { Element, Root as HastRoot } from 'hast'
 import type { Root as MdastRoot } from 'mdast'
+import rehypeKatex from 'rehype-katex'
 import rehypeRaw from 'rehype-raw'
 import rehypeStringify from 'rehype-stringify'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import { unified } from 'unified'
@@ -15,6 +17,7 @@ import { VFile } from 'vfile'
 import { parse } from 'yaml'
 import { getAssets, getGraph } from '../../src/lib/content/index-fs'
 import { remarkStripComments } from '../../src/lib/remark/comments'
+import { remarkCallout } from '../../src/lib/remark/callout'
 import { remarkViz } from '../../src/lib/remark/viz'
 import { remarkWikilink } from '../../src/lib/remark/wikilink'
 
@@ -94,10 +97,13 @@ export function renderPost(file: string, contentDir: string): DraftPost {
       .use(remarkGfm)
       .use(remarkStripComments, { onWarn: warn })
       .use(remarkViz, { onWarn: warn })
+      .use(remarkCallout)
+      .use(remarkMath)
       .use(remarkWikilink, { contentDir, getGraph: () => getGraph(contentDir), getAssets: () => getAssets(contentDir), onBroken: warn })
       .use(remarkRehype, { allowDangerousHtml: true })
       .use(tagBlocks)
       .use(rehypeRaw)
+      .use(rehypeKatex)
       .use(rehypeStringify)
       .processSync(new VFile({ path: file, value: markdown })),
   )

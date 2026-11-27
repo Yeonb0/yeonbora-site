@@ -274,7 +274,7 @@ Cloud Run 설정
 ### 9.7.1 빌드 · 배포를 누가 어떻게
 
 - 미리 돌린 볼트 (`~/layered-wiki-work/demo/demo900_propose_20261022_193431`) 는 저장소에 커밋하지 않는다. 배포 스크립트 (`deploy/demo-cloudrun/deploy.sh`) 가 관리자님 WSL 에서 그 폴더를 빌드 재료 폴더에 복사한 뒤 `gcloud run deploy --source` 로 Cloud Build 에 넘긴다. 로컬 Docker 가 필요 없다. *Claude 판단* : 하니스 지침 9절 "누가 실행하는가" (설치 · 인증은 사용자 터미널).
-- bge-m3 GGUF 는 이미지 빌드 때 Hugging Face 에서 받는다 (이미지에 고정 해시로).
+- bge-m3 GGUF 는 관리자님 `~/models/bge-m3-Q8_0.gguf` 를 배포 스크립트가 재료 폴더로 복사한다. *Claude 판단* : 미리 돌린 볼트를 만든 바로 그 파일이라 벡터가 같다.
 - gcloud 로그인, Secret Manager 등록, 도메인 소유 확인은 관리자님 터미널 · 화면에서. Claude 는 명령을 쓴다.
 - Cloudflare DNS 의 `demo-api` CNAME 은 프록시 끔 (DNS only). Cloud Run 도메인 매핑이 인증서를 직접 발급하려면 필요하다.
 

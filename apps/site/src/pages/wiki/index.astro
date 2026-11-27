@@ -4,9 +4,9 @@ import Layout from '@/sections/wiki/Layout.astro'
 import WikiGraph from '@/sections/wiki/WikiGraph'
 import { getWikiGraph } from '@/lib/content/site-graph'
 
-const { data, tree } = await getWikiGraph()
+const { tree } = await getWikiGraph()
 ---
 
 <Layout mode="home" topics={tree}>
-  <WikiGraph client:load data={data} current={null} transition:persist="wiki-graph" />
+  <WikiGraph client:load current={null} transition:persist="wiki-graph" />
 </Layout>

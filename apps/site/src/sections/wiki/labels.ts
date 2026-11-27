@@ -43,12 +43,29 @@ const spots = (it: LabelItem): (Spot & { box: Box })[] => {
 const overlap = (a: Box, b: Box) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
 
 // Items 는 우선순위 순서. Obstacles 는 노드 점들 (자기 점은 Items 의 id 로 빠진다)
+// 겹침은 격자 칸 (Cell px) 에 나눠 담아 근처 상자만 비교한다 : 노드가 천 개를 넘어도 빠르다
+const Cell = 48
+
 export const placeLabels = (Items: LabelItem[], Obstacles: (Box & { id?: string })[], W: number, H: number): Map<string, Spot | null> => {
-  const Taken: (Box & { id?: string })[] = [...Obstacles]
+  const Grid = new Map<number, (Box & { id?: string })[]>()
+  const keys = (b: Box) => {
+    const K: number[] = []
+    for (let gx = Math.floor(b.x / Cell); gx <= Math.floor((b.x + b.w) / Cell); gx++)
+      for (let gy = Math.floor(b.y / Cell); gy <= Math.floor((b.y + b.h) / Cell); gy++) K.push(gx * 100003 + gy)
+    return K
+  }
+  const add = (b: Box & { id?: string }) => {
+    for (const k of keys(b)) {
+      const L = Grid.get(k)
+      if (L) L.push(b)
+      else Grid.set(k, [b])
+    }
+  }
+  for (const O of Obstacles) add(O)
   const Out = new Map<string, Spot | null>()
   for (const It of Items) {
     const Cands = spots(It)
-    const free = (b: Box) => b.x >= Pad && b.y >= Pad && b.x + b.w <= W - Pad && b.y + b.h <= H - Pad && !Taken.some((t) => t.id !== It.id && overlap(b, t))
+    const free = (b: Box) => b.x >= Pad && b.y >= Pad && b.x + b.w <= W - Pad && b.y + b.h <= H - Pad && !keys(b).some((k) => Grid.get(k)?.some((t) => t.id !== It.id && overlap(b, t)))
     const Pick = Cands.find((c) => free(c.box)) ?? (It.force ? Cands[0] : undefined)
     if (!Pick) {
       Out.set(It.id, null)
@@ -56,7 +73,7 @@ export const placeLabels = (Items: LabelItem[], Obstacles: (Box & { id?: string 
     }
     const { box, ...S } = Pick
     Out.set(It.id, S)
-    Taken.push(box)
+    add(box)
   }
   return Out
 }

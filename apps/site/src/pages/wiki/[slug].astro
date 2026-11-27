@@ -15,7 +15,7 @@ export async function getStaticPaths() {
 const { entry } = Astro.props
 const { Content, headings } = await render(entry)
 const G = await getSiteGraph()
-const { data, tree } = await getWikiGraph()
+const { tree } = await getWikiGraph()
 const Here = `/wiki/${entry.id}`
 const Backlinks = G.backlinks(entry.id).map((n) => ({ href: `/${n.collection}/${n.slug}`, title: n.title, post: n.collection === 'posts' }))
 const Meta = [...(entry.data.aliases[0] ? [{ text: entry.data.aliases[0] }] : []), ...(entry.data.created ? [{ text: formatDate(entry.data.created) }] : [])]
@@ -29,7 +29,7 @@ const MinDepth = Math.min(...Heads.map((h) => h.depth))
   </Article>
   <Fragment slot="side">
     <div class="wiki-card">
-      <WikiGraph client:load data={data} current={Here} transition:persist="wiki-graph" />
+      <WikiGraph client:load current={Here} transition:persist="wiki-graph" />
     </div>
     <div class="wiki-panel">
       {

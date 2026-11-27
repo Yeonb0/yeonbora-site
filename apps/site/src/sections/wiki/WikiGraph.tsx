@@ -5,13 +5,21 @@ import { useEffect, useRef } from 'react'
 import { navigate } from 'astro:transitions/client'
 import type { GNode, WikiGraphData } from '@/lib/content/wiki-graph'
 import { placeLabels, type LabelItem } from './labels'
+import { topicCenters } from '@/lib/content/wiki-layout'
 import './graph.css'
 
 interface Props {
-  data: WikiGraphData
   // 지금 글의 노드 id (/wiki/<slug>), 첫 화면이면 null
   current: string | null
 }
+
+// 그래프 데이터는 /wiki-graph.json 하나를 한 번만 받는다 (노트가 많아 페이지마다 넣으면 빌드가 커진다)
+let DataP: Promise<WikiGraphData> | undefined
+const loadData = () =>
+  (DataP ??= fetch('/wiki-graph.json').then((r) => {
+    if (!r.ok) throw new Error(`wiki-graph.json ${r.status}`)
+    return r.json() as Promise<WikiGraphData>
+  }))
 
 type SNode = GNode & SimulationNodeDatum & { el?: SVGGElement; dot?: SVGElement; label?: SVGTextElement; deg: number; w?: number }
 type SLink = SimulationLinkDatum<SNode> & { el?: SVGLineElement; a: string; b: string }
@@ -41,32 +49,73 @@ const hash = (s: string) => {
   return ((h >>> 0) % 1000) / 1000
 }
 
-export default function WikiGraph({ data, current }: Props) {
+export default function WikiGraph({ current }: Props) {
   const HostRef = useRef<HTMLDivElement>(null)
   const ToggleRef = useRef<HTMLButtonElement>(null)
   const Api = useRef<{ setCurrent(c: string | null): void } | null>(null)
+  const CurRef = useRef(current)
+  CurRef.current = current
 
-  // 처음 한 번 : 시뮬레이션과 SVG 를 만든다. 페이지를 옮겨도 다시 만들지 않는다
+  // 처음 한 번 : 데이터를 받아 시뮬레이션과 SVG 를 만든다. 페이지를 옮겨도 다시 만들지 않는다
   useEffect(() => {
+    let Dispose: (() => void) | undefined
+    let Gone = false
+    loadData()
+      .then((data) => {
+        if (Gone) return
+        Dispose = init(data)
+        Api.current?.setCurrent(CurRef.current)
+      })
+      .catch(() => {
+        DataP = undefined
+      })
+    return () => {
+      Gone = true
+      Dispose?.()
+    }
+  }, [])
+
+  function init(data: WikiGraphData) {
     const Host = HostRef.current!
     const Toggle = ToggleRef.current!
     const Reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
     const svg = document.createElementNS(NS, 'svg')
     svg.setAttribute('class', 'wg-svg')
     Host.prepend(svg)
-    const gE = document.createElementNS(NS, 'g')
-    const gN = document.createElementNS(NS, 'g')
-    svg.append(gE, gN)
+    // 그룹 : 뒤 (전체) · 앞 (확대한 카테고리 · 로컬 그래프) · 호버 (강조한 노드와 이웃)
+    // 노드 천여 개에 하나씩 클래스를 바꾸면 스타일 계산이 느려서, 흐리기는 그룹 하나에 걸고 대상만 앞으로 옮긴다
+    const group = (cls: string) => {
+      const g = document.createElementNS(NS, 'g')
+      g.setAttribute('class', cls)
+      return g
+    }
+    const World = group('wg-world')
+    const Back = group('wg-back')
+    const Front = group('wg-front')
+    const HotG = group('wg-hot')
+    const [BackE, BackN, FrontE, FrontN, HotE, HotN] = [group(''), group(''), group(''), group(''), group(''), group('')]
+    Back.append(BackE, BackN)
+    Front.append(FrontE, FrontN)
+    HotG.append(HotE, HotN)
+    World.append(Back, Front)
+    svg.append(World, HotG)
+    // 요소가 평소 머무는 그룹 (호버가 끝나면 돌아갈 곳)
+    const Rest = new Map<Element, SVGGElement>()
+    const moveTo = (el: Element, g: SVGGElement) => {
+      Rest.set(el, g)
+      g.append(el)
+    }
 
-    const Topics = data.topics.map((t) => t.id)
-    const Ring = Topics.length > 1 ? 150 + 22 * Topics.length : 0
-    const Center = new Map(Topics.map((t, k) => {
-      const A = (k / Topics.length) * Math.PI * 2 - Math.PI / 2
-      return [t, { x: Math.cos(A) * Ring, y: Math.sin(A) * Ring }]
-    }))
+    // 카테고리 중심 · 힘 세기는 빌드 때 배치 (wiki-layout.ts) 와 같게 둔다
+    const Center = topicCenters(
+      data.topics.map((t) => t.id),
+      data.nodes.length,
+    )
     const centerOf = (n: SNode) => Center.get(n.topic) ?? { x: 0, y: 0 }
-
+    // 빌드 때 자리를 받았으면 그대로 쓰고, 없으면 카테고리 중심 근처에서 출발한다
+    const Placed = data.nodes.every((n) => n.x !== undefined)
     const Nodes: SNode[] = data.nodes.map((n) => {
+      if (Placed) return { ...n, deg: 0 }
       const C = Center.get(n.topic) ?? { x: 0, y: 0 }
       const A = hash(n.id) * Math.PI * 2
       return { ...n, deg: 0, x: C.x + Math.cos(A) * 60 * hash(n.id + '.'), y: C.y + Math.sin(A) * 60 * hash(n.id + '.') }
@@ -79,6 +128,13 @@ export default function WikiGraph({ data, current }: Props) {
       Adj.get(L.b)!.add(L.a)
     }
     for (const N of Nodes) N.deg = Adj.get(N.id)!.size
+    const LinksOf = new Map(Nodes.map((n) => [n.id, [] as SLink[]]))
+    for (const L of Links) {
+      LinksOf.get(L.a)!.push(L)
+      LinksOf.get(L.b)!.push(L)
+    }
+    const PostNodes = Nodes.filter((n) => n.kind === 'post')
+    const PostLinks = Links.filter((l) => ById.get(l.a)!.kind === 'post' || ById.get(l.b)!.kind === 'post')
     const radius = (n: SNode) => (n.id === Cur ? 9 : n.kind === 'ghost' ? 3.5 : 4.5 + Math.min(n.deg, 6) * 0.7)
 
     // 상태
@@ -98,7 +154,7 @@ export default function WikiGraph({ data, current }: Props) {
     for (const L of Links) {
       L.el = document.createElementNS(NS, 'line')
       L.el.setAttribute('class', 'wg-edge')
-      gE.append(L.el)
+      moveTo(L.el, BackE)
     }
     for (const N of Nodes) {
       const g = document.createElementNS(NS, 'g')
@@ -107,7 +163,7 @@ export default function WikiGraph({ data, current }: Props) {
       const T = document.createElementNS(NS, 'text')
       T.textContent = N.title
       g.append(Dot, T)
-      gN.append(g)
+      moveTo(g, BackN)
       Object.assign(N, { el: g, dot: Dot, label: T })
       g.addEventListener('pointerenter', () => focus(N.id))
       g.addEventListener('pointerleave', () => focus(null))
@@ -123,15 +179,24 @@ export default function WikiGraph({ data, current }: Props) {
       n.dot!.setAttribute('rx', '1.5')
     }
 
+    for (const N of Nodes) setR(N, radius(N))
+
     // 힘 배치 : 링크 + 밀어내기 + 카테고리 중심으로 살짝
     const Sim: Simulation<SNode, SLink> = forceSimulation<SNode>([])
-      .force('link', forceLink<SNode, SLink>([]).id((d) => d.id).distance((l) => ((l.source as SNode).kind === 'ghost' || (l.target as SNode).kind === 'ghost' ? 40 : 66)).strength(0.6))
-      .force('charge', forceManyBody<SNode>().strength(-140).distanceMax(400))
-      .force('x', forceX<SNode>((d) => centerOf(d).x).strength(0.07))
-      .force('y', forceY<SNode>((d) => centerOf(d).y).strength(0.07))
-      .force('collide', forceCollide<SNode>(14))
+      .force('link', forceLink<SNode, SLink>([]).id((d) => d.id).distance((l) => ((l.source as SNode).kind === 'ghost' || (l.target as SNode).kind === 'ghost' ? 34 : 58)).strength(0.4))
+      .force('charge', forceManyBody<SNode>().strength(-60).distanceMax(260))
+      .force('x', forceX<SNode>((d) => centerOf(d).x).strength(0.12))
+      .force('y', forceY<SNode>((d) => centerOf(d).y).strength(0.12))
+      .force('collide', forceCollide<SNode>(9))
       .stop()
-    Sim.on('tick', draw)
+    // 노드가 움직일 때만 선을 다시 그린다. 이름표는 몇 번에 한 번, 멈추면 마지막으로
+    let TickN = 0
+    Sim.on('tick', () => {
+      drawLinks()
+      drawNodes()
+      if (++TickN % 6 === 0) layoutLabels()
+    })
+    Sim.on('end', layoutLabels)
     const feed = () => {
       Sim.nodes(Nodes.filter(live))
       ;(Sim.force('link') as ReturnType<typeof forceLink<SNode, SLink>>).links(Links.filter((l) => live(ById.get(l.a)!) && live(ById.get(l.b)!)).map((l) => ({ ...l, source: l.a, target: l.b })))
@@ -140,6 +205,11 @@ export default function WikiGraph({ data, current }: Props) {
     // 그리기
     const k = () => V.w / Math.max(1, HW)
     function draw() {
+      drawLinks()
+      drawNodes()
+      layoutLabels()
+    }
+    function drawLinks() {
       for (const L of Links) {
         const A = ById.get(L.a)!
         const B = ById.get(L.b)!
@@ -148,9 +218,11 @@ export default function WikiGraph({ data, current }: Props) {
         L.el!.setAttribute('x2', String(B.x))
         L.el!.setAttribute('y2', String(B.y))
       }
+    }
+    // 확대해도 점 · 글씨 크기가 그대로이도록 노드마다 거꾸로 축소한다
+    function drawNodes() {
       const S = k()
-      for (const N of Nodes) N.el!.setAttribute('transform', `translate(${N.x},${N.y}) scale(${S})`)
-      layoutLabels()
+      for (const N of Nodes) if (shown(N)) N.el!.setAttribute('transform', `translate(${N.x},${N.y}) scale(${S})`)
     }
     const shown = (n: SNode) => live(n) && (!Local || Local.has(n.id))
     const inFocus = (n: SNode) => shown(n) && (Local ? true : !Topic || n.topic === Topic)
@@ -163,18 +235,24 @@ export default function WikiGraph({ data, current }: Props) {
       const S = k()
       const sx = (n: SNode) => (n.x! - V.x) / S
       const sy = (n: SNode) => (n.y! - V.y) / S
-      const Dots = Nodes.filter(shown).map((n) => {
+      const Dots = Nodes.filter((n) => shown(n) && sx(n) > -20 && sx(n) < HW + 20 && sy(n) > -20 && sy(n) < HH + 20).map((n) => {
         const r = radius(n) + 1
         return { id: n.id, x: sx(n) - r, y: sy(n) - r, w: r * 2, h: r * 2 }
       })
       const score = (n: SNode) => (n.id === Cur ? 1e6 : 0) + (Hot.has(n.id) ? 1e5 : 0) + (inFocus(n) ? 0 : -1e4) + (n.kind === 'ghost' ? -1e3 : 0) + n.deg
-      const Order = Nodes.filter(labelVisible).sort((a, b) => score(b) - score(a))
+      const inView = (n: SNode) => {
+        const x = sx(n)
+        const y = sy(n)
+        return x > -40 && x < HW + 40 && y > -20 && y < HH + 20
+      }
+      const Order = Nodes.filter((n) => labelVisible(n) && inView(n)).sort((a, b) => score(b) - score(a))
+      for (const N of Nodes) if (!Order.includes(N)) N.el!.classList.add('nolabel')
       const Items: LabelItem[] = Order.map((n) => {
         n.w ??= n.label!.getComputedTextLength() || n.title.length * 6
         return { id: n.id, x: sx(n), y: sy(n), r: radius(n), w: n.w + 4, force: n.id === Cur || Hot.has(n.id) }
       })
       const Spots = placeLabels(Items, Dots, HW, HH)
-      for (const N of Nodes) {
+      for (const N of Order) {
         const Sp = Spots.get(N.id)
         N.el!.classList.toggle('nolabel', !Sp)
         if (!Sp) continue
@@ -187,6 +265,13 @@ export default function WikiGraph({ data, current }: Props) {
     // 보이는 범위 (viewBox) 를 부드럽게 옮긴다
     function setView(T: View, ms: number) {
       cancelAnimationFrame(VRaf)
+      if (Reduced || ms <= 0) {
+        V = { ...T }
+        svg.setAttribute('viewBox', `${V.x} ${V.y} ${V.w} ${V.h}`)
+        drawNodes()
+        layoutLabels()
+        return
+      }
       const F = { ...V }
       const T0 = performance.now()
       const step = (now: number) => {
@@ -194,8 +279,9 @@ export default function WikiGraph({ data, current }: Props) {
         const e = Ease(t)
         V = { x: F.x + (T.x - F.x) * e, y: F.y + (T.y - F.y) * e, w: F.w + (T.w - F.w) * e, h: F.h + (T.h - F.h) * e }
         svg.setAttribute('viewBox', `${V.x} ${V.y} ${V.w} ${V.h}`)
-        draw()
+        drawNodes()
         if (t < 1) VRaf = requestAnimationFrame(step)
+        else layoutLabels()
       }
       VRaf = requestAnimationFrame(step)
     }
@@ -241,34 +327,57 @@ export default function WikiGraph({ data, current }: Props) {
       return Seen
     }
 
+    let FrontEls: Element[] = []
+    let MeNode: SNode | undefined
     function apply(ms: number) {
+      focus(null)
       Local = Cur && ById.has(Cur) ? localSet(Cur) : null
-      svg.classList.toggle('zoomed', !!(Topic || Local))
       svg.classList.toggle('card', !!Cur)
-      for (const N of Nodes) {
-        N.el!.classList.toggle('me', N.id === Cur)
-        N.el!.classList.toggle('off', !live(N))
-        N.el!.classList.toggle('hidden', live(N) && !!Local && !Local.has(N.id))
-        N.el!.classList.toggle('out', !inFocus(N))
-        setR(N, radius(N))
+      // 지금 글 표시는 바뀐 두 노드만
+      if (MeNode?.id !== Cur) {
+        const Prev = MeNode
+        MeNode = Cur ? ById.get(Cur) : undefined
+        for (const N of [Prev, MeNode]) {
+          if (!N) continue
+          N.el!.classList.toggle('me', N === MeNode)
+          setR(N, radius(N))
+        }
       }
-      for (const L of Links) {
-        const A = ById.get(L.a)!
-        const B = ById.get(L.b)!
-        L.el!.classList.toggle('off', !live(A) || !live(B))
-        L.el!.classList.toggle('hidden', live(A) && live(B) && !!Local && !(Local.has(L.a) && Local.has(L.b)))
-        L.el!.classList.toggle('out', !(inFocus(A) && inFocus(B)))
+      for (const N of PostNodes) N.el!.classList.toggle('off', !live(N))
+      for (const L of PostLinks) L.el!.classList.toggle('off', !live(ById.get(L.a)!) || !live(ById.get(L.b)!))
+      // 앞 그룹 : 확대한 카테고리 또는 로컬 그래프
+      for (const El of FrontEls) moveTo(El, El.tagName === 'line' ? BackE : BackN)
+      FrontEls = []
+      if (Topic || Local) {
+        for (const N of Nodes) if (inFocus(N)) FrontEls.push(N.el!)
+        for (const L of Links) if (inFocus(ById.get(L.a)!) && inFocus(ById.get(L.b)!)) FrontEls.push(L.el!)
+        for (const El of FrontEls) moveTo(El, El.tagName === 'line' ? FrontE : FrontN)
       }
+      Back.classList.toggle('dim', !!Topic && !Local)
+      Back.classList.toggle('gone', !!Local)
       Toggle.setAttribute('aria-pressed', String(postsOn()))
       Toggle.setAttribute('aria-label', postsOn() ? '글 노드 숨기기' : '글 노드 보이기')
       setView(target(), ms)
     }
 
+    let HotEls: Element[] = []
     function focus(id: string | null) {
+      for (const El of HotEls) {
+        El.classList.remove('hot')
+        Rest.get(El)!.append(El)
+      }
+      HotEls = []
       Hot = new Set(id && ById.has(id) ? [id, ...Adj.get(id)!] : [])
-      svg.classList.toggle('focus', Hot.size > 0)
-      for (const N of Nodes) N.el!.classList.toggle('hot', Hot.has(N.id))
-      for (const L of Links) L.el!.classList.toggle('hot', !!id && (L.a === id || L.b === id))
+      for (const h of Hot) {
+        const N = ById.get(h)!
+        if (shown(N)) HotEls.push(N.el!)
+      }
+      if (id && ById.has(id)) for (const L of LinksOf.get(id)!) if (shown(ById.get(L.a)!) && shown(ById.get(L.b)!)) HotEls.push(L.el!)
+      for (const El of HotEls) {
+        El.classList.add('hot')
+        ;(El.tagName === 'line' ? HotE : HotN).append(El)
+      }
+      svg.classList.toggle('focus', HotEls.length > 0)
       layoutLabels()
     }
 
@@ -354,16 +463,16 @@ export default function WikiGraph({ data, current }: Props) {
         if (First) {
           First = false
           // 첫 화면 처음 : 한 번 퍼지며 자리를 잡는다. 글 화면으로 바로 들어오면 미리 자리를 잡아 둔다
-          Sim.alpha(1)
-          if (Cur || Reduced) {
-            Sim.tick(300)
-            apply(0)
-          } else {
-            Sim.tick(40)
-            apply(0)
-            Sim.restart()
-            setTimeout(() => apply(900), 1200)
+          drawLinks()
+          if (!Placed) {
+            Sim.alpha(1).tick(300)
+            drawLinks()
           }
+          if (Cur || Reduced) return apply(0)
+          apply(0)
+          const T = { ...V }
+          V = { x: T.x + T.w * 0.08, y: T.y + T.h * 0.08, w: T.w * 0.84, h: T.h * 0.84 }
+          setView(T, 900)
           return
         }
         apply(650)
@@ -381,7 +490,7 @@ export default function WikiGraph({ data, current }: Props) {
       svg.remove()
       Api.current = null
     }
-  }, [])
+  }
 
   useEffect(() => {
     Api.current?.setCurrent(current)

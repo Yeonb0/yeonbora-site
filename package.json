@@ -11,6 +11,7 @@
     "preview": "pnpm --filter site preview",
     "check": "pnpm --filter site check",
     "test": "pnpm --filter site test",
-    "drafts:bundle": "pnpm --filter site drafts:bundle"
+    "drafts:bundle": "pnpm --filter site drafts:bundle",
+    "drafts:apply": "pnpm --filter site drafts:apply"
   }
 }

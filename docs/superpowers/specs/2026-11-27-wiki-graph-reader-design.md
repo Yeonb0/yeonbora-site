@@ -53,7 +53,7 @@
 ## 5. 정한 것
 
 - 데이터 : `lib/content/wiki-graph.ts` 의 순수 함수가 노드 (`id` = 주소, 아직 없는 노트는 `?` + 소문자 이름) · 선 · 카테고리를 만든다. 위키 노트와, 위키를 링크한 글만 넣는다. 아직 없는 노트는 위키 노트 본문에서만 나온다
-- 카테고리 이름 : `lib/content/wiki-topics.ts` (예 : `network` → 네트워크). 목록에 없는 topic 은 원래 값, topic 이 없으면 "기타"
+- 카테고리 이름 : `lib/content/wiki-topics.ts` (예 : `network` → 네트워크). 기술 블로그 폴더와 같은 갈래 · 별칭 (`operating-system` → 운영체제). 목록에 없는 topic 은 원래 값, topic 이 없으면 "기타"
 - 역링크 : 위키 노트와 글 모두 (`graph.backlinks` 확장)
 - 본문의 깨진 위키 링크 (`span.wikilink-broken`) 에 `data-target` 을 붙여 그래프의 빈 점과 잇는다
 - 목차 : `render()` 의 headings (h2 ~ h4), 스크롤 위치에 따라 지금 읽는 제목 강조

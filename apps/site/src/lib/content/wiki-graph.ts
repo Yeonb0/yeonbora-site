@@ -1,7 +1,7 @@
 // 위키 그래프 화면용 데이터 : 위키 노트 + 위키를 링크한 글 + 아직 없는 노트 (빈 점)
 import type { Graph, Node } from './graph'
 import { parseWikilinks } from './wikilink'
-import { EtcTopic, sortTopics, topicName } from './wiki-topics'
+import { EtcTopic, normalizeTopic, sortTopics, topicName } from './wiki-topics'
 
 export type GKind = 'wiki' | 'post' | 'ghost'
 
@@ -29,7 +29,7 @@ export const buildWikiGraphData = (Nodes: WikiNode[], G: Graph): WikiGraphData =
   const Links = new Map<string, [string, string]>()
   const Topic = new Map<string, string>()
 
-  for (const N of Nodes) if (N.collection === 'wiki') Topic.set(idOf(N), N.topic || EtcTopic.id)
+  for (const N of Nodes) if (N.collection === 'wiki') Topic.set(idOf(N), normalizeTopic(N.topic))
 
   const link = (a: string, b: string) => {
     if (a === b) return

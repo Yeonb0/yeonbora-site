@@ -6,7 +6,7 @@ import WikiGraph from '@/sections/wiki/WikiGraph'
 import Article from '@/components/content/Article.astro'
 import VizMount from '@/components/content/VizMount.astro'
 import { formatDate, getSiteGraph, getWikiGraph } from '@/lib/content/site-graph'
-import { EtcTopic } from '@/lib/content/wiki-topics'
+import { normalizeTopic } from '@/lib/content/wiki-topics'
 
 export async function getStaticPaths() {
   return (await getCollection('wiki')).map((entry) => ({ params: { slug: entry.id }, props: { entry } }))
@@ -23,7 +23,7 @@ const Heads = headings.filter((h) => h.depth >= 2 && h.depth <= 4)
 const MinDepth = Math.min(...Heads.map((h) => h.depth))
 ---
 
-<Layout title={entry.data.title} mode="note" topics={tree} open={entry.data.topic || EtcTopic.id} current={Here}>
+<Layout title={entry.data.title} mode="note" topics={tree} open={normalizeTopic(entry.data.topic)} current={Here}>
   <Article title={entry.data.title} meta={Meta}>
     <Content />
   </Article>

@@ -15,11 +15,13 @@ const Fg = '#e0e0e0'
 const Dim = '#8a8a8a'
 const Line = '#3a3a3a'
 
-const Icon = {
-  replay: 'M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z',
+// 모든 아이콘은 24 x 24 칸의 가운데 (12, 12) 에 맞춘다
+// 재생 삼각형만 무게중심이 왼쪽이라 0.5 오른쪽에 둔다
+export const Icon = {
+  replay: 'M12 6.5V3.5L7 7.5l5 4V8.5a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z',
   prev: 'M6 6h2v12H6zM9.5 12 18 6v12z',
   next: 'M16 6h2v12h-2zM6 6l8.5 6L6 18z',
-  play: 'M8 5v14l11-7z',
+  play: 'M7 5v14l11-7z',
   pause: 'M7 5h4v14H7zM13 5h4v14h-4z',
 }
 

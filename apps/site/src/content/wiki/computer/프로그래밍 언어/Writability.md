@@ -1,0 +1,26 @@
+---
+title: Writability
+aliases:
+  - 작성 용이성
+  - Writability(작성 용이성)
+tags: []
+field: computer
+topic: programming-language
+source: obsidian
+sourcePath: 프로그래밍 언어/Writability.md
+created: 2026-07-30
+---
+
+- Simplicity & Orthogonality
+
+- [[추상화|Abstraction(추상화)]] : 속내용 감추기
+	- 사용하는 사람들이 내부 내용 모르고도 사용할 수 있도록
+	- 함수 추상화 : [[함수]] 내부 구현 모르고 사용
+	- 데이터 추상화 : [[데이터]]가 어떻게 저장되어 있는지 모름
+
+- Expressivity : 계산을 간단하게 표현
+	- 기능 多 -> [[Writability 1|작성 용이성]]↑
+	``` c
+	count++
+	count = count + 1
+	```

@@ -1,0 +1,25 @@
+---
+title: AlexNet
+aliases:
+  - 알렉스넷
+  - AlexNet(알렉스넷)
+tags: []
+field: computer
+topic: ml
+source: obsidian
+sourcePath: 머신러닝/AlexNet.md
+created: 2026-08-01
+---
+
+- ==2012년== 발표된 [[합성곱 신경망]]
+![[합성곱-신경망-(CNN)-35.png]]
+- [[합성곱 계층]] + [[풀링 계층]] -> 마지막 완전연결 계층 거쳐 결과 출력
+
+### [[LeNet]] 과의 차이
+- [[활성화 함수]] -> [[ReLU 함수]] 이용
+- LRN (Local Response Normalization) 국소적 [[정규화]] 계층 이용
+- [[드롭아웃]] 사용
+
+### [[ILSVRC]]
+- ==2012년== 대회 압도적 우승
+- [[딥러닝]] 기초 기법 부상 계기

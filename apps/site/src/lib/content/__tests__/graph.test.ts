@@ -38,3 +38,36 @@ describe('buildGraph', () => {
     expect(Dup.duplicates).toEqual(expect.arrayContaining(['가비지 컬렉션', 'other']))
   })
 })
+
+describe('path-style targets', () => {
+  const W = (slug: string, title: string, sourcePath: string): Node => ({ collection: 'wiki', slug, title, aliases: [], body: '', sourcePath })
+  const Css = W('important-css', '!important (CSS)', '멋쟁이사자처럼/프론트엔드/css/!important.md')
+  const Js = W('important-js', '!important (JS)', '멋쟁이사자처럼/프론트엔드/js/!important.md')
+  const Nn = W('신경망', '신경망', '머신러닝/신경망.md')
+  const Other = W('신경망-2', '신경망 (기초)', '기초/머신러닝/신경망.md')
+  const G = buildGraph([Css, Js, Nn, Other])
+
+  it('resolves full path to a renamed note, with or without .md', () => {
+    expect(G.resolve('멋쟁이사자처럼/프론트엔드/css/!important')).toBe(Css)
+    expect(G.resolve('멋쟁이사자처럼/프론트엔드/js/!important.md')).toBe(Js)
+  })
+
+  it('resolves a suffix on a slash boundary, case-insensitively', () => {
+    expect(G.resolve('Css/!Important')).toBe(Css)
+    expect(G.resolve('프론트엔드/js/!important')).toBe(Js)
+  })
+
+  it('prefers exact full path over suffix matches', () => {
+    expect(G.resolve('머신러닝/신경망')).toBe(Nn)
+  })
+
+  it('returns undefined when ambiguous or when only a partial segment matches', () => {
+    expect(buildGraph([Css, W('x', 'x', '다른/css/!important.md')]).resolve('css/!important')).toBeUndefined()
+    expect(G.resolve('레닝/신경망')).toBeUndefined()
+    expect(G.resolve('없는/경로')).toBeUndefined()
+  })
+
+  it('does not apply to targets without a slash', () => {
+    expect(G.resolve('!important')).toBeUndefined()
+  })
+})

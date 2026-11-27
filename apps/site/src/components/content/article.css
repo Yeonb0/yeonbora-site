@@ -86,6 +86,11 @@
   text-decoration: underline dotted var(--a-dim);
   text-underline-offset: 3px;
 }
+/* 아직 쓰지 않은 노트 (backlog) : 흐린 글자, 밑줄 없음 */
+.article-body .wikilink-pending {
+  font-style: normal;
+  color: var(--a-dim);
+}
 /* 시각화 자리 : 컴포넌트는 src/viz/mount.ts 가 보일 때 채운다 */
 .article-body figure.viz {
   margin: 20px 0;

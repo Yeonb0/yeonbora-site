@@ -10,6 +10,8 @@ export interface Node {
   title: string
   aliases: string[]
   body: string
+  // wiki 의 Main 상대 경로 : [[폴더/노트]] 형태 링크를 찾는 데 쓴다
+  sourcePath?: string
 }
 
 export interface Graph {
@@ -52,8 +54,19 @@ export const buildGraph = (Nodes: Node[]): Graph => {
   // Obsidian 은 파일명으로 링크한다 : posts 는 제목 다음에 파일명 (slug) 으로도 찾는다
   const PostSlug = new Map(Nodes.filter((n) => n.collection === 'posts').map((n) => [n.slug, n]))
 
+  // [[폴더/노트]] : 경로 전체 또는 `/` 경계의 뒷부분이 sourcePath 와 맞는 wiki 노트 (이름이 바뀐 노트도 원래 경로로 찾는다)
+  const PathKeys = Nodes.filter((n) => n.collection === 'wiki' && n.sourcePath).map((n) => ({ node: n, path: key(n.sourcePath!).replace(/\.md$/, '') }))
+  const byPath = (target: string): Node | undefined => {
+    const T = key(target).replace(/\.md$/, '').replace(/^\/+/, '')
+    if (!T.includes('/')) return undefined
+    const Exact = PathKeys.filter((p) => p.path === T)
+    if (Exact.length > 0) return Exact.length === 1 ? Exact[0].node : undefined
+    const Tail = PathKeys.filter((p) => p.path.endsWith(`/${T}`))
+    return Tail.length === 1 ? Tail[0].node : undefined
+  }
+
   const resolve = (target: string) =>
-    WikiTitle.get(key(target)) ?? WikiAlias.get(key(target)) ?? PostTitle.get(key(target)) ?? PostSlug.get(slug(target))
+    WikiTitle.get(key(target)) ?? WikiAlias.get(key(target)) ?? PostTitle.get(key(target)) ?? PostSlug.get(slug(target)) ?? byPath(target)
 
   // 본문에서 링크한 노드 : 중복 없이 본문 순서
   const Outgoing = new Map<Node, Node[]>()

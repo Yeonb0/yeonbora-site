@@ -14,11 +14,11 @@ const G = buildGraph([Gc, Proxy])
 const ContentDir = '/vault'
 const Assets = new Map([['그림 1.png', '_assets/obsidian/그림 1.png']])
 
-const render = async (md: string) => {
+const render = async (md: string, Backlog: string[] = []) => {
   const Broken: BrokenLink[] = []
   const R = await createMarkdownProcessor({
     syntaxHighlight: false,
-    remarkPlugins: [[remarkWikilink, { contentDir: ContentDir, getGraph: () => G, getAssets: () => Assets, onBroken: (b: BrokenLink) => Broken.push(b) }]],
+    remarkPlugins: [[remarkWikilink, { contentDir: ContentDir, getGraph: () => G, getAssets: () => Assets, isBacklog: (t: string) => Backlog.includes(t.trim().toLowerCase()), onBroken: (b: BrokenLink) => Broken.push(b) }]],
   })
   const { code } = await R.render(md, { fileURL: pathToFileURL('/vault/wiki/computer/노트.md') })
   return { html: decodeURI(code), Broken }
@@ -86,5 +86,40 @@ describe('writeBrokenReport', () => {
     expect(readFileSync(Path, 'utf8')).toContain('| a.md | x |')
     writeBrokenReport(Path, [])
     expect(existsSync(Path)).toBe(false)
+  })
+})
+
+describe('backlog rendering', () => {
+  it('renders pending span without warning', async () => {
+    const R = await render('[[아직 없음|표시]] 와 [[진짜 없음]]', ['아직 없음'])
+    expect(R.html).toContain('<span class="wikilink-pending">표시</span>')
+    expect(R.html).not.toContain('<em')
+    expect(R.Broken).toEqual([{ file: 'wiki/computer/노트.md', target: '진짜 없음' }])
+  })
+
+  it('resolved backlog target is a normal link', async () => {
+    const R = await render('[[GC]]', ['gc'])
+    expect(R.html).toContain('class="wikilink"')
+    expect(R.html).not.toContain('wikilink-pending')
+  })
+})
+
+describe('writeBrokenReport split', () => {
+  it('writes broken and backlog to separate files and removes each when empty', () => {
+    const Dir = mkdtempSync(join(tmpdir(), 'rep-'))
+    const Path = join(Dir, 'reports/broken-links.md')
+    const Back = join(Dir, 'reports/wiki-backlog.md')
+    writeBrokenReport(Path, [
+      { file: 'a.md', target: 'x', kind: 'broken' },
+      { file: 'b.md', target: 'y', kind: 'backlog' },
+    ])
+    expect(readFileSync(Path, 'utf8')).toContain('| a.md | x |')
+    expect(readFileSync(Path, 'utf8')).not.toContain('| b.md | y |')
+    expect(readFileSync(Back, 'utf8')).toContain('| b.md | y |')
+    writeBrokenReport(Path, [{ file: 'b.md', target: 'y', kind: 'backlog' }])
+    expect(existsSync(Path)).toBe(false)
+    expect(existsSync(Back)).toBe(true)
+    writeBrokenReport(Path, [])
+    expect(existsSync(Back)).toBe(false)
   })
 })

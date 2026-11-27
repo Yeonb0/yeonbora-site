@@ -11,12 +11,14 @@ import { remarkViz } from './src/lib/remark/viz'
 import { remarkCallout } from './src/lib/remark/callout'
 import { remarkHighlight } from './src/lib/remark/highlight'
 import { remarkWikilink } from './src/lib/remark/wikilink'
-import { findBrokenLinks, getAssets, getGraph } from './src/lib/content/index-fs'
+import { findBrokenLinks, getAssets, getGraph, isBacklog, setBacklogPath } from './src/lib/content/index-fs'
 import { writeBrokenReport } from './src/lib/content/broken-report'
 
 // 콘텐츠 원본 (Obsidian 볼트) 과 깨진 링크 리포트
 const ContentDir = fileURLToPath(new URL('./src/content', import.meta.url))
 const ReportPath = fileURLToPath(new URL('../../reports/broken-links.md', import.meta.url))
+const BacklogPath = fileURLToPath(new URL('../../docs/migration/wiki-backlog.json', import.meta.url))
+setBacklogPath(ContentDir, BacklogPath)
 /** @param {string} msg */
 const warn = (msg) => console.warn(`[content] ${msg}`)
 
@@ -47,7 +49,7 @@ export default defineConfig({
         remarkCallout,
         remarkHighlight,
         remarkMath,
-        [remarkWikilink, { contentDir: ContentDir, getGraph: () => getGraph(ContentDir), getAssets: () => getAssets(ContentDir), onBroken: (/** @type {{ file: string, target: string }} */ b) => warn(`찾지 못한 링크 : ${b.file} → ${b.target}`) }],
+        [remarkWikilink, { contentDir: ContentDir, getGraph: () => getGraph(ContentDir), getAssets: () => getAssets(ContentDir), isBacklog: (/** @type {string} */ t) => isBacklog(ContentDir, t), onBroken: (/** @type {{ file: string, target: string }} */ b) => warn(`찾지 못한 링크 : ${b.file} → ${b.target}`) }],
       ],
       rehypePlugins: [rehypeKatex],
     }),

@@ -13,6 +13,8 @@ export interface WikilinkOptions {
   getGraph: () => Graph
   getAssets: () => Map<string, string>
   onBroken: (b: BrokenLink) => void
+  // 아직 쓰지 않은 노트 (backlog) 로 가는 링크 : 경고 없이 흐린 글자로 보인다
+  isBacklog?: (target: string) => boolean
 }
 
 // !? 를 함께 잡아 임베드와 링크를 한 번에 나눈다
@@ -63,6 +65,8 @@ export function remarkWikilink(opts: WikilinkOptions) {
           if (Href) {
             const A: Link = { type: 'link', url: Href, children: [{ type: 'text', value: Shown }], data: { hProperties: { className: ['wikilink'] } } }
             Made = A
+          } else if (opts.isBacklog?.(Link.target)) {
+            Made = { type: 'emphasis', children: [{ type: 'text', value: Shown }], data: { hName: 'span', hProperties: { className: ['wikilink-pending'] } } }
           } else {
             opts.onBroken({ file: Rel, target: Link.target })
             Made = { type: 'emphasis', children: [{ type: 'text', value: Shown }], data: { hName: 'span', hProperties: { className: ['wikilink-broken'] } } }

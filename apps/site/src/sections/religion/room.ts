@@ -605,6 +605,26 @@ export const mountRoom = ({ root, religions, velvet, fromHub }: RoomOptions): ((
     if (View === 'held' && v === 'docs') openDocs(false)
   })
   on(Dimmer, 'click', () => View === 'held' && goBack())
+  // 뱃지 자리 버튼을 비껴 누른 탭 : 기울어진 3D 상자 안의 버튼은 휴대폰 브라우저에 따라 손가락 위치와 어긋나게 판정된다
+  // 화면에 보이는 버튼 자리 (getBoundingClientRect 는 원근까지 반영한다) 에서 가장 가까운 뱃지를 고른다
+  on($<HTMLElement>('.stage'), 'click', (e: MouseEvent) => {
+    if (Picked || !Interactive || (e.target as HTMLElement).closest('.hit')) return
+    let Best: Slot | null = null
+    let BestD = Infinity
+    for (const S of Slots) {
+      const B = S.Btn.getBoundingClientRect()
+      const d = Math.hypot(e.clientX - (B.left + B.width / 2), e.clientY - (B.top + B.height / 2))
+      if (d < B.width * 0.75 && d < BestD) [Best, BestD] = [S, d]
+    }
+    if (Best) pick(Best)
+  })
+  // 문서 화면 : 돌아가기 버튼이나 글 목록 밖 빈 곳을 누르면 든 뱃지로 돌아간다
+  on(Docs, 'click', (e: MouseEvent) => {
+    // 열리는 중에는 받지 않는다 : 두 번 누르기의 두 번째 누름이 열자마자 닫지 않게
+    if (View !== 'docs' || !Docs.classList.contains('ready')) return
+    const T = e.target as HTMLElement
+    if (T.closest('.docs-back') || !T.closest('.docs-list, h1')) goBack()
+  })
 
   // ---------- 열고 닫기 ----------
   const Box = $<HTMLElement>('.box')

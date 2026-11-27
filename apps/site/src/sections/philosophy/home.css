@@ -11,16 +11,22 @@
     inset 0 0 0 2px #c9a465,
     0 4px 10px rgba(0, 0, 0, 0.6);
 }
-/* 위에서 떨어지는 빛 : 액자 밖까지 번진다 */
+/* 위에서 떨어지는 빛 : 액자 밖까지 번진다
+   빛의 중심을 상자 안쪽에 두고 closest-side 로 상자 가장자리 전에 다 사그라들게 한다 (가장자리에서 빛이 잘리지 않게) */
 :root:has(.section-philosophy) .home-button::before {
   content: '';
   position: absolute;
   left: 50%;
-  top: -130%;
-  width: 240%;
-  height: 260%;
+  top: -140%;
+  width: 260%;
+  height: 300%;
   transform: translateX(-50%);
-  background: radial-gradient(ellipse at 50% 100%, rgba(255, 226, 170, 0.35), transparent 60%);
+  background: radial-gradient(
+    closest-side ellipse at 50% 50%,
+    rgba(255, 226, 170, 0.35),
+    rgba(255, 226, 170, 0.12) 55%,
+    transparent
+  );
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);

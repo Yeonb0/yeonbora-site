@@ -1,0 +1,134 @@
+// Main 볼트를 읽어 노트 목록 · 이름 충돌 · 없는 링크 대상을 낸다
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { parse } from 'yaml'
+import { buildGraph, type Node } from '../../../src/lib/content/graph'
+import { parseWikilinks, slugFromPath } from '../../../src/lib/content/wikilink'
+
+export interface VaultNote {
+  relPath: string
+  stem: string
+  data: Record<string, unknown>
+  rawFront: string | null
+  body: string
+}
+
+export interface Excluded {
+  relPath: string
+  reason: 'infra' | 'publish-false' | 'pending'
+}
+
+// 앞의 --- 줄 사이가 frontmatter, 닫는 --- 줄 뒤는 byte 단위로 그대로 본문이다
+const FrontRe = /^---\r?\n(?:([\s\S]*?)\r?\n)?---[ \t]*(?:\r?\n|$)/
+
+const InfraRootDirs = new Set(['scripts', 'templete', 'images', '.githooks'])
+const SkipDirs = new Set(['.git', '.obsidian'])
+const PendingDirs = new Set(['_inbox', '_pending'])
+
+const walk = (dir: string, prefix = ''): string[] => {
+  const Out: string[] = []
+  for (const E of readdirSync(dir, { withFileTypes: true })) {
+    if (E.isDirectory()) {
+      if (SkipDirs.has(E.name)) continue
+      Out.push(...walk(join(dir, E.name), `${prefix}${E.name}/`))
+    } else Out.push(prefix + E.name)
+  }
+  return Out
+}
+
+const stemOf = (relPath: string) => (relPath.split('/').pop() ?? relPath).replace(/\.md$/, '')
+
+const parseNote = (relPath: string, text: string): VaultNote => {
+  const M = text.match(FrontRe)
+  let Data: Record<string, unknown> = {}
+  if (M) {
+    try {
+      const P = parse(M[1] ?? '')
+      if (P && typeof P === 'object' && !Array.isArray(P)) Data = P as Record<string, unknown>
+    } catch {
+      // frontmatter 오류는 나중 스키마 검사가 잡는다
+    }
+  }
+  return {
+    relPath,
+    stem: stemOf(relPath),
+    data: Data,
+    rawFront: M ? (M[1] ?? '') : null,
+    body: M ? text.slice(M[0].length) : text,
+  }
+}
+
+export const listVault = (vaultDir: string): { Notes: VaultNote[]; Excluded: Excluded[] } => {
+  const Notes: VaultNote[] = []
+  const Excluded: Excluded[] = []
+  for (const Rel of walk(vaultDir).sort()) {
+    const Parts = Rel.split('/')
+    const IsMd = Rel.endsWith('.md')
+    if (!IsMd) {
+      if (Rel.endsWith('.base')) Excluded.push({ relPath: Rel, reason: 'infra' })
+      continue
+    }
+    if (Rel === 'README.md' || (InfraRootDirs.has(Parts[0]) && Parts.length > 1)) {
+      Excluded.push({ relPath: Rel, reason: 'infra' })
+      continue
+    }
+    if (Parts.slice(0, -1).some((p) => PendingDirs.has(p))) {
+      Excluded.push({ relPath: Rel, reason: 'pending' })
+      continue
+    }
+    const N = parseNote(Rel, readFileSync(join(vaultDir, Rel), 'utf8'))
+    if (N.data.publish === false) Excluded.push({ relPath: Rel, reason: 'publish-false' })
+    else if (N.data.status === 'pending') Excluded.push({ relPath: Rel, reason: 'pending' })
+    else Notes.push(N)
+  }
+  return { Notes, Excluded }
+}
+
+// slug 가 같은 노트가 둘 이상인 묶음만 낸다
+export const findSlugClashes = (Notes: VaultNote[]): Map<string, VaultNote[]> => {
+  const By = new Map<string, VaultNote[]>()
+  for (const N of Notes) {
+    const S = slugFromPath(N.relPath)
+    By.set(S, [...(By.get(S) ?? []), N])
+  }
+  return new Map([...By].filter(([, g]) => g.length >= 2))
+}
+
+// 충돌한 노트의 새 stem : `<stem> (<바로 위 폴더>)`
+export const renameMap = (Clashes: Map<string, VaultNote[]>): Map<string, string> => {
+  const Out = new Map<string, string>()
+  for (const Group of Clashes.values()) {
+    const Seen = new Map<string, VaultNote>()
+    for (const N of Group) {
+      const Parent = N.relPath.split('/').slice(-2, -1)[0] ?? ''
+      const Name = `${N.stem} (${Parent})`
+      const Prev = Seen.get(Name)
+      if (Prev) throw new Error(`이름 충돌을 풀 수 없음 : ${Prev.relPath} / ${N.relPath}`)
+      Seen.set(Name, N)
+      Out.set(N.relPath, Name)
+    }
+  }
+  return Out
+}
+
+const toNode = (N: VaultNote): Node => ({
+  collection: 'wiki',
+  slug: slugFromPath(N.relPath),
+  title: typeof N.data.title === 'string' ? N.data.title : N.stem,
+  aliases: Array.isArray(N.data.aliases) ? N.data.aliases.map(String) : [],
+  body: N.body,
+})
+
+// 어느 노트로도 해석되지 않는 링크 대상 (소문자 · 중복 없음 · 정렬)
+export const computeBacklog = (Notes: VaultNote[]): string[] => {
+  const Graph = buildGraph(Notes.map(toNode))
+  const Missing = new Set<string>()
+  for (const N of Notes) {
+    for (const L of parseWikilinks(N.body)) {
+      const T = L.target.trim()
+      if (!T) continue
+      if (!Graph.resolve(T)) Missing.add(T.toLowerCase())
+    }
+  }
+  return [...Missing].sort()
+}

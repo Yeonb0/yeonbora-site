@@ -70,7 +70,7 @@ describe('findSlugClashes / renameMap', () => {
   })
 
   it('renameMap appends parent folder', () => {
-    const R = renameMap(findSlugClashes(Notes))
+    const R = renameMap(findSlugClashes(Notes), Notes)
     expect(R.get('CSS/!important.md')).toBe('!important (CSS)')
     expect(R.get('JS/!important.md')).toBe('!important (JS)')
   })
@@ -80,7 +80,7 @@ describe('findSlugClashes / renameMap', () => {
       '정보처리기사/_MOC/데이터 전환.md': '1',
       '정보처리기사/데이터베이스 구축/데이터 전환/데이터 전환.md': '2',
     })
-    const R = renameMap(findSlugClashes(listVault(Dir2).Notes))
+    const R = renameMap(findSlugClashes(listVault(Dir2).Notes), listVault(Dir2).Notes)
     expect(R.get('정보처리기사/_MOC/데이터 전환.md')).toBe('데이터 전환 (MOC)')
     expect(R.get('정보처리기사/데이터베이스 구축/데이터 전환/데이터 전환.md')).toBe('데이터 전환 (데이터베이스 구축)')
   })
@@ -94,7 +94,7 @@ describe('findSlugClashes / renameMap', () => {
   it('throws when new stems still collide', () => {
     const Dir2 = makeVault({ 'a/x/N.md': '1', 'b/x/N.md': '2' })
     const C = findSlugClashes(listVault(Dir2).Notes)
-    expect(() => renameMap(C)).toThrow(/a\/x\/N\.md.*b\/x\/N\.md/)
+    expect(() => renameMap(C, listVault(Dir2).Notes)).toThrow(/a\/x\/N\.md.*b\/x\/N\.md/)
   })
 })
 

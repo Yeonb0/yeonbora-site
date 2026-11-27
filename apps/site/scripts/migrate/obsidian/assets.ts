@@ -27,6 +27,7 @@ export const copyImages = (
   Notes: VaultNote[],
   vaultImagesDir: string,
   assetsDir: string,
+  dryRun = false,
 ): { Copied: string[]; Same: string[]; Missing: { note: string; name: string }[]; Clash: string[] } => {
   const Refs = new Map<string, Set<string>>()
   for (const N of Notes) {
@@ -54,8 +55,10 @@ export const copyImages = (
       else Clash.push(Name)
       continue
     }
-    mkdirSync(Dest, { recursive: true })
-    copyFileSync(Src, join(Dest, Name))
+    if (!dryRun) {
+      mkdirSync(Dest, { recursive: true })
+      copyFileSync(Src, join(Dest, Name))
+    }
     Copied.push(Name)
   }
   Missing.sort((a, b) => a.note.localeCompare(b.note) || a.name.localeCompare(b.name))

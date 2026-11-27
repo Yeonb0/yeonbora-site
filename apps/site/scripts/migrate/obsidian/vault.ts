@@ -58,14 +58,17 @@ const parseNote = (relPath: string, text: string): VaultNote => {
   }
 }
 
-export const listVault = (vaultDir: string): { Notes: VaultNote[]; Excluded: Excluded[] } => {
+// Ignored : .md · .base 가 아니면서 images/ 밖에 있어 조용히 건너뛴 파일
+export const listVault = (vaultDir: string): { Notes: VaultNote[]; Excluded: Excluded[]; Ignored: string[] } => {
   const Notes: VaultNote[] = []
   const Excluded: Excluded[] = []
+  const Ignored: string[] = []
   for (const Rel of walk(vaultDir).sort()) {
     const Parts = Rel.split('/')
     const IsMd = Rel.endsWith('.md')
     if (!IsMd) {
       if (Rel.endsWith('.base')) Excluded.push({ relPath: Rel, reason: 'infra' })
+      else if (Parts[0] !== 'images') Ignored.push(Rel)
       continue
     }
     if (Rel === 'README.md' || (InfraRootDirs.has(Parts[0]) && Parts.length > 1)) {
@@ -81,7 +84,7 @@ export const listVault = (vaultDir: string): { Notes: VaultNote[]; Excluded: Exc
     else if (N.data.status === 'pending') Excluded.push({ relPath: Rel, reason: 'pending' })
     else Notes.push(N)
   }
-  return { Notes, Excluded }
+  return { Notes, Excluded, Ignored }
 }
 
 // slug 가 같은 노트가 둘 이상인 묶음만 낸다
@@ -103,7 +106,7 @@ const suffixFolder = (N: VaultNote): string => {
 }
 
 // 충돌한 노트의 새 stem : `<stem> (<접미사 폴더>)`, 새 이름도 slug 가 겹치면 던진다
-export const renameMap = (Clashes: Map<string, VaultNote[]>, All: VaultNote[] = []): Map<string, string> => {
+export const renameMap = (Clashes: Map<string, VaultNote[]>, All: VaultNote[]): Map<string, string> => {
   const Out = new Map<string, string>()
   for (const Group of Clashes.values()) {
     const Seen = new Map<string, VaultNote>()

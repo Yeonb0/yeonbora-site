@@ -1,0 +1,65 @@
+// 묶음 결과를 reports/migrate-obsidian-<topic>.md 로 쓸 마크다운으로 바꾼다
+import type { BatchResult } from './run'
+
+const List = (Items: string[]): string => (Items.length > 0 ? Items.map((i) => `- ${i}`).join('\n') : '- 없음')
+
+export const renderReport = (R: BatchResult): string => {
+  const Same = R.skipped.filter((s) => s.reason === 'same')
+  const Conflict = R.skipped.filter((s) => s.reason === 'conflict')
+  const Lines: string[] = [
+    `# Obsidian 이전 리포트 : ${R.folder} (${R.topic})`,
+    '',
+    '## 요약',
+    `- 대상 노트 : ${R.total}편`,
+    `- 옮김 : ${R.written.length}편`,
+    `- 건너뜀 : ${R.skipped.length}편 (같음 ${Same.length} · 충돌 ${Conflict.length})`,
+    `- 제외 : ${R.excluded.length}개`,
+    `- 이름 바꿈 : ${R.renamed.length}편`,
+    `- 작성일 못 찾음 : ${R.noDate.length}편`,
+    `- 링크 : 깨짐 ${R.links.broken} · backlog ${R.links.backlog} · 아직 안 옮김 ${R.links.notYetMigrated}`,
+    '',
+    '## 옮긴 글',
+    List(R.written),
+    '',
+    '## 건너뜀',
+    '### 같음 (파일 그대로)',
+    List(Same.map((s) => s.path)),
+    '### 충돌 (본문이 달라 덮어쓰지 않음)',
+    List(Conflict.map((s) => s.path)),
+    '',
+    '## 제외',
+    List(R.excluded.map((e) => `${e.relPath} (${e.reason})`)),
+    '',
+    '## 이름 바꿈',
+    List(R.renamed.map(([from, to]) => `${from} -> ${to}`)),
+    '',
+    '## 작성일 못 찾음',
+    List(R.noDate),
+    '',
+    '## 그림',
+    `- 복사 ${R.images.Copied.length} · 같음 ${R.images.Same.length} · 충돌 ${R.images.Clash.length} · 없음 ${R.images.Missing.length}`,
+    '### 복사',
+    List(R.images.Copied),
+    '### 충돌',
+    List(R.images.Clash),
+    '### 없음',
+    List(R.images.Missing.map((m) => `${m.name} (${m.note})`)),
+    '',
+    '## 링크',
+    `- 깨짐 ${R.links.broken} · backlog ${R.links.backlog} · 아직 안 옮김 ${R.links.notYetMigrated}`,
+    '### 깨진 대상',
+    List(R.brokenList.map((b) => `${b.target} : ${b.files.join(', ')}`)),
+    '',
+    '## 의심 목록 (표 · 수식 · 콜아웃 · HTML · 임베드)',
+    List(R.suspects.map((s) => `${s.path} : ${s.kinds.join(', ')}`)),
+    '',
+    '## 무시된 파일 (.md · .base 가 아닌 파일)',
+    List(R.ignored),
+    '',
+    '## 시각화 후보',
+    '| 노트 | 설명이 약한 곳 | 제안 | 상태 |',
+    '|---|---|---|---|',
+    '',
+  ]
+  return Lines.join('\n')
+}

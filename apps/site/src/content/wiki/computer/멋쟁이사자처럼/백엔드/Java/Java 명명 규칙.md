@@ -17,4 +17,3 @@ created: 2026-07-30
 | variable: [[변수]]     | 소문자로 시작한다.            | int number;  <br>int addCost;               |
 | package: [[패키지]]     | 소문자로 시작한다.            | com.sun.kor  <br>com.store.menu             |
 | constant: [[상수]]     | 대문자로 시작한다.            | final float PI:                             |
-%% typo? : 표 마지막 행 `final float PI:` → `final float PI;` %%

@@ -45,7 +45,7 @@
   stroke-linejoin: round;
 }
 
-/* 메뉴 막대 : 왼쪽은 홈 리본 자리를 비운다 */
+/* 메뉴 막대 : 왼쪽 끝은 홈 (시작) 버튼 자리 */
 .menubar {
   grid-column: 1 / -1;
   display: flex;
@@ -53,7 +53,7 @@
   justify-content: space-between;
   gap: 24px;
   margin: 0 -24px;
-  padding: 0 24px 0 96px;
+  padding: 0 24px 0 68px;
   background: var(--bar);
   border-bottom: 1px solid var(--win-bar);
   font-size: 14px;
@@ -122,7 +122,7 @@
   scrollbar-width: none;
 }
 .folders {
-  padding-top: 24px;
+  padding-top: 4px;
 }
 .books {
   justify-content: end;
@@ -562,7 +562,7 @@
   }
   .menubar {
     margin: 0 -12px;
-    padding: 0 12px 0 72px;
+    padding: 0 12px 0 64px;
   }
   .brand,
   .total {

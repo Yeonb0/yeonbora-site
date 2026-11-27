@@ -1,6 +1,25 @@
-/* wiki 읽기 화면 토큰 : 사이트 기본 다크 */
+/* 위키 토큰 : 기술 블로그 바탕화면 (sections/posts/desktop.css) 과 같은 계열 */
 :root:has(.section-wiki) {
-  --bg: #1a1a1a;
-  --fg: #e0e0e0;
-  --home-fg: #e0e0e0;
+  --bg: #232236;
+  --fg: #eaeaea;
+  --home-fg: #aa93c2;
+}
+.section-wiki {
+  --w-bg: #232236;
+  --w-pane: #1c1b2d;
+  --w-fg: #eaeaea;
+  --w-sub: #b4b3c8;
+  --w-dim: #8e8da6;
+  --w-line: #3a3954;
+  --w-line-strong: #565569;
+  --w-hover: #34334d;
+  --w-accent: #aa93c2;
+  --w-accent-hi: #e6dcf5;
+  --w-node: #8e8da6;
+  --w-ghost: #6e6d86;
+  --w-post: #f0c674;
+  --w-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* 양 옆 칸 기본 너비 : 끌어서 바꾸면 이 값이 바뀐다 */
+  --lw: 260px;
+  --rw: 300px;
 }

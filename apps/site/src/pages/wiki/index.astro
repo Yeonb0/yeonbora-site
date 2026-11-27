@@ -1,30 +1,12 @@
 ---
-import { getCollection } from 'astro:content'
+// 위키 첫 화면 : 왼쪽 카테고리 + 가운데 전체 그래프. 카테고리를 누르면 그 무리로 확대된다 (?topic=)
 import Layout from '@/sections/wiki/Layout.astro'
-import '@/components/content/article.css'
-import { Fields } from '@/lib/content/schemas'
+import WikiGraph from '@/sections/wiki/WikiGraph'
+import { getWikiGraph } from '@/lib/content/site-graph'
 
-const FieldLabel: Record<(typeof Fields)[number], string> = { computer: '컴퓨터', philosophy: '철학', religion: '종교학', etc: '기타' }
-const Wiki = (await getCollection('wiki')).sort((a, b) => a.data.title.localeCompare(b.data.title, 'ko'))
-const Groups = Fields.map((f) => ({ field: f, notes: Wiki.filter((w) => w.data.field === f) })).filter((g) => g.notes.length > 0)
+const { data, tree } = await getWikiGraph()
 ---
 
-<Layout>
-  <div class="article">
-    <h1>위키</h1>
-    {
-      Groups.map((g) => (
-        <section class="link-list">
-          <h2>{FieldLabel[g.field]}</h2>
-          <ul>
-            {g.notes.map((n) => (
-              <li>
-                <a href={`/wiki/${n.id}`}>{n.data.title}</a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))
-    }
-  </div>
+<Layout mode="home" topics={tree}>
+  <WikiGraph client:load data={data} current={null} transition:persist="wiki-graph" />
 </Layout>

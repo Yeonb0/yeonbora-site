@@ -28,6 +28,11 @@ describe('buildGraph', () => {
     expect(G.backlinks('가비지-컬렉션')).toEqual([Proxy])
   })
 
+  it('backlinks : 위키 노트끼리도 들어간다', () => {
+    const Heap: Node = { collection: 'wiki', slug: 'heap', title: '힙', aliases: [], body: '[[GC]] 가 정리한다' }
+    expect(buildGraph([Gc, Heap, Proxy]).backlinks('가비지-컬렉션')).toEqual([Heap, Proxy])
+  })
+
   it('related', () => {
     expect(G.related('proxy')).toEqual([Gc, Jvm])
   })

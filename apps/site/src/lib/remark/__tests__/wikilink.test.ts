@@ -46,7 +46,7 @@ describe('remarkWikilink', () => {
 
   it('broken', async () => {
     const { html, Broken } = await render('[[없음]]')
-    expect(html).toContain('<span class="wikilink-broken">없음</span>')
+    expect(html).toContain('<span class="wikilink-broken" data-target="없음">없음</span>')
     expect(Broken).toEqual([{ file: 'wiki/computer/노트.md', target: '없음' }])
   })
 

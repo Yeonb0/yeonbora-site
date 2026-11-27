@@ -1,0 +1,47 @@
+---
+title: Data and Signals
+aliases: []
+tags:
+  - MOC
+field: computer
+topic: network
+source: obsidian
+sourcePath: 컴퓨터 네트워크/_MOC/Data and Signals.md
+created: 2026-07-31
+---
+
+### Data Communication Model
+- [[Data Communication Model]]
+- [[Data vs. Signal]]
+
+### Analog Signal
+- [[Analog Signal]]
+- [[Time Domain vs. Frequency Domain]]
+- [[Composite Signal]]
+- [[Bandwidth]]
+
+### Digital Signal
+- [[Digital Signal]]
+
+### Transmission of Digital Signals
+- [[Baseband Transmission]]
+- [[Bandpass Channel]]
+- [[Modulation]]
+
+### Transmission Impairment
+- [[Transmission Impairment]]
+- [[Attenuation]]
+- [[Decibel]]
+- [[Distortion]]
+- [[Noise]]
+- [[SNR]]
+
+### Data Rate Limits
+- [[Data Transfer Rate]]
+- [[Nyquist Equation]]
+- [[Shannon Capacity]]
+
+### Performance
+- [[Throughput]]
+- [[Delay]]
+- [[Bandwidth-Delay Product]]

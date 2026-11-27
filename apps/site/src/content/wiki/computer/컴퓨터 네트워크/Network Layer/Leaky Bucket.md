@@ -1,0 +1,21 @@
+---
+title: Leaky Bucket
+aliases:
+  - 리키 버킷
+  - Leaky Bucket(리키 버킷)
+tags: []
+field: computer
+topic: network
+source: obsidian
+sourcePath: 컴퓨터 네트워크/Network Layer/Leaky Bucket.md
+created: 2026-08-03
+---
+
+- 구멍 뚫린 양동이 형태의 [[Traffic Shaping]] 기법
+
+![[Scheduling-and-Traffic-Shaping-10.png]]
+
+### 특징
+- 들어오는 [[Packet]] 일정 X
+- 나가는 packet 일정 O
+- 어떠한 burst 도 허락 X -> 완화 형태 [[Token Bucket]]

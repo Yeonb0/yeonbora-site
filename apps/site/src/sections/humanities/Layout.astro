@@ -1,0 +1,31 @@
+---
+// 인문 블로그 레이아웃 : 허브 밖 입구에서 들어오는 도서관 화면
+import Base from '@/shared/Base.astro'
+import { findSection } from '@/sections/registry'
+import './tokens.css'
+import './home.css'
+
+const Me = findSection('humanities')
+---
+
+<Base title={`${Me.label} · 연보라`}>
+  <Fragment slot="head">
+    <link rel="stylesheet" href="https://hangeul.pstatic.net/hangeul_static/css/nanum-myeongjo.css" />
+    <link rel="stylesheet" href="https://hangeul.pstatic.net/hangeul_static/css/maru-buri.css" />
+  </Fragment>
+  <Fragment slot="home">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7" /><path d="M5.5 9.5V20h13V9.5" /></svg>
+  </Fragment>
+  <main class="section-humanities" transition:name={`section-${Me.id}`}>
+    <slot />
+  </main>
+</Base>
+
+<style>
+  main {
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-base);
+  }
+</style>

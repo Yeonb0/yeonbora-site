@@ -34,6 +34,8 @@ export const PostSchema = z
     date: z.coerce.date(),
     tags: Strings,
     series: z.string().optional(),
+    // 인문 블로그 도서관의 책 id (sections/humanities/data.ts 의 Books) : 그 책을 펼치면 글 목록에 나온다
+    book: z.string().optional(),
   })
   .superRefine((p, ctx) => {
     if (p.context === 'course' && !p.course) ctx.addIssue({ code: 'custom', path: ['course'], message: 'context 가 course 면 course 가 필요하다' })

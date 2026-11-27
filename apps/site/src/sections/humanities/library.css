@@ -1,0 +1,603 @@
+/* 인문 블로그 도서관 : 왼쪽 목록 + 오른쪽 도서관 (책장 칸 · 꺼낸 책 · 펼친 책) */
+.humanities-library {
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  color: var(--text);
+  font-family: var(--font-base);
+}
+.humanities-library button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* 스크롤바 : 짙은 나무 홈 위에 놋쇠 손잡이 */
+.humanities-library .side {
+  scrollbar-width: thin;
+  scrollbar-color: #9a7843 #1b130d;
+}
+.humanities-library .side::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.humanities-library .side::-webkit-scrollbar-track {
+  background: linear-gradient(90deg, #120c08, #24180f 50%, #120c08);
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.8);
+}
+.humanities-library .side::-webkit-scrollbar-thumb {
+  border: 2px solid #1b130d;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #6e5228, #c9a45c 45%, #8a6a35);
+}
+
+/* 왼쪽 목록 : 위쪽은 홈 버튼 자리 */
+.humanities-library .side {
+  border-right: 1px solid var(--line);
+  padding: 96px 24px 40px;
+  overflow-y: auto;
+}
+.humanities-library .tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+.humanities-library .tabs button {
+  flex: 1;
+  padding: 10px 0;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+  transition:
+    color 0.25s var(--ease),
+    border-color 0.25s var(--ease);
+}
+.humanities-library .tabs button:hover,
+.humanities-library .tabs button:focus-visible {
+  color: var(--text);
+  outline: none;
+}
+.humanities-library .tabs button[aria-selected='true'] {
+  color: #fff;
+  border-bottom-color: var(--gilt);
+}
+.humanities-library .group + .group {
+  margin-top: 28px;
+}
+.humanities-library .group h2 {
+  margin: 0 0 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.humanities-library .group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.humanities-library .subs {
+  margin: 0 0 4px 12px !important;
+  border-left: 1px solid var(--line);
+}
+.humanities-library .item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 7px 10px;
+  margin-left: -10px;
+  border-left: 2px solid transparent;
+  font-size: 15px;
+  text-align: left;
+  transition:
+    color 0.3s var(--ease),
+    border-color 0.3s var(--ease),
+    background 0.3s var(--ease);
+}
+.humanities-library .item.sub {
+  padding-left: 14px;
+  font-size: 14px;
+}
+.humanities-library .item .n {
+  font-size: 12px;
+  color: var(--muted);
+}
+.humanities-library .item.empty {
+  color: #6d6964;
+}
+.humanities-library .item:hover,
+.humanities-library .item:focus-visible {
+  background: #222;
+  outline: none;
+}
+.humanities-library .item[aria-current='true'] {
+  color: #fff;
+  border-left-color: var(--gilt);
+}
+.humanities-library .item[aria-current='true'] .n {
+  color: var(--gilt);
+}
+
+/* 오른쪽 : 도서관 */
+.humanities-library .room {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 30%, #1d1510 0%, var(--room) 70%);
+}
+.humanities-library .lib {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.humanities-library .world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.humanities-library .spares {
+  position: absolute;
+  background-repeat: repeat;
+  filter: brightness(0.38);
+  transition: filter 0.9s var(--ease);
+}
+.humanities-library .lib.overview .spares {
+  filter: brightness(0.55);
+}
+.humanities-library .row {
+  position: absolute;
+  overflow: hidden;
+  cursor: pointer;
+  filter: brightness(0.5);
+  transition: filter 0.9s var(--ease);
+}
+.humanities-library .row.cap {
+  cursor: default;
+}
+.humanities-library .row img {
+  position: absolute;
+  left: 0;
+  width: 1536px;
+  height: 1024px;
+  max-width: none;
+  user-select: none;
+}
+/* 처음 화면은 진한 그림 (v), 칸으로 들어가면 옅은 그림 (p) 이 서서히 덮는다 */
+.humanities-library .row img.p {
+  transition: opacity 0.9s var(--ease);
+}
+.humanities-library .lib.overview .row img.p {
+  opacity: 0;
+}
+.humanities-library .lib.overview .row {
+  filter: none;
+}
+.humanities-library .lib.overview .row:not(.cap):hover {
+  filter: brightness(1.15);
+}
+.humanities-library .row.focus {
+  filter: none;
+}
+
+/* 칸 화면 : 고른 칸 위에 정확히 겹쳐 책을 꺼낼 수 있게 한다 */
+.humanities-library .scroller {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  pointer-events: none;
+}
+.humanities-library .scene {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+  width: min(100%, calc((100dvh - 48px) * var(--ratio, 2.8)));
+  aspect-ratio: var(--ratio, 2.8);
+  pointer-events: auto;
+  transition: opacity 0.2s var(--ease);
+}
+.humanities-library .scene.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.humanities-library .scene .bg {
+  position: absolute;
+  display: block;
+  max-width: none;
+  user-select: none;
+}
+.humanities-library .held {
+  position: absolute;
+  display: block;
+  transition:
+    transform 0.35s var(--ease),
+    filter 0.35s var(--ease);
+}
+.humanities-library .held img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: brightness(0.96);
+}
+.humanities-library .held:hover,
+.humanities-library .held:focus-visible {
+  transform: translateY(-3%);
+  filter: brightness(1.3);
+  outline: none;
+}
+.humanities-library .held.away {
+  visibility: hidden;
+}
+.humanities-library .pool {
+  position: absolute;
+  pointer-events: none;
+  background: radial-gradient(ellipse 50% 50% at 50% 45%, rgba(255, 214, 160, 0.2), rgba(255, 214, 160, 0.07) 55%, transparent 75%);
+  mix-blend-mode: screen;
+}
+/* 책이 빠진 자리 */
+.humanities-library .gap {
+  position: absolute;
+  background: linear-gradient(90deg, #050302, #0f0a06 40%, #050302);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.humanities-library .gap.on {
+  opacity: 1;
+}
+
+.humanities-library .dim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: rgba(8, 6, 4, 0.72);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s var(--ease);
+}
+.humanities-library .dim.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+.humanities-library .stage {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  perspective: 1800px;
+  pointer-events: none;
+}
+.humanities-library .stage > * {
+  pointer-events: auto;
+}
+
+/* 꺼낸 책 : 앞면 = 책등, 오른쪽 면 = 표지 */
+.humanities-library .box {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  transform-style: preserve-3d;
+  cursor: pointer;
+}
+.humanities-library .box .face {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  backface-visibility: hidden;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55);
+}
+.humanities-library .box .face img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.humanities-library .box .front {
+  left: 0;
+  width: 100%;
+}
+.humanities-library .box .right {
+  transform-origin: 0 50%;
+  transform: rotateY(90deg);
+}
+
+/* 펼친 책 : 표지와 넘기는 종이는 세로 띠 여러 장을 경첩부터 이어 붙여 휘어진다 */
+.humanities-library .reader {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  transform-style: preserve-3d;
+}
+.humanities-library .pg {
+  position: absolute;
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.humanities-library .pg .body {
+  position: absolute;
+  inset: 0;
+}
+.humanities-library .pg.hide {
+  visibility: hidden;
+}
+.humanities-library .pg.more {
+  cursor: grab;
+}
+.humanities-library .cast {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.humanities-library .leaf,
+.humanities-library .leaf .strip {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+/* 띠 사이 머리카락 같은 틈이 보이지 않게 양옆을 조금 겹친다 */
+.humanities-library .leaf .strip > .fa,
+.humanities-library .leaf .strip > .fb {
+  position: absolute;
+  inset: 0 -0.75px;
+  overflow: hidden;
+  backface-visibility: hidden;
+}
+.humanities-library .leaf .strip > .fb {
+  transform: rotateY(180deg);
+}
+.humanities-library .leaf {
+  pointer-events: none;
+  user-select: none;
+}
+.humanities-library .leaf .slice {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background-repeat: no-repeat;
+}
+.humanities-library .leaf .shade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+}
+/* 종이 위 글 : 크기는 종이 높이 (--u = 높이의 1%) 에 맞춘다 */
+.humanities-library .copy {
+  position: absolute;
+  top: 13%;
+  bottom: 15%;
+  color: var(--ink);
+  font-family: var(--font-page);
+}
+.humanities-library .copy.l {
+  left: 22%;
+  right: 13%;
+}
+.humanities-library .copy.r {
+  left: 13%;
+  right: 22%;
+}
+.humanities-library .copy h3 {
+  margin: 0;
+  font-family: var(--font-book-title);
+  font-weight: 700;
+  font-size: calc(var(--u) * 4);
+  line-height: 1.3;
+}
+.humanities-library .copy .orig {
+  margin: calc(var(--u) * 1.4) 0 0;
+  font-size: calc(var(--u) * 1.9);
+  line-height: 1.6;
+  color: #4e3a24;
+}
+.humanities-library .copy .by {
+  margin: calc(var(--u) * 3) 0 0;
+  padding-top: calc(var(--u) * 2);
+  border-top: 1px solid rgba(40, 26, 12, 0.32);
+  width: 60%;
+  font-size: calc(var(--u) * 1.9);
+  line-height: 1.7;
+  color: #4e3a24;
+}
+.humanities-library .copy ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.humanities-library .copy li a {
+  -webkit-user-drag: none;
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--u) * 2);
+  padding: calc(var(--u) * 1.5) 0;
+  border-bottom: 1px solid rgba(40, 26, 12, 0.32);
+  color: inherit;
+  text-decoration: none;
+  font-size: calc(var(--u) * 2.3);
+  font-weight: 700;
+  line-height: 1.45;
+  transition: color 0.25s var(--ease);
+}
+.humanities-library .copy li a:hover,
+.humanities-library .copy li a:focus-visible {
+  color: #8a2b1c;
+  outline: none;
+}
+.humanities-library .copy li time {
+  flex: none;
+  font-size: 0.74em;
+  color: #5c4529;
+  padding-top: 0.25em;
+}
+.humanities-library .folio {
+  position: absolute;
+  bottom: 8%;
+  font-family: var(--font-page);
+  font-size: calc(var(--u) * 1.6);
+  color: #5c4529;
+}
+.humanities-library .folio.l {
+  left: 22%;
+}
+.humanities-library .folio.r {
+  right: 22%;
+}
+
+.humanities-library .close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 4;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #cfc6b8;
+  background: rgba(255, 255, 255, 0.08);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.4s var(--ease),
+    background 0.2s;
+}
+.humanities-library .close.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+.humanities-library .close:hover,
+.humanities-library .close:focus-visible {
+  background: rgba(255, 255, 255, 0.16);
+  outline: none;
+}
+
+/* 칸 안에서 도서관 전체로 돌아가는 버튼 : 책을 꺼내면 어둠 아래로 가려진다 */
+.humanities-library .overview-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #e3c27a;
+  background: rgba(17, 13, 10, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(201, 164, 92, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9);
+  transition:
+    opacity 0.4s var(--ease),
+    transform 0.4s var(--ease),
+    background 0.2s;
+}
+.humanities-library .overview-btn.on {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+.humanities-library .overview-btn:hover,
+.humanities-library .overview-btn:focus-visible {
+  background: rgba(60, 44, 26, 0.9);
+  outline: none;
+}
+
+/* 휴대폰 : 목록은 위쪽 가로 띠, 칸 화면은 폭에 맞춰 비율 그대로 줄인다 */
+@media (max-width: 760px) {
+  .humanities-library {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .humanities-library .side {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 14px 16px 8px calc(var(--home-size) + 32px);
+    overflow: hidden;
+  }
+  .humanities-library .tabs {
+    margin-bottom: 8px;
+  }
+  .humanities-library .side nav {
+    overflow-x: auto;
+    scrollbar-width: none;
+    display: flex;
+    gap: 18px;
+  }
+  .humanities-library .group + .group {
+    margin-top: 0;
+  }
+  .humanities-library .group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .humanities-library .group h2 {
+    margin: 0;
+    padding: 0 8px 0 0;
+    border-bottom: 0;
+    border-right: 1px solid var(--line);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .humanities-library .group ul,
+  .humanities-library .group li {
+    display: flex;
+  }
+  .humanities-library .group ul {
+    gap: 2px;
+  }
+  .humanities-library .subs {
+    display: flex;
+    margin: 0 !important;
+    border-left: 0;
+  }
+  .humanities-library .item {
+    margin: 0;
+    padding: 6px 10px;
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    gap: 6px;
+  }
+  .humanities-library .item[aria-current='true'] {
+    border-bottom-color: var(--gilt);
+  }
+  .humanities-library .scroller {
+    padding: 12px;
+  }
+  .humanities-library .scene {
+    width: 100%;
+    height: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .humanities-library .scene,
+  .humanities-library .held,
+  .humanities-library .dim,
+  .humanities-library .row,
+  .humanities-library .row img.p,
+  .humanities-library .spares,
+  .humanities-library .overview-btn,
+  .humanities-library .close {
+    transition-duration: 0.1s;
+  }
+}

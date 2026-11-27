@@ -115,6 +115,18 @@ export const Sections: Section[] = [
     icon: ['M2 5c3-1 7-1 10 1v14c-3-2-7-2-10-1z', 'M22 5c-3-1-7-1-10 1v14c3-2 7-2 10-1z'],
   },
   {
+    // 인문 블로그 : 철학 · 종교 · 언어 책이 꽂힌 도서관. 허브 입구 위치는 미정
+    id: 'humanities',
+    label: '인문 블로그',
+    en: 'Humanities',
+    href: '/humanities/',
+    hub: false,
+    fill: '#110d0a',
+    tint: '#e3c27a',
+    // 책장에 꽂힌 책 세 권
+    icon: ['M4 4h4v16H4z', 'M10 6h4v14h-4z', 'M15.5 7.2l3.6-1 3.4 12.6-3.6 1z', 'M2 20h20'],
+  },
+  {
     // 위키 : 개념 노트. 허브 칸 없이 글 안의 링크로 들어온다
     id: 'wiki',
     label: '위키',

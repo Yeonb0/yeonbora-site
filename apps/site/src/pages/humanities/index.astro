@@ -1,0 +1,27 @@
+---
+import { getCollection } from 'astro:content'
+import Layout from '@/sections/humanities/Layout.astro'
+// 확장자를 붙인다 : 윈도우는 대소문자를 구분하지 않는다
+import Library from '@/sections/humanities/Library.tsx'
+import { Books } from '@/sections/humanities/data'
+import type { PostLink } from '@/sections/humanities/library'
+import { formatDate } from '@/lib/content/site-graph'
+
+// 책장 · 책 그림 : 파일 이름 (확장자 없이) → 주소
+const Files = import.meta.glob<{ default: ImageMetadata }>('/src/sections/humanities/assets/*.{jpg,webp}', { eager: true })
+const Urls = Object.fromEntries(Object.entries(Files).map(([path, m]) => [path.split('/').pop()!.replace(/\.\w+$/, ''), m.default.src]))
+
+// 책에 연결된 글 : posts frontmatter 의 book 이 책 id 와 같은 글, 오래된 글부터
+const Known = new Set(Books.map((b) => b.id))
+const Posts: Record<string, PostLink[]> = {}
+for (const p of (await getCollection('posts')).sort((a, b) => a.data.date.getTime() - b.data.date.getTime())) {
+  const Id = p.data.book
+  if (!Id) continue
+  if (!Known.has(Id)) throw new Error(`posts/${p.id} : 없는 책 id (${Id}). sections/humanities/data.ts 의 Books 에 있는 id 를 쓴다`)
+  ;(Posts[Id] ??= []).push({ title: p.data.title, href: `/posts/${p.id}`, date: formatDate(p.data.date) })
+}
+---
+
+<Layout>
+  <Library client:only="react" urls={Urls} posts={Posts} />
+</Layout>

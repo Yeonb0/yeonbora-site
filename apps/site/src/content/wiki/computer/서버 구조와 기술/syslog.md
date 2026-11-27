@@ -43,5 +43,3 @@ created: 2026-08-06
 | notications | 5 | 정상이지만 주의가 필요한 상태 |
 | informational | 6 | 정보 메시지 |
 | debugging | 7 | 디버깅 메시지 |
-
-%% typo? : "notications" → "notice" %%

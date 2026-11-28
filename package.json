@@ -16,6 +16,8 @@
     "migrate:obsidian": "pnpm --filter site migrate:obsidian",
     "migrate:jekyll": "pnpm --filter site migrate:jekyll",
     "migrate:tistory": "pnpm --filter site migrate:tistory",
+    "migrate:notion": "pnpm --filter site migrate:notion",
+    "migrate:dupes": "pnpm --filter site migrate:dupes",
     "demo:sync": "node scripts/demo-sync.mjs"
   }
 }

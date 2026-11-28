@@ -26,6 +26,7 @@ const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.ge
 <Layout>
   <main class="lw" data-tab="home" data-api="unknown" data-bar="closed" data-api-base={ApiBase}>
     <section class="lw-panel" data-panel="home" aria-label="첫 화면">
+      <a class="lw-back" href="/projects/">← 프로젝트 방</a>
       <div class="lw-home-body">
         <h1>Layered Wiki</h1>
         <div class="lw-cards">
@@ -134,6 +135,8 @@ const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.ge
       }
     </section>
 
+    <!-- 관리자님 결정 2026-11-28 : 탭마다 첫 화면으로 돌아가는 버튼을 늘 띄운다 (설계 반목표 "프로젝터에 늘 떠 있는 UI 금지" 의 예외) -->
+    <button class="lw-back lw-back-tab" type="button" data-back-home>← 첫 화면</button>
     <div class="lw-edge" aria-hidden="true"></div>
     <nav class="lw-bar" aria-label="탭">
       <button class="lw-tab" type="button" data-tab="demo" aria-selected="false">

@@ -190,6 +190,8 @@ export function mountStage(Root: HTMLElement): () => void {
     })
   }
   for (const B of [...Tabs, ...Cards]) on(B, 'click', () => showTab(B.dataset.tab as Tab))
+  const BackHome = Root.querySelector<HTMLButtonElement>('[data-back-home]')
+  if (BackHome) on(BackHome, 'click', () => showTab('home'))
 
   // ---------- 시연 API 연결 확인 : 끊기는 순간 막대를 잠깐 올려 알린다 ----------
   let Health: Record<string, unknown> | null = null

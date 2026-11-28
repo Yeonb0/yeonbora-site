@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { TabKeys, parseHash, resolveStart } from '../stage'
+import { TabKeys, describeApi, parseHash, resolveStart, shouldPoll } from '../stage'
 import { Weeks, pad } from '../data'
 
 describe('parseHash', () => {
@@ -30,6 +30,34 @@ describe('첫 화면 · 탭 순서', () => {
     expect(resolveStart('#slides-99', 2, ['01'])).toEqual({ tab: 'slides', slide: 0, week: null })
     expect(resolveStart('#wiki-04', 2, ['01', '07'])).toEqual({ tab: 'wiki', slide: 0, week: '01' })
     expect(resolveStart('#slides-2', 2, ['01'])).toEqual({ tab: 'slides', slide: 1, week: null })
+  })
+})
+
+describe('공개 시연 서버 상태', () => {
+  it('연결되면 모델을 적는다', () => {
+    expect(describeApi('up', { model_id: 'x/y', base_model_id: 'Qwen3-8B' })).toEqual({
+      dot: 'ok',
+      line: '미리 돌린 볼트 : 로컬 Qwen3-8B, 라이브 : x/y',
+    })
+  })
+
+  it('모델 정보가 없어도 깨지지 않는다', () => {
+    expect(describeApi('up', { status: 'ok' }).line).toBe('연결됨, 모델 정보 없음')
+    expect(describeApi('up', null).line).toBe('연결됨, 모델 정보 없음')
+  })
+
+  it('깨우는 중은 오류처럼 보이지 않는다', () => {
+    expect(describeApi('waking', null)).toEqual({ dot: 'wait', line: '서버를 깨우는 중입니다 (최대 1분)' })
+  })
+
+  it('끊김 · 확인 전', () => {
+    expect(describeApi('down', null).dot).toBe('down')
+    expect(describeApi('unknown', null).dot).toBe('wait')
+  })
+
+  it('숨은 탭에서는 확인하지 않는다', () => {
+    expect(shouldPoll('hidden')).toBe(false)
+    expect(shouldPoll('visible')).toBe(true)
   })
 })
 

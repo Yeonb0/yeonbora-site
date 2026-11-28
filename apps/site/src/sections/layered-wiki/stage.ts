@@ -7,7 +7,29 @@ export type Tab = 'home' | 'demo' | 'slides' | 'wiki'
 export const TabKeys: Record<string, Tab> = { '0': 'home', '1': 'demo', '2': 'slides', '3': 'wiki' }
 const HealthEveryMs = 5000
 const HealthTimeoutMs = 2000
+// 공개 시연 서버 (Cloud Run) 는 최소 인스턴스 0 : 첫 요청은 컨테이너를 깨우느라 수십 초 걸린다 (설계 9.4)
+const FirstHealthTimeoutMs = 60000
 const DownFlashMs = 3000
+
+export type ApiState = 'unknown' | 'waking' | 'up' | 'down'
+
+// 시연 카드 · 막대 점에 쓰는 상태 문구 : 모델 고지 (가이드 26쪽 AI 사용 고지, 설계 9.3)
+export const describeApi = (
+  State: ApiState,
+  Health: Record<string, unknown> | null,
+): { dot: 'ok' | 'wait' | 'down'; line: string } => {
+  if (State === 'waking') return { dot: 'wait', line: '서버를 깨우는 중입니다 (최대 1분)' }
+  if (State === 'unknown') return { dot: 'wait', line: '서버 상태를 확인하는 중' }
+  if (State === 'down') return { dot: 'down', line: '시연 서버에 연결하지 못했습니다' }
+  const Model = typeof Health?.model_id === 'string' ? Health.model_id : ''
+  const Base = typeof Health?.base_model_id === 'string' ? Health.base_model_id : ''
+  // 옛 서버는 model_id 가 없다 : 깨지지 않고 그렇다고 적는다
+  if (!Model) return { dot: 'ok', line: '연결됨, 모델 정보 없음' }
+  return { dot: 'ok', line: Base ? `미리 돌린 볼트 : 로컬 ${Base}, 라이브 : ${Model}` : `라이브 : ${Model}` }
+}
+
+// 숨은 탭에서는 상태 확인을 멈춘다 : 열어 둔 채 다른 탭에 있을 때 Cloud Run 을 계속 깨워 두지 않게
+export const shouldPoll = (Visibility: DocumentVisibilityState): boolean => Visibility === 'visible'
 
 // 입력창에 포커스가 있으면 단축키를 모두 무시한다 : 회의록을 붙여 넣다가 탭이 바뀌지 않게
 export const isTyping = (T: EventTarget | null): boolean => {
@@ -59,6 +81,8 @@ export function mountStage(Root: HTMLElement): () => void {
   const TocLinks = [...Root.querySelectorAll<HTMLAnchorElement>('.lw-toc a[data-week]')]
   const WeeksEl = [...Root.querySelectorAll<HTMLElement>('.lw-week')]
   const ApiBase = Root.dataset.apiBase ?? ''
+  const CardStatus = Root.querySelector<HTMLElement>('[data-card-status]')
+  const OfflineStatus = Root.querySelector<HTMLElement>('[data-offline-status]')
 
   let Tab: Tab = 'home'
   let Slide = 0
@@ -168,16 +192,22 @@ export function mountStage(Root: HTMLElement): () => void {
   for (const B of [...Tabs, ...Cards]) on(B, 'click', () => showTab(B.dataset.tab as Tab))
 
   // ---------- 시연 API 연결 확인 : 끊기는 순간 막대를 잠깐 올려 알린다 ----------
-  const setApi = (Up: boolean) => {
+  let Health: Record<string, unknown> | null = null
+  const paintApi = () => {
+    const { line } = describeApi((Root.dataset.api ?? 'unknown') as ApiState, Health)
+    if (CardStatus) CardStatus.textContent = line
+    if (OfflineStatus) OfflineStatus.textContent = line
+  }
+  const setApi = (Next: ApiState) => {
     const Prev = Root.dataset.api
-    const Next = Up ? 'up' : 'down'
-    if (Prev === Next) return
     Root.dataset.api = Next
-    if (Up && Frame && !Frame.src) {
+    paintApi()
+    if (Prev === Next) return
+    if (Next === 'up' && Frame && !Frame.src) {
       Frame.src = Frame.dataset.src ?? ''
       Root.dataset.demo = 'loaded'
     }
-    if (!Up && Prev === 'up' && Tab !== 'home') {
+    if (Next === 'down' && Prev === 'up' && Tab !== 'home') {
       setBar(true)
       clearTimeout(FlashTimer)
       FlashTimer = window.setTimeout(() => {
@@ -186,21 +216,45 @@ export function mountStage(Root: HTMLElement): () => void {
       }, DownFlashMs)
     }
   }
+  let First = true
+  let Checking = false
   const check = async () => {
+    // 앞 확인이 끝나지 않았으면 겹쳐 보내지 않는다 (첫 확인은 최대 60초)
+    if (Checking) return
+    Checking = true
+    const Waking = First
+    First = false
+    if (Waking) setApi('waking')
     const Ctl = new AbortController()
-    const Timer = setTimeout(() => Ctl.abort(), HealthTimeoutMs)
+    const Timer = setTimeout(() => Ctl.abort(), Waking ? FirstHealthTimeoutMs : HealthTimeoutMs)
     try {
       const R = await fetch(`${ApiBase}/health`, { cache: 'no-store', signal: Ctl.signal })
-      setApi(R.ok)
+      if (R.ok) Health = (await R.json()) as Record<string, unknown>
+      setApi(R.ok ? 'up' : 'down')
     } catch {
-      setApi(false)
+      setApi('down')
     } finally {
       clearTimeout(Timer)
+      Checking = false
     }
   }
-  void check()
-  const Poll = window.setInterval(check, HealthEveryMs)
-  Off.push(() => clearInterval(Poll), () => clearTimeout(FlashTimer))
+  let Poll = 0
+  const startPoll = () => {
+    if (Poll) return
+    void check()
+    Poll = window.setInterval(check, HealthEveryMs)
+  }
+  const stopPoll = () => {
+    clearInterval(Poll)
+    Poll = 0
+  }
+  // visibilitychange 는 WindowEventMap 에 없어 on() 대신 직접 붙이고 뗀다
+  const onVisibility = () => (shouldPoll(document.visibilityState) ? startPoll() : stopPoll())
+  document.addEventListener('visibilitychange', onVisibility)
+  Off.push(() => document.removeEventListener('visibilitychange', onVisibility))
+  if (shouldPoll(document.visibilityState)) startPoll()
+  else paintApi()
+  Off.push(stopPoll, () => clearTimeout(FlashTimer))
 
   // ---------- 설명 : 목차, 한 판만 넓히기 ----------
   for (const A of TocLinks) {

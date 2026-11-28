@@ -19,8 +19,9 @@ export const Weeks: Week[] = [
 
 export const RepoUrl = 'https://github.com/Yeonb0/layered-wiki-harness'
 
-// 시연 API : 발표 PC 의 하니스 serve.demo_api (--cors-origin https://yeonbora.dev)
-export const ApiBase = 'http://localhost:8090'
+// 시연 API : 공개 시연 서버 (Cloud Run, 하니스 deploy/demo-cloudrun, --front direct). 설계 9.4
+// 매핑이 막히면 *.run.app 주소로 이 값만 바꾼다 (scripts/demo-sync.mjs 의 ApiBase 와 같게)
+export const ApiBase = 'https://demo-api.yeonbora.dev'
 export const DemoSrc = '/projects/layered-wiki/demo/index.html'
 
 // 주차 번호를 해시 · 파일 이름에 쓰는 두 자리로

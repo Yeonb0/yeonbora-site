@@ -33,13 +33,18 @@ export const originalUrlOf = (categories: string[], fileName: string): string =>
 }
 
 // 사이트 slug : 날짜 + [분류] 접두어를 뺀 제목, 소문자, 글자 · 숫자 밖의 연속은 하이픈 하나
-export const siteSlugOf = (fileName: string): string => {
-  const { day, stem } = stemParts(fileName)
-  const Rest = stem
-    .replace(/^\[[^\]]*\]-?/, '')
+const slugPart = (s: string) =>
+  s
+    .replace(/^\[[^\]]*\][-\s]?/, '')
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, '-')
     .replace(/^-+|-+$/g, '')
+
+// 파일명이 접두어뿐이면 (2026-03-18-[dm].md) 제목에서 만든다
+export const siteSlugOf = (fileName: string, title = ''): string => {
+  const { day, stem } = stemParts(fileName)
+  const Rest = slugPart(stem) || slugPart(title)
+  if (!Rest) throw new Error(`slug 를 만들 수 없습니다 : ${fileName}`)
   return `${day}-${Rest}`
 }
 
@@ -175,7 +180,7 @@ export const convertPost = (Post: JekyllPost, Opts: { hasFile: (slug: string, na
   const Rule = Categories[Post.category]
   if (!Rule) throw new Error(`categories.ts 에 없는 폴더입니다 : ${Post.category}`)
   const { data, body } = splitPost(Post.text)
-  const Slug = siteSlugOf(Post.fileName)
+  const Slug = siteSlugOf(Post.fileName, String(data.title ?? ''))
   const Cats = toList(data.categories)
   const Series = data.series === undefined || data.series === null ? undefined : String(data.series).trim()
   const Ctx = (Series && Rule.seriesContext?.[Series]) || { context: Rule.context, course: Rule.course }

@@ -39,7 +39,7 @@ x + 1 = 2 와 같은 명제는 값이 배정되지 않은 변수(x)가 존재하
 
 로 표기된다.
 
-![](https://velog.velcdn.com/images/yeonbo_ra/post/5fa14fd5-65c9-4396-bebf-d89e33a0ccd2/image.png)
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-cb192989.png)
 
 **논리곱**
 
@@ -51,7 +51,7 @@ p ∧ q
 
 로 표기된다. 이는 'p and q'를 의미한다.
 
-![](https://velog.velcdn.com/images/yeonbo_ra/post/2ab56e45-4214-4183-9cc4-1f136e366402/image.png)
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-8aa4acd9.png)
 
 **논리합**
 
@@ -63,7 +63,7 @@ p ∨ q
 
 로 표기된다. 이는 'p or q'를 의미한다.
 
-![](https://velog.velcdn.com/images/yeonbo_ra/post/c4f5fe9d-2a37-4766-91c4-65368858f7f2/image.png)
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-8c9e223c.png)
 
 영어에서 or은 포괄적 논리합 / 베타적 논리합의 의미로 사용될 수 있다. 논리합 ∨은 포괄적 논리합에 대응한다.
 
@@ -85,7 +85,7 @@ p ⊕ q
 
 로 표기된다. 이는 ‘p exclusive-or q’를 의미한다.
 
-![](https://velog.velcdn.com/images/yeonbo_ra/post/ac9f15d5-c8a1-485e-8de7-aa726ccd276e/image.png)
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-ca742c1d.png)
 
 **조건문(함축)**
 
@@ -97,7 +97,7 @@ p → q
 
 로 표기된다. 이는 ‘if p, then  q’를 의미한다. 이때 p를 가정, q를 결론이라고 한다.
 
-![](https://velog.velcdn.com/images/yeonbo_ra/post/608e92cf-7485-4d8b-8fef-c4bb4b50fef8/image.png)
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-0147f863.png)
 
 - p→q 의 영어 표현들
   - if p, q / q if p / if p, then q
@@ -121,7 +121,7 @@ p ↔ q
 
 로 표기된다. 이는 ‘p if and only if(iff) q’를 의미한다.
 
-![](https://velog.velcdn.com/images/yeonbo_ra/post/f636492a-1337-4ad6-9a8d-5c384e0660a5/image.png)
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-c25cf3e9.png)
 
 ### 비트(bit)와 비트 연산자
 
@@ -130,7 +130,7 @@ p ↔ q
 
 - 0은 `거짓`, 1은 `참`을 의미한다.
 - \+은 'or'을 의미하고, · 은 'and'를 의미한다
-![](https://velog.velcdn.com/images/yeonbo_ra/post/e20ed3aa-81df-4c7d-8171-40a05c82cf14/image.png)
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-7402137b.png)
 
 **비트 문자열** : 0개 이상의 비트를 갖는 비트열
 

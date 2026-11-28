@@ -287,7 +287,7 @@ float sum(float list[], int n){
 - 단계 수 테이블 방식 : 명령문에 대한 단계수(s/e, steps/execution), 빈도수(명령문이 수행되는 횟수, frequency)
   - s/e * 빈도수 = 총 단계 수 (total steps)
   - 
-![](https://velog.velcdn.com/images/yeonbo_ra/post/45770e01-6c03-46d3-8b4b-516eb624cd23/image.png)
+![](../../_assets/jekyll/2026-03-18-basic-concepts/image-24fc209e.png)
 
 - 같은 함수라도 case에 따라 step count가 다를 수 있다.
 
@@ -304,7 +304,7 @@ float sum(float list[], int n){
   - 3n + 2 = O(n)
   - 10n<sup>2</sup> + 4n + 2 = O(n<sup>2</sup>)
   - 6 $\cdot$ 2<sup>n</sup> + 4n<sup>2</sup> + 2 = O(2<sup>n</sup>)
-![](https://velog.velcdn.com/images/yeonbo_ra/post/497c63eb-c1af-44f5-a7e8-f0cd101a10ec/image.png)
+![](../../_assets/jekyll/2026-03-18-basic-concepts/image-2102ccf7.png)
 
 ### Big-Omega
 
@@ -402,11 +402,11 @@ int main(void){
 ### 4.4 실용적 복잡도
 
 
-![](https://velog.velcdn.com/images/yeonbo_ra/post/da35dc0d-55cb-4007-a87a-6e8570fa71e7/image.png)
+![](../../_assets/jekyll/2026-03-18-basic-concepts/image-c9685ecd.png)
 
-![](https://velog.velcdn.com/images/yeonbo_ra/post/74ab5420-a837-4f30-9d08-9d669b00c267/image.png)
+![](../../_assets/jekyll/2026-03-18-basic-concepts/image-04024400.png)
 
-![](https://velog.velcdn.com/images/yeonbo_ra/post/02d9f3b2-99a2-407c-b84b-ccdd7f08a1a0/image.png)
+![](../../_assets/jekyll/2026-03-18-basic-concepts/image-a6bb508c.png)
 
 ## 5. Performance Measurement
 

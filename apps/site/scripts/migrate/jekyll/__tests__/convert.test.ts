@@ -33,6 +33,8 @@ describe('slug', () => {
     expect(siteSlugOf('2026-01-19-Stack & Queue.md')).toBe('2026-01-19-stack-queue')
     expect(siteSlugOf('2026-01-18-boj-1000.md')).toBe('2026-01-18-boj-1000')
     expect(siteSlugOf('2026-02-05-[network]-물리-계층-&-데이터-링크-계층.md')).toBe('2026-02-05-물리-계층-데이터-링크-계층')
+    expect(siteSlugOf('2026-03-18-[dm].md', '[DM] Propositional Logic')).toBe('2026-03-18-propositional-logic')
+    expect(() => siteSlugOf('2026-03-18-[dm].md')).toThrow()
   })
 })
 

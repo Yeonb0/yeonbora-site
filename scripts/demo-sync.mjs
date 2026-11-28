@@ -1,5 +1,6 @@
 // demo_ui (하니스 저장소) 를 빌드해 사이트의 시연 탭 자리에 복사한다
-// 사용 : pnpm demo:sync <하니스 저장소 경로>
+// 사용 : pnpm demo:sync <하니스 저장소 경로> [--api-base <url>]
+//   --api-base : 시연 API 주소를 바꿀 때만 (예 : 도메인 매핑이 막혀 *.run.app 을 쓸 때, 로컬 시연 http://localhost:8090)
 // 설계 : docs/superpowers/specs/2026-11-27-layered-wiki-project-page-design.md 5.4
 //   - 하니스의 vite 설정 · 소스는 바꾸지 않는다 (--base 는 CLI 로)
 //   - 나눔스퀘어네오 OTF 는 복사하지 않는다 (OFL 재배포 결정, 2026-10-23)
@@ -10,7 +11,8 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const Base = '/projects/layered-wiki/demo/'
-const ApiBase = 'http://localhost:8090'
+// 공개 시연 서버 (설계 9.4) : apps/site/src/sections/layered-wiki/data.ts 의 ApiBase 와 같게
+const DefaultApiBase = 'https://demo-api.yeonbora.dev'
 // 사이트가 쓰는 네이버 글꼴 CSS : iframe 은 사이트 문서와 따로라 다시 건다
 const FontCss = 'https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css'
 // 복사하지 않는 폴더 (빌드 결과 기준)
@@ -24,8 +26,16 @@ const fail = (msg) => {
   process.exit(1)
 }
 
-const Harness = process.argv[2]
-if (!Harness) fail('하니스 저장소 경로가 필요하다 : pnpm demo:sync ~/layered-wiki')
+const Args = process.argv.slice(2)
+let ApiBase = DefaultApiBase
+const ApiAt = Args.indexOf('--api-base')
+if (ApiAt !== -1) {
+  ApiBase = Args[ApiAt + 1] ?? ''
+  if (!/^https?:\/\/[^\s/]+$/.test(ApiBase)) fail(`--api-base 는 끝에 / 가 없는 http(s) 주소여야 한다 : ${ApiBase}`)
+  Args.splice(ApiAt, 2)
+}
+const Harness = Args[0]
+if (!Harness || Args.length !== 1) fail('하니스 저장소 경로가 하나 필요하다 : pnpm demo:sync ~/layered-wiki [--api-base <url>]')
 const HarnessDir = resolve(Harness)
 const DemoDir = join(HarnessDir, 'demo_ui')
 if (!existsSync(join(DemoDir, 'package.json'))) fail(`demo_ui 를 찾지 못했다 : ${DemoDir}`)
@@ -41,7 +51,7 @@ const Out = mkdtempSync(join(tmpdir(), 'demo-ui-'))
 try {
   console.log(`[demo:sync] npm ci : ${DemoDir}`)
   run('npm', ['ci', '--no-audit', '--no-fund'], { cwd: DemoDir })
-  console.log(`[demo:sync] vite build --base ${Base}`)
+  console.log(`[demo:sync] vite build --base ${Base} (VITE_API_BASE=${ApiBase})`)
   run('npx', ['vite', 'build', '--base', Base, '--outDir', Out, '--emptyOutDir'], {
     cwd: DemoDir,
     env: { ...process.env, VITE_API_BASE: ApiBase },
@@ -62,7 +72,7 @@ try {
     }
     cpSync(join(Out, Name), join(Target, Name), { recursive: true })
   }
-  writeFileSync(join(Target, 'VERSION'), `${Commit}${Dirty ? ' (demo_ui 에 커밋하지 않은 변경 있음)' : ''}\n`)
+  writeFileSync(join(Target, 'VERSION'), `${Commit}${Dirty ? ' (demo_ui 에 커밋하지 않은 변경 있음)' : ''}\napi ${ApiBase}\n`)
   console.log(`[demo:sync] 완료 : ${Target} ← ${Commit.slice(0, 7)}${Dirty ? ' + 변경' : ''}`)
 } finally {
   rmSync(Out, { recursive: true, force: true })

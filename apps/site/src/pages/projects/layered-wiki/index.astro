@@ -66,14 +66,9 @@ const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.ge
     <section class="lw-panel" data-panel="demo" aria-label="시연">
       <div class="lw-offline">
         <div class="lw-offline-body">
-          <h2>시연은 발표 PC 에서만 움직입니다</h2>
-          <p>이 화면은 이 컴퓨터의 시연 API 에 붙어 동작합니다. 아래 서버가 켜지면 몇 초 안에 시연 화면으로 바뀝니다.</p>
-          <ul class="lw-servers">
-            <li><code>:8082</code><span>임베딩 서버. 화면만 보일 때도 필요</span></li>
-            <li><code>:8090</code><span>시연 API, --cors-origin https://yeonbora.dev</span></li>
-            <li><code>:8081</code><span>생성 서버. 라이브 투입 · Q&A 를 보일 때</span></li>
-            <li><code>Dify</code><span>라이브 투입을 보일 때</span></li>
-          </ul>
+          <h2>시연 서버에 연결하지 못했습니다</h2>
+          <p>잠시 뒤 다시 시도합니다. 연결되면 몇 초 안에 시연 화면으로 바뀝니다.</p>
+          <p class="lw-offline-status"><span class="lw-dot" aria-hidden="true"></span><span data-offline-status>서버 상태를 확인하는 중</span></p>
         </div>
       </div>
       <!-- 연결되기 전에는 불러오지 않는다 : 다른 기기에서 빈 시연 화면이 요청을 쏟지 않게 -->

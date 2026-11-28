@@ -2,7 +2,8 @@
 import { z } from 'astro/zod'
 
 export const Fields = ['computer', 'philosophy', 'religion', 'etc'] as const
-export const Sources = ['jekyll', 'velog', 'tistory', 'notion', 'obsidian', 'paper'] as const
+// site : 이 사이트에서 처음 쓴 글 (devlog 등)
+export const Sources = ['jekyll', 'velog', 'tistory', 'notion', 'obsidian', 'paper', 'site'] as const
 // BOJ 글의 티어 : 기술 블로그 BOJ 폴더에서 책 대신 놓인다
 export const Tiers = ['Bronze', 'Silver', 'Gold', 'Platinum'] as const
 
@@ -45,6 +46,11 @@ export const PostSchema = z
     description: z.string().optional(),
     // 인문 블로그 도서관의 책 id (sections/humanities/data.ts 의 Books) : 그 책을 펼치면 글 목록에 나온다
     book: z.string().optional(),
+    // 숨김 : true 면 빌드에서 빠진다 (pnpm dev 에서는 보인다). devlog 초안은 관리자 승인 전까지 true
+    draft: z.boolean().default(false),
+    // 개발일지 (devlog 플러그인) 가 쓰는 키
+    devlog_project: z.string().optional(),
+    devlog_phase: z.union([z.number(), z.string()]).optional(),
   })
   .superRefine((p, ctx) => {
     if (p.context === 'course' && !p.course) ctx.addIssue({ code: 'custom', path: ['course'], message: 'context 가 course 면 course 가 필요하다' })

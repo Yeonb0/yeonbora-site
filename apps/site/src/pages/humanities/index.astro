@@ -1,5 +1,5 @@
 ---
-import { getCollection } from 'astro:content'
+import { getPosts } from '@/lib/content/posts'
 import Layout from '@/sections/humanities/Layout.astro'
 // 확장자를 붙인다 : 윈도우는 대소문자를 구분하지 않는다
 import Library from '@/sections/humanities/Library.tsx'
@@ -14,7 +14,7 @@ const Urls = Object.fromEntries(Object.entries(Files).map(([path, m]) => [path.s
 // 책에 연결된 글 : posts frontmatter 의 book 이 책 id 와 같은 글, 오래된 글부터
 const Known = new Set(Books.map((b) => b.id))
 const Posts: Record<string, PostLink[]> = {}
-for (const p of (await getCollection('posts')).sort((a, b) => a.data.date.getTime() - b.data.date.getTime())) {
+for (const p of (await getPosts()).sort((a, b) => a.data.date.getTime() - b.data.date.getTime())) {
   const Id = p.data.book
   if (!Id) continue
   if (!Known.has(Id)) throw new Error(`posts/${p.id} : 없는 책 id (${Id}). sections/humanities/data.ts 의 Books 에 있는 id 를 쓴다`)

@@ -21,7 +21,7 @@ apps/site/src/viz/<id>/
   review.json                  검토 상태 (저장소 쪽 기록)
 ```
 - 분야 : computer · philosophy · religion · etc
-- 출처 : jekyll · velog · tistory · notion · obsidian · paper
+- 출처 : jekyll · velog · tistory · notion · obsidian · paper · site (이 사이트에서 처음 쓴 글, devlog 등)
 - wiki 는 원래 출처의 폴더 구조를 그대로 둔다 : `wiki/<분야>/<원래 출처의 폴더 경로>/<제목>.md` (obsidian 은 Main 상대 경로 그대로). 주소는 파일명 slug 이므로 폴더를 옮겨도 주소는 바뀌지 않는다 (2026-11-27 결정).
 - 이름 충돌 : 같은 slug 가 둘 이상이면 파일명 뒤에 ` (<폴더>)` 를 붙이고, 원래 이름을 aliases 맨 앞에 넣는다. 폴더는 파일명과 이름이 다른 가장 가까운 상위 폴더이고 `_MOC` 는 `MOC` 로 쓴다. 새 이름도 slug 가 겹치면 멈추고 알린다.
 
@@ -64,9 +64,12 @@ step: 5                     # 시리즈 안 순서 (있을 때만)
 tier: Gold                  # BOJ 글의 티어 : Bronze · Silver · Gold · Platinum
 description: ''             # 기술 블로그 목록 카드의 요약 (없으면 본문 앞부분)
 book: cpr                   # 인문 블로그 도서관의 책 id (있을 때만)
+draft: true                 # 숨김 (있을 때만) : 빌드에서 빠지고 pnpm dev 에서만 보인다
 ---
 ```
 - `source` · `date` 가 비면 빌드가 실패하도록 스키마에서 필수로 둔다.
+- `draft` : devlog 초안처럼 관리자 승인 전 글. posts 를 읽는 곳은 모두 `src/lib/content/posts.ts` 의 `getPosts` 를 써서 draft 를 뺀다. 공개는 draft 줄을 지우는 커밋으로 한다.
+- devlog 글은 `devlog_project` · `devlog_phase` 를 둔다 (devlog 플러그인이 씀).
 - 원래 플랫폼의 분류 · 시리즈 정보는 tags · series 로 옮기고 버리지 않는다.
 - `book` : 인문 블로그 도서관 (`/humanities/`) 에서 그 책을 펼치면 글 목록에 나온다. id 는 `apps/site/src/sections/humanities/data.ts` 의 `Books` 에 있는 것만 쓴다 (없는 id 면 빌드가 멈춘다). 새 책은 `Books` 에 한 줄 + `tools/shelves.py` 로 책장 그림에 제목을 찍어 더한다.
 

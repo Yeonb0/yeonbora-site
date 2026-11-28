@@ -3,11 +3,12 @@ import { getCollection } from 'astro:content'
 import { plainText, type SearchItem } from '@/lib/search/search'
 import { normalizeTopic, topicName } from '@/lib/content/wiki-topics'
 import { formatDate } from '@/lib/content/site-graph'
+import { getPosts } from '@/lib/content/posts'
 
 const TextMax = 400
 
 export async function GET() {
-  const [Posts, Wiki] = await Promise.all([getCollection('posts'), getCollection('wiki')])
+  const [Posts, Wiki] = await Promise.all([getPosts(), getCollection('wiki')])
   const Blog: SearchItem[] = Posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime()).map((p) => {
     const Tech = p.data.field === 'computer'
     return {

@@ -19,6 +19,18 @@ describe('PostSchema', () => {
     expect(PostSchema.safeParse({ ...Post, context: 'course', course: '컴퓨터네트워크' }).success).toBe(true)
   })
 
+  it('draft defaults to false and hides only when true', () => {
+    expect(PostSchema.parse(Post).draft).toBe(false)
+    expect(PostSchema.parse({ ...Post, draft: true }).draft).toBe(true)
+  })
+
+  it('posts written on this site use source site and keep devlog keys', () => {
+    const P = PostSchema.parse({ ...Post, source: 'site', devlog_project: 'factory-game', devlog_phase: 2 })
+    expect(P.source).toBe('site')
+    expect(P.devlog_project).toBe('factory-game')
+    expect(P.devlog_phase).toBe(2)
+  })
+
   it('keeps the original date', () => {
     expect(PostSchema.parse(Post).date.toISOString().slice(0, 10)).toBe('2026-06-24')
   })

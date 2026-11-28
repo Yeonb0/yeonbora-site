@@ -15,8 +15,7 @@ export const getSiteGraph = (): Promise<Graph> =>
     return G
   }))
 
-// 원래 작성일 : 한국 시간 기준 YYYY-MM-DD
-export const formatDate = (d: Date): string => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(d)
+export { formatDate } from './format-date'
 
 // 위키 그래프 화면 데이터 + 왼쪽 트리 : 두 위키 페이지가 같은 값을 쓴다
 export interface WikiTreeData {

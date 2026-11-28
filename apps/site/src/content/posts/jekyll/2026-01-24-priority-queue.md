@@ -3,6 +3,8 @@ title: "[C++] Priority Queue"
 field: computer
 context: self
 topic: c-cpp
+series: C++ STL
+step: 6
 source: jekyll
 originalUrl: https://yeonb0.github.io/c-cpp/c++-priority-queue/
 date: 2026-01-24

@@ -3,6 +3,8 @@ title: "[C++] Algorithm"
 field: computer
 context: self
 topic: c-cpp
+series: C++ STL
+step: 13
 source: jekyll
 originalUrl: https://yeonb0.github.io/c-cpp/c++-algorithm/
 date: 2026-01-24

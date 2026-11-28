@@ -4,6 +4,8 @@ field: computer
 context: course
 course: 자료구조
 topic: data-structure
+series: 자료구조
+step: 6
 source: jekyll
 originalUrl: https://yeonb0.github.io/data-structure/A-Mazing-Problem/
 date: 2026-01-19

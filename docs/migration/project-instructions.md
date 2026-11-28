@@ -57,6 +57,13 @@
 | M6 | 종이 정리본 | 손글씨가 글이 된다 | 1편 이상 스캔 + 전사 · 스캔 원본 보관 |
 
 - 시각화는 이전 작업에서 바로 만들지 않는다. 묶음마다 설명이 약한 곳을 "시각화 후보" 로 PR 에 적고, 사용자가 고른 것만 만든다 (2026-11-27 결정).
+- 깃블로그 이전 (M4) 결정 (2026-11-28)
+  - 이전 도구 : `pnpm migrate:jekyll run <블로그 클론> <_posts 폴더> [--dry-run]` · `externals <블로그> <폴더>` (아직 받지 않은 외부 그림 목록) · `verify <블로그>`. 폴더별 topic · context · course 와 제외할 글은 `apps/site/scripts/migrate/jekyll/categories.ts`.
+  - slug 는 날짜 + `[분류]` 접두어를 뺀 제목 (`2026-06-24-framing-error-control`), originalUrl 은 깃블로그 permalink `/:categories/:title/` 규칙으로 계산한다.
+  - wiki 와 제목이 같은 강의 정리 글은 본문이 달라 둘 다 남기고 posts → wiki 링크로 잇는다. 같은 글이 두 번 올라간 경우는 하나만 남긴다 (PL Preliminaries · CA Computer Abstractions 는 06-24 판, BOJ 1068 은 그림이 있는 01-23 판).
+  - BOJ 문제 그림 등 외부 그림은 `_assets/jekyll/<slug>/` 로 내려받는다. 받은 뒤 `run` 을 다시 돌리면 이미 옮긴 글의 그림 경로만 바뀐다.
+  - 원문 HTML `<img src="../../_assets/...">` 는 remark 플러그인 (HTML 그림) 이 마크다운 그림으로 바꿔 사이트에서 보인다.
+  - devlog 는 M4 이후 이 사이트 `posts/site/` 에 `draft: true` 로 올리고, 관리자가 허락한 글만 draft 를 지워 공개한다 (devlog 플러그인 0.2.0).
 - M3 진행 상황 (2026-11-28) : Main 노트 1,443편 이전 · 원문 대조 (같음 1443 · 없음 0 · 본문 다름 0) · 깨진 링크 0 · 빌드 확인 완료. Obsidian 으로 열어 보기와 Main 저장소 보관이 남았다.
 
 ## 작업 규칙
@@ -75,5 +82,5 @@
 ## devlog
 - Phase는 `.devlog/config.yml` 에 기록한다 (본 사이트 Phase와 구분되도록 id 를 M1 ~ M6 으로).
 - 현재 Phase의 완료 기준이 충족되면 "Phase N이 끝난 것 같습니다"라고 알리고 /devlog:publish phase-N 실행을 제안한다. 직접 실행하지 않는다.
-- M4 완료 전까지 devlog 게시 대상은 기존 Jekyll 깃블로그, 완료 후에는 이 사이트의 posts collection이다.
+- M4 완료 전까지 devlog 게시 대상은 기존 Jekyll 깃블로그, 완료 후에는 이 사이트의 posts collection이다 (`posts/site/`, draft 로 올린 뒤 허락받아 공개).
 - 세션을 마칠 때 이번 세션의 결정과 이유를 /devlog:note 로 남길지 묻는다.

@@ -1,9 +1,14 @@
 project: yeonbora-site
-# M4 (깃블로그 이전) 완료 전까지 게시 대상은 기존 Jekyll 깃블로그
-publish_target: jekyll
+# M4 (깃블로그 이전) 이후 개발일지는 이 사이트 posts/site 에 draft (숨김) 로 올리고, 관리자 허락 후 공개 (devlog 플러그인 0.2.0)
+blog:
+  type: astro
+  repo: Yeonb0/yeonbora-site
+  branch: main
+  posts_dir: apps/site/src/content/posts/site
+  tags: [Astro, TypeScript]
 current_phase: 1
 # 글 옮기기 프로젝트 (docs/migration/project-instructions.md) 의 현재 Phase
-current_migration_phase: M3
+current_migration_phase: M4
 phases:
   - id: 1
     title: 허브 화면

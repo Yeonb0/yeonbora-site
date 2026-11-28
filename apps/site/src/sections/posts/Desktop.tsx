@@ -1,5 +1,5 @@
 // 기술 블로그 바탕화면 섬 : 왼쪽 카테고리 폴더 · 가운데 글 목록 창 · 오른쪽 책 (시리즈) 아이콘
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Glyphs, RecentFolder, TierColors } from "./data";
 import {
   bookTitle,
@@ -19,9 +19,6 @@ import "./desktop.css";
 interface Props {
   posts: DeskPost[];
 }
-
-// 창을 닫았다가 새 폴더에서 다시 여는 간격 (ms)
-const SwitchDelay = 150;
 
 const dot = (d: string) => d.replaceAll("-", ". ") + ".";
 
@@ -152,12 +149,7 @@ export default function Desktop({ posts }: Props) {
   const [Book_, setBook] = useState<string | null>(
     () => parseHash(typeof location === "undefined" ? "" : location.hash).book,
   );
-  const [Open, setOpen] = useState(true);
   const [Dense, setDense] = useState(false);
-  const [Origin, setOrigin] = useState("50% 50%");
-  const WinRef = useRef<HTMLDivElement>(null);
-  const IconRefs = useRef(new Map<string, HTMLButtonElement>());
-  const Timer = useRef<number>(0);
 
   const View = useMemo(
     () =>
@@ -174,32 +166,14 @@ export default function Desktop({ posts }: Props) {
     if (location.hash !== H) history.replaceState(history.state, "", H);
   }, [Folder_, Shown]);
 
-  // 창이 커지기 시작할 점 : 지금 폴더 아이콘의 가운데
-  // 창은 줄어든 채일 수 있어 화면 좌표 대신 변형 전 위치 (offset) 로 잰다. 둘 다 .tech-desk 기준이다
-  useLayoutEffect(() => {
-    const W = WinRef.current;
-    const I = IconRefs.current.get(Folder_);
-    const Nav = I?.parentElement;
-    if (!W || !I || !Nav) return;
-    const X = I.offsetLeft - Nav.scrollLeft + I.offsetWidth / 2 - W.offsetLeft;
-    const Y = I.offsetTop - Nav.scrollTop + I.offsetHeight / 2 - W.offsetTop;
-    setOrigin(`${X}px ${Y}px`);
-  }, [Folder_, Open]);
-
-  useEffect(() => () => clearTimeout(Timer.current), []);
-
   const openFolder = (id: string) => {
     if (id === Folder_) {
       setBook(null);
       return;
     }
-    clearTimeout(Timer.current);
-    setOpen(false);
-    Timer.current = window.setTimeout(() => {
-      setFolder(id);
-      setBook(null);
-      setOpen(true);
-    }, SwitchDelay);
+    // 폴더를 바꾸면 창이 애니메이션 없이 바로 바뀐다
+    setFolder(id);
+    setBook(null);
   };
 
   const CanBack =
@@ -220,9 +194,6 @@ export default function Desktop({ posts }: Props) {
               className="ico"
               data-on={f.id === Folder_}
               aria-pressed={f.id === Folder_}
-              ref={(el) => {
-                if (el) IconRefs.current.set(f.id, el);
-              }}
               onClick={() => openFolder(f.id)}
             >
               <Folder glyph={f.glyph} on={f.id === Folder_} />
@@ -235,9 +206,6 @@ export default function Desktop({ posts }: Props) {
       <div className="pane center">
         <section
           className="win"
-          ref={WinRef}
-          data-open={Open}
-          style={{ transformOrigin: Origin }}
           aria-label={folderName(Folder_)}
         >
           <div className="titlebar">

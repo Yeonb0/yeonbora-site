@@ -17,6 +17,7 @@ export const Glyphs = {
   cpp: 'M13 8a5 5 0 1 0 0 8M16 12h5M18.5 9.5v5',
   java: 'M6 10h10v5a4 4 0 0 1 -4 4h-2a4 4 0 0 1 -4 -4zM16 11h1.5a2 2 0 0 1 0 4H16M9 4c0 2 2 2 2 4M13 4c0 2 2 2 2 4',
   pl: 'M8 8l-4 4l4 4M16 8l4 4l-4 4M14 5l-4 14',
+  language: 'M4 5h16v11H10l-4 4v-4H4zM8 9h8M8 12h5',
   ds: 'M4 5h16v4H4zM4 10h16v4H4zM4 15h16v4H4z',
   dm: 'M4 18l4 -12l4 12M14 12h6M17 9l3 3l-3 3',
   algorithm: Circle(12, 5, 2) + Circle(6, 18, 2) + Circle(18, 18, 2) + 'M12 7v4M12 11l-5 5M12 11l5 5',
@@ -35,6 +36,8 @@ export const Folders: Folder[] = [
   { id: 'cpp', name: 'C / C++', topics: ['c-cpp', 'cpp', 'c', 'c++'], glyph: Glyphs.cpp },
   { id: 'java', name: 'Java', topics: ['java'], glyph: Glyphs.java },
   { id: 'pl', name: 'Programming Language', topics: ['programming-language', 'pl'], glyph: Glyphs.pl },
+  // 언어 자체를 익힌 글 (CSS · HTML · JavaScript 시리즈), 프로그래밍 언어론은 위 pl 폴더에 따로 둔다
+  { id: 'language', name: 'Language', topics: ['web', 'language'], glyph: Glyphs.language },
   { id: 'ds', name: 'Data Structure', topics: ['data-structure', 'ds'], glyph: Glyphs.ds },
   { id: 'dm', name: 'Discrete Math', topics: ['discrete-math', 'dm'], glyph: Glyphs.dm },
   { id: 'algorithm', name: 'Algorithm', topics: ['algorithm'], glyph: Glyphs.algorithm },

@@ -1,5 +1,6 @@
 // 바탕화면에 놓이는 아이콘 목록 : 여기만 고치면 된다
 // kind : course = 과목 글 목록 창, folder = 안에 아이콘이 더 있는 창, link = 다른 방으로 바로 이동
+// blog 가 있는 아이콘은 kind 와 관계없이 기술 블로그의 그 폴더로 이동한다
 // 배열 순서대로 위에서 아래로 놓이고 group 이 바뀌면 다음 열로 넘어간다 : 아이콘 색 (색상) 이 분홍 → 빨강 → 주황 → 노랑 → 초록 → 파랑 → 회색으로 이어지게 놓았다
 import circuitLogo from './logos/circuit.svg?url'
 import dbLogo from './logos/database.svg?url'
@@ -46,16 +47,18 @@ export interface DesktopItem {
   courses: string[]
   // kind 가 link 일 때 이동할 경로
   href?: string
+  // 누르면 열 기술 블로그 폴더 id (sections/posts/data.ts 의 Folders) : 비어 있으면 아직 맞는 폴더가 없다
+  blog?: string
 }
 
 export const DesktopItems: DesktopItem[] = [
   // 이산구조 : 과목 코드 미정
-  { id: 'discrete', label: 'Discrete', group: 1, src: graphLogo, color: '#ff8a3d', desc: '이산구조', kind: 'course', courses: [] },
+  { id: 'discrete', label: 'Discrete', group: 1, src: graphLogo, color: '#ff8a3d', desc: '이산구조', kind: 'course', courses: [], blog: 'dm' },
   { id: 'algo', label: 'Algorithm', group: 1, src: flowLogo, color: '#9d4edd', desc: '알고리즘 설계와 분석 · Algoristro 로 이동', kind: 'link', courses: ['CSE3081'], href: '/algo/' },
-  { id: 'graphics', label: 'Graphics', group: 2, src: ytLogo, color: '#ff3b3b', desc: '기초 컴퓨터 그래픽스', kind: 'course', courses: ['CSE4170'] },
+  { id: 'graphics', label: 'Graphics', group: 2, src: ytLogo, color: '#ff3b3b', desc: '기초 컴퓨터 그래픽스', kind: 'course', courses: ['CSE4170'], blog: 'graphics' },
   // 컴퓨터 네트워크 : 과목 코드 미정
-  { id: 'network', label: 'Network', group: 2, src: httpLogo, color: '#3b82f6', desc: '컴퓨터 네트워크', kind: 'course', courses: [] },
-  { id: 'aout', label: 'a.out', group: 3, src: exeLogo, color: '#b3aed0', desc: '컴퓨터 시스템 개론 · 시스템 프로그래밍', kind: 'course', courses: ['CSE3030', 'CSE4100'] },
+  { id: 'network', label: 'Network', group: 2, src: httpLogo, color: '#3b82f6', desc: '컴퓨터 네트워크', kind: 'course', courses: [], blog: 'network' },
+  { id: 'aout', label: 'a.out', group: 3, src: exeLogo, color: '#b3aed0', desc: '컴퓨터 시스템 개론 · 시스템 프로그래밍', kind: 'course', courses: ['CSE3030', 'CSE4100'], blog: 'system' },
   // 기초 머신러닝, 실전 AI 에이전트 시스템 : 과목 코드 미정
   { id: 'ai', label: 'AI Chat', group: 3, src: claudeLogo, color: '#e0805a', desc: '기초 머신러닝 · AI 에이전트 시스템', kind: 'course', courses: [] },
   // 데이터베이스시스템 : 과목 코드 미정
@@ -63,12 +66,12 @@ export const DesktopItems: DesktopItem[] = [
   // 자료구조 : 과목 코드 미정
   // 디지털회로개론 : 과목 코드 미정, 번개 아이콘은 직접 그린 것
   { id: 'digital', label: 'Digital', group: 4, src: circuitLogo, color: '#ffca28', desc: '디지털회로개론', kind: 'course', courses: [] },
-  { id: 'ds', label: 'Data Structures', group: 5, src: treeLogo, color: '#8bd450', desc: '자료구조', kind: 'course', courses: [] },
+  { id: 'ds', label: 'Data Structures', group: 5, src: treeLogo, color: '#8bd450', desc: '자료구조', kind: 'course', courses: [], blog: 'ds' },
   { id: 'compiler', label: 'Compiler', group: 5, src: buildLogo, color: '#ff8a3d', desc: '기초 컴파일러 구성', kind: 'course', courses: ['CSE4120'] },
   // 운영체제 (Pintos) : 과목 코드 미정
-  { id: 'os', label: 'OS', group: 6, src: consoleLogo, color: '#4ade80', desc: '운영체제 (Pintos)', kind: 'course', courses: [] },
+  { id: 'os', label: 'OS', group: 6, src: consoleLogo, color: '#4ade80', desc: '운영체제 (Pintos)', kind: 'course', courses: [], blog: 'os' },
   { id: 'launcher', label: 'Launcher', group: 6, src: steamLogo, color: '#66c0f4', desc: '소프트웨어공학 · Steam 재구축 팀플', kind: 'course', courses: ['CSE4115'] },
-  { id: 'cpu', label: 'CPU', group: 7, src: cpuLogo, color: '#1f9d6a', desc: '컴퓨터 구조', kind: 'course', courses: ['CSE4010'] },
+  { id: 'cpu', label: 'CPU', group: 7, src: cpuLogo, color: '#1f9d6a', desc: '컴퓨터 구조', kind: 'course', courses: ['CSE4010'], blog: 'architecture' },
   // 프로그래밍 언어론 + 언어들 : 폴더 안 내용은 아래 PlCourse, Langs
   { id: 'pl', label: 'PL', group: 7, src: folderLogo, color: '#ffcb52', kind: 'folder', courses: [] },
 ]
@@ -81,6 +84,8 @@ export interface LangItem {
   // 로고 이미지 주소
   src: string
   color: string
+  // 누르면 열 기술 블로그 폴더 id : 비어 있으면 아직 맞는 폴더가 없다
+  blog?: string
 }
 
 export const PlCourse: DesktopItem = {
@@ -92,17 +97,21 @@ export const PlCourse: DesktopItem = {
   color: '#2fbf8f',
   kind: 'course',
   courses: [],
+  blog: 'pl',
 }
 
 export const Langs: LangItem[] = [
-  { id: 'c', label: 'C', src: cLogo, color: '#7aa2f7' },
-  { id: 'cpp', label: 'C++', src: cppLogo, color: '#5b8def' },
+  { id: 'c', label: 'C', src: cLogo, color: '#7aa2f7', blog: 'cpp' },
+  { id: 'cpp', label: 'C++', src: cppLogo, color: '#5b8def', blog: 'cpp' },
   { id: 'csharp', label: 'C#', src: csharpLogo, color: '#a97cf5' },
   { id: 'python', label: 'Python', src: pythonLogo, color: '#f2c94c' },
   { id: 'html', label: 'HTML', src: htmlLogo, color: '#f28b50' },
   { id: 'javascript', label: 'JavaScript', src: javascriptLogo, color: '#f7df1e' },
   { id: 'typescript', label: 'TypeScript', src: typescriptLogo, color: '#4a9be8' },
-  { id: 'java', label: 'Java', src: javaLogo, color: '#e76f51' },
+  { id: 'java', label: 'Java', src: javaLogo, color: '#e76f51', blog: 'java' },
   { id: 'asm', label: 'x86-64 Assembly', src: asmLogo, color: '#a0a6ad' },
   { id: 'glsl', label: 'GLSL', src: glslLogo, color: '#5fe3b0' },
 ]
+
+// 기술 블로그에서 그 폴더를 연 주소 : 블로그 바탕화면이 해시로 폴더를 연다 (sections/posts/desk.ts 의 toHash)
+export const blogHref = (folder: string): string => `/posts/#${encodeURIComponent(folder)}`

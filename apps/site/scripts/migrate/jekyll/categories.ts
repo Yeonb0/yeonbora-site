@@ -33,6 +33,7 @@ export const Categories: Record<string, CategoryRule> = {
 // 옮기지 않는 글 (같은 글이 두 번 올라간 경우 등) : _posts 상대 경로 → 이유
 export const Excluded: Record<string, string> = {
   'programming-language/2026-03-15-[pl]-preliminaries.md': '2026-06-24 판과 같은 글 (06-24 판만 남김)',
+  'computer-architecture/2026-03-15-[ca]-computer-abstractions-and-technology.md': '2026-06-24 판과 같은 글 (06-24 판만 남김)',
 }
 
 export const Tiers = ['Bronze', 'Silver', 'Gold', 'Platinum'] as const

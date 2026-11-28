@@ -20,6 +20,7 @@ import { getAssets, getGraph, isBacklog, setBacklogPath } from '../../src/lib/co
 import { remarkStripComments } from '../../src/lib/remark/comments'
 import { remarkCallout } from '../../src/lib/remark/callout'
 import { remarkHighlight } from '../../src/lib/remark/highlight'
+import { remarkHtmlImage } from '../../src/lib/remark/html-image'
 import { remarkViz } from '../../src/lib/remark/viz'
 import { remarkWikilink } from '../../src/lib/remark/wikilink'
 
@@ -104,6 +105,7 @@ export function renderPost(file: string, contentDir: string): DraftPost {
       .use(remarkViz, { onWarn: warn })
       .use(remarkCallout)
       .use(remarkHighlight)
+      .use(remarkHtmlImage)
       .use(remarkMath)
       .use(remarkWikilink, { contentDir, getGraph: () => getGraph(contentDir), getAssets: () => getAssets(contentDir), isBacklog: (t: string) => isBacklog(contentDir, t), onBroken: warn })
       .use(remarkRehype, { allowDangerousHtml: true })

@@ -82,7 +82,8 @@ book: cpr                   # 인문 블로그 도서관의 책 id (있을 때�
 - 찾지 못한 링크는 빌드를 멈추지 않고 경고한다. 대상 노트가 Main 에 처음부터 없던 링크는 backlog (나중에 쓸 노트) 로 따로 본다 : 목록은 `docs/migration/wiki-backlog.json`, 리포트는 `reports/wiki-backlog.md`, 사이트에서는 흐린 글자로 표시한다. 그 밖의 실제 깨진 링크는 `reports/broken-links.md` 에 기록한다. "깨진 링크 0" 은 backlog 를 뺀 수로 센다. 두 리포트는 `pnpm build` · `pnpm dev` 를 시작할 때 콘텐츠 폴더에서 다시 계산한다 (커밋하지 않음).
 
 ## 처리기
-- Astro 7 기본 처리기 (Sätteri) 대신 `@astrojs/markdown-remark` 의 `unified()` 를 쓴다. 플러그인 순서 : 주석 제거 → viz → 콜아웃 → 형광펜 → 수식 → 링크. Obsidian `==형광펜==` 은 `<mark>` 로 바뀐다.
+- Astro 7 기본 처리기 (Sätteri) 대신 `@astrojs/markdown-remark` 의 `unified()` 를 쓴다. 플러그인 순서 : 주석 제거 → viz → 콜아웃 → 형광펜 → HTML 그림 → 수식 → 링크. Obsidian `==형광펜==` 은 `<mark>` 로 바뀐다.
+- HTML 그림 : 원문의 `<img src="../../_assets/...">` (상대 경로, `<img>` 만 있는 HTML) 는 마크다운 그림 노드로 바꿔 Astro 가 처리하게 한다 (alt · style · width · height 유지). 원문 파일은 그대로 둔다.
 - smartypants 는 끈다 (원문 보존 : 따옴표 · 줄임표 · 대시를 곡선 · 특수 문자로 바꾸지 않는다). posts 에도 같이 적용된다.
 
 ## 시각화 · 그림

@@ -11,6 +11,7 @@ import { remarkViz } from './src/lib/remark/viz'
 import { remarkCallout } from './src/lib/remark/callout'
 import { remarkHighlight } from './src/lib/remark/highlight'
 import { remarkWikilink } from './src/lib/remark/wikilink'
+import { remarkHtmlImage } from './src/lib/remark/html-image'
 import { findBrokenLinks, getAssets, getGraph, isBacklog, setBacklogPath } from './src/lib/content/index-fs'
 import { writeBrokenReport } from './src/lib/content/broken-report'
 
@@ -40,7 +41,7 @@ export default defineConfig({
   // 게임 방은 프로젝트 방이 되었다 : 옛 주소로 들어오면 넘긴다
   redirects: { '/games': '/projects' },
   integrations: [react(), mdx(), brokenLinks],
-  // Astro 7 기본 처리기 (Sätteri) 대신 remark 파이프라인 : 주석 → viz → 콜아웃 → 형광펜 → 수식 → 링크 순서 (content-rules)
+  // Astro 7 기본 처리기 (Sätteri) 대신 remark 파이프라인 : 주석 → viz → 콜아웃 → 형광펜 → HTML 그림 → 수식 → 링크 순서 (content-rules)
   markdown: {
     // smartypants 는 ' " -- ... 를 바꿔 원문을 해치고 링크 대상도 어긋나게 한다 : 끈다
     processor: unified({
@@ -50,6 +51,7 @@ export default defineConfig({
         [remarkViz, { onWarn: warn }],
         remarkCallout,
         remarkHighlight,
+        remarkHtmlImage,
         remarkMath,
         [remarkWikilink, { contentDir: ContentDir, getGraph: () => getGraph(ContentDir), getAssets: () => getAssets(ContentDir), isBacklog: (/** @type {string} */ t) => isBacklog(ContentDir, t), onBroken: (/** @type {{ file: string, target: string }} */ b) => warn(`찾지 못한 링크 : ${b.file} → ${b.target}`) }],
       ],

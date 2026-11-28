@@ -56,6 +56,11 @@ describe('convertPage', () => {
     expect(C.images).toEqual([{ src: '멀티 (고급)/image.png', name: 'image.png' }])
     expect(C.body).toBe('![image.png](../../_assets/notion/2026-07-07-스프링-부트-4-시작하기/image.png)')
   })
+  it('redacts Google OAuth client id and secret, even in code blocks', () => {
+    const C = conv('```yaml\nclient-id: 123456789012-abcdefghijklmnopqrstuvwxyz012345.apps.googleusercontent.com\nclient-secret: GOCSPX-Ab_cD-ef123\n```')
+    expect(C.body).toBe('```yaml\nclient-id: <GOOGLE_CLIENT_ID>\nclient-secret: <GOOGLE_CLIENT_SECRET>\n```')
+    expect(C.notes).toContainEqual({ kind: 'secret', detail: '2곳' })
+  })
   it('does not touch image syntax inside code blocks', () => {
     const C = conv('```md\n![a](x/image.png)\n```')
     expect(C.body).toBe('```md\n![a](x/image.png)\n```')

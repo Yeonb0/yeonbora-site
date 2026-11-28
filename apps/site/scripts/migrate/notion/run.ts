@@ -15,7 +15,7 @@ import { PostSchema } from '../../../src/lib/content/schemas'
 import { parseWikilinks } from '../../../src/lib/content/wikilink'
 import { splitPost } from '../jekyll/convert'
 import { unwrapLinks } from '../jekyll/run'
-import { convertPage, splitExport, type Converted, type NoteKind } from './convert'
+import { convertPage, redactSecrets, splitExport, type Converted, type NoteKind } from './convert'
 import { Excluded, Groups, Pages } from './pages'
 
 export interface Raw {
@@ -74,9 +74,9 @@ const mdText = (node: MdastNodes): string => {
 
 const textOf = (md: string) => squash(mdText(unified().use(remarkParse).use(remarkGfm).parse(md)))
 
-// 원문 글자 : 제목 · 속성 줄과 템플릿 목차 토글 (- Index) 을 뺀 본문
+// 원문 글자 : 제목 · 속성 줄과 템플릿 목차 토글 (- Index) 을 빼고 비밀 값을 자리 표시로 바꾼 본문
 export const originalText = (md: string): string => {
-  const Body = splitExport(md).body.replace(/^- Index\n/m, '')
+  const Body = redactSecrets(splitExport(md).body).text.replace(/^- Index\n/m, '')
   return textOf(Body)
 }
 
@@ -196,6 +196,7 @@ const NoteTitle: Record<NoteKind, string> = {
   callout: '콜아웃 (<aside>) → > [!note] 아이콘',
   'page-link': 'Notion 페이지 링크 → 글자만',
   'external-image': '바깥 주소 그림 (내려받지 않음)',
+  secret: '비밀 값 (OAuth 클라이언트 ID · 비밀번호) → 자리 표시 (<GOOGLE_CLIENT_ID> 등)',
 }
 
 export const renderReport = (R: NotionBatch, dryRun: boolean): string => {

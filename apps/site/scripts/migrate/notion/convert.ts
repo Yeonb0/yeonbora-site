@@ -2,7 +2,7 @@ import { posix } from 'node:path'
 import { stringify } from 'yaml'
 import { Groups, type Pages } from './pages'
 
-export type NoteKind = 'toc' | 'callout' | 'page-link' | 'external-image'
+export type NoteKind = 'toc' | 'callout' | 'page-link' | 'external-image' | 'secret'
 
 export interface PageMeta {
   id: string
@@ -62,12 +62,31 @@ const isIcon = (line: string) => line.trim() !== '' && line.trim().length <= 4 &
 const ImageRe = /!\[([^\]]*)\]\(((?:[^()\s]|\([^()\s]*\))+)\)/g
 const PageLinkRe = /(?<!!)\[([^\]]*)\]\((https:\/\/(?:app|www)\.notion\.(?:com|so)[^)\s]*|[^)\s]*\.md)\)/g
 
+// 공개 글에 남기면 안 되는 비밀 값 (원문에 실제 값이 적혀 있던 것) : 자리 표시로 바꾼다
+const Secrets: [RegExp, string][] = [
+  [/\b\d{6,}-[a-z0-9]{20,}\.apps\.googleusercontent\.com\b/g, '<GOOGLE_CLIENT_ID>'],
+  [/\bGOCSPX-[A-Za-z0-9_-]+/g, '<GOOGLE_CLIENT_SECRET>'],
+]
+
+export const redactSecrets = (Text: string): { text: string; count: number } => {
+  let Count = 0
+  let Out = Text
+  for (const [Re, Mark] of Secrets)
+    Out = Out.replace(Re, () => {
+      Count++
+      return Mark
+    })
+  return { text: Out, count: Count }
+}
+
 export const convertPage = (md: string, Meta: PageMeta): Converted => {
   const Rule = Groups[Meta.group]
   if (!Rule) throw new Error(`pages.ts 에 없는 묶음입니다 : ${Meta.group}`)
-  const { title, body } = splitExport(md)
+  const { title, body: Raw } = splitExport(md)
   const Slug = siteSlugOf(Meta.date, title)
   const Notes: Converted['notes'] = []
+  const { text: body, count: SecretCount } = redactSecrets(Raw)
+  if (SecretCount) Notes.push({ kind: 'secret', detail: `${SecretCount}곳` })
   const Images: Converted['images'] = []
   const NameOf = new Map<string, string>()
   const Taken = new Set<string>()

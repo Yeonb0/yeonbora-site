@@ -7,7 +7,7 @@ import type { TransitionBeforePreparationEvent } from 'astro:transitions/client'
 import { navigate } from 'astro:transitions/client'
 import Clock from './Clock'
 import { useClockSaver, useTilt } from './fx'
-import { DesktopItems, Langs, PlCourse } from './desktop'
+import { DesktopItems, Langs, PlCourse, blogHref } from './desktop'
 import type { DesktopItem, LangItem } from './desktop'
 import { Icons } from './icons'
 import { PlaceholderPosts } from './placeholder'
@@ -101,6 +101,11 @@ export default function Desktop() {
   }, [])
 
   const openItem = (it: DesktopItem, origins: string[]) => {
+    // 기술 블로그 폴더가 있는 아이콘 : 모니터가 꺼진 뒤 블로그 바탕화면의 그 폴더로 넘어간다
+    if (it.blog) {
+      navigate(blogHref(it.blog))
+      return
+    }
     if (it.kind === 'link' && it.href) {
       navigate(it.href)
       return
@@ -109,7 +114,9 @@ export default function Desktop() {
   }
 
   const openLang = (l: LangItem) =>
-    open({ key: `lang-${l.id}`, kind: 'lang', title: l.label, color: l.color, courses: [], topic: '', tag: l.id, origins: [`lang-${l.id}`, 'pl'] })
+    l.blog
+      ? navigate(blogHref(l.blog))
+      : open({ key: `lang-${l.id}`, kind: 'lang', title: l.label, color: l.color, courses: [], topic: '', tag: l.id, origins: [`lang-${l.id}`, 'pl'] })
 
   const close = useCallback((key: string) => {
     setWins((cur) => cur.map((c) => (c.key === key ? { ...c, closing: true } : c)))

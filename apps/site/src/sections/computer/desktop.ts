@@ -108,7 +108,7 @@ export const Langs: LangItem[] = [
   { id: 'html', label: 'HTML', src: htmlLogo, color: '#f28b50', blog: 'language' },
   { id: 'javascript', label: 'JavaScript', src: javascriptLogo, color: '#f7df1e', blog: 'language' },
   { id: 'typescript', label: 'TypeScript', src: typescriptLogo, color: '#4a9be8' },
-  { id: 'java', label: 'Java', src: javaLogo, color: '#e76f51', blog: 'java' },
+  { id: 'java', label: 'Java', src: javaLogo, color: '#e76f51', blog: 'language' },
   { id: 'asm', label: 'x86-64 Assembly', src: asmLogo, color: '#a0a6ad' },
   { id: 'glsl', label: 'GLSL', src: glslLogo, color: '#5fe3b0' },
 ]

@@ -63,7 +63,7 @@ describe('folderView', () => {
   })
 
   it('빈 폴더는 책도 글도 없다', () => {
-    const V = folderView(Net, 'java', null)
+    const V = folderView(Net, 'language', null)
     expect(V.books).toEqual([])
     expect(V.rows).toEqual([])
     expect(V.count).toBe(0)

@@ -3,6 +3,7 @@ title: "[Java] Java Basics"
 field: computer
 context: self
 topic: java
+series: Java
 source: jekyll
 originalUrl: https://yeonb0.github.io/java/java-java-basics/
 date: 2026-03-18T11:10:00.000+09:00

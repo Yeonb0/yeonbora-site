@@ -7,126 +7,21 @@
   /* 첫 화면 가운데 → 글 화면 오른쪽 카드로 옮겨 갈 때 View Transitions 가 잇는다 */
   view-transition-name: wiki-graph;
 }
-/* 선은 아래 캔버스, 점 · 이름은 위 SVG */
-.wg-canvas,
-.wg-svg {
+/* 점 · 선 · 이름을 모두 캔버스 한 장에 그린다 */
+.wg-canvas {
   position: absolute;
   inset: 0;
-}
-.wg-canvas {
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-.wg-svg {
   display: block;
   width: 100%;
   height: 100%;
   touch-action: none;
   cursor: grab;
 }
-.wg-svg.panning {
-  cursor: grabbing;
-}
-.wg-node {
+.wg-canvas.over {
   cursor: pointer;
 }
-/* 멀리서 보면 점만 작게 (WikiGraph 가 --wg-f 를 0.4 ~ 1 로 바꾼다) */
-.wg-node > circle,
-.wg-node > rect,
-.wg-node > polygon {
-  transform: scale(var(--wg-f, 1));
-}
-.wg-node circle:not([fill]) {
-  fill: var(--w-node);
-}
-/* 첫 화면 : 작성 순서로 하나씩 나타난다 */
-.wg-node.pop {
-  animation: wg-fade 0.5s ease-out both;
-}
-.wg-node.pop > circle,
-.wg-node.pop > rect,
-.wg-node.pop > polygon {
-  animation: wg-grow 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-@keyframes wg-fade {
-  from {
-    opacity: 0;
-  }
-}
-@keyframes wg-grow {
-  from {
-    scale: 0;
-  }
-}
-.wg-node.post rect {
-  fill: var(--w-post);
-}
-.wg-node.ghost {
-  cursor: default;
-}
-/* 코스 노드 : 트리 코스 칸과 같은 마름모 테두리 */
-.wg-node.course polygon {
-  fill: var(--w-pane);
-  stroke: var(--w-fg);
-  stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
-}
-.wg-node.course text {
-  fill: var(--w-fg);
-  font-family: var(--font-base-bold);
-  font-size: 12px;
-}
-/* 멀리서 보면 빈 점은 숨긴다 (호버로 강조한 것은 호버 그룹에 있어 그대로 보인다) */
-.wg-world.far .wg-node.ghost {
-  display: none;
-}
-.wg-node.ghost circle {
-  fill: var(--w-bg);
-  stroke: var(--w-ghost);
-  stroke-width: 1;
-  stroke-dasharray: 2 2;
-  vector-effect: non-scaling-stroke;
-}
-.wg-node.me circle {
-  fill: var(--w-accent);
-}
-.wg-node text {
-  fill: var(--w-sub);
-  font-family: var(--font-base);
-  font-size: 11px;
-  pointer-events: none;
-}
-.wg-node.me text {
-  fill: var(--w-fg);
-  font-family: var(--font-base-bold);
-  font-size: 12px;
-}
-.wg-node.nolabel text {
-  opacity: 0;
-}
-.wg-svg .wg-node.off {
-  opacity: 0 !important;
-  pointer-events: none;
-}
-/* 흐리기는 그룹 하나에 건다 : 카테고리를 확대하면 뒤 그룹이 옅어지고, 글 화면에서는 뒤 그룹을 숨긴다 */
-.wg-back {
-  transition: opacity 0.4s;
-}
-.wg-back.dim {
-  opacity: 0.12;
-}
-.wg-back.gone {
-  display: none;
-}
-.wg-world {
-  transition: opacity 0.25s;
-}
-.wg-svg.focus .wg-world {
-  opacity: 0.22;
-}
-.wg-node.hot text {
-  fill: var(--w-fg);
+.wg-canvas.panning {
+  cursor: grabbing;
 }
 
 /* 글 노드 켜고 끄기 : 노란 정사각형 테두리, 켜지면 채움 */
@@ -172,8 +67,6 @@
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 @media (prefers-reduced-motion: reduce) {
-  .wg-back,
-  .wg-world,
   .wg-posts,
   .wg-posts::before {
     transition-duration: 0.01s !important;

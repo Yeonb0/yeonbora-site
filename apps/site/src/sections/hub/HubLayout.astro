@@ -112,6 +112,7 @@ const Blogs = [
         ))
       }
     </div>
+    <span class="search-edge" aria-hidden="true"></span>
   </div>
   <nav class="blog-panel" id="blog-panel" aria-label="블로그" inert>
     {
@@ -175,6 +176,32 @@ const Blogs = [
     bindEdges(Hub)
     bindBlogs(Hub)
     bindSearch(Hub)
+    hintEdges()
+  }
+
+  // 처음 들어왔을 때 : 네 가장자리 띠가 차례로 차올랐다가 물러나 입구가 있다는 걸 알려 준다
+  // 탭마다 한 번만 (방에 갔다 허브로 돌아올 때는 다시 보여 주지 않는다)
+  const hintEdges = () => {
+    try {
+      if (sessionStorage.getItem('hub-hint')) return
+      sessionStorage.setItem('hub-hint', '1')
+    } catch {
+      return
+    }
+    const Fast = Reduced()
+    const Order: [string, 'width' | 'height', number][] = [
+      ['top', 'height', 62],
+      ['right', 'width', 70],
+      ['bottom', 'height', 70],
+      ['left', 'width', 70],
+    ]
+    Order.forEach(([Side, Prop, Size], i) => {
+      const Band = document.querySelector<HTMLElement>(`.edge-${Side} .edge-band`)
+      Band?.animate(
+        { [Prop]: ['0px', `${Size}px`, `${Size}px`, '0px'], offset: [0, 0.35, 0.6, 1] },
+        { duration: Fast ? 500 : 1500, delay: Fast ? 0 : 350 + i * 200, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+      )
+    })
   }
 
   // 가장자리 입구 : 마우스가 가장자리에 머물면 (또는 누르면) 그 쪽에서 방 색이 차올라 화면을 채운 뒤 넘어간다
@@ -432,6 +459,13 @@ const Blogs = [
     })
     // 검색어가 없을 때 어두운 바깥을 누르면 닫는다
     Panel.querySelector('.search-dim')!.addEventListener('click', close)
+    // 아래쪽 가장자리에 머물면 검색창이 다시 위로 올라간다 (블로그 화면의 오른쪽 가장자리와 같은 방식)
+    const Down = Panel.querySelector<HTMLElement>('.search-edge')!
+    let DownTimer = 0
+    Down.addEventListener('pointerenter', (e) => {
+      if (e.pointerType === 'mouse') DownTimer = window.setTimeout(close, Hold)
+    })
+    Down.addEventListener('pointerleave', () => clearTimeout(DownTimer))
     let Timer = 0
     Top.addEventListener('pointerenter', (e) => {
       if (e.pointerType !== 'mouse') return
@@ -598,6 +632,8 @@ const Blogs = [
     bottom: 0;
     height: 0;
     background: var(--fill);
+    /* 띠는 보이기만 하고 마우스는 입구 자리에서만 받는다 (띠가 커지며 커서 밑으로 들어와도 입구가 열리지 않게) */
+    pointer-events: none;
     transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .edge-bottom:is(:hover, :focus-visible) .edge-band {
@@ -656,9 +692,12 @@ const Blogs = [
     background: none;
     cursor: pointer;
   }
+  /* 마우스가 닿는 자리는 양옆 입구와 겹치지 않게 비워 두고, 띠는 화면 끝까지 채운다 */
   .edge-top .edge-band {
     top: 0;
     bottom: auto;
+    left: -64px;
+    right: -64px;
     height: 0;
   }
   .edge-top:is(:hover, :focus-visible) .edge-band {
@@ -773,6 +812,19 @@ const Blogs = [
   }
   .search.has-q .search-half {
     clip-path: inset(0);
+  }
+  .search-edge {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    height: 48px;
+  }
+  @media (hover: none) {
+    .search-edge {
+      display: none;
+    }
   }
   .search-head {
     display: flex;

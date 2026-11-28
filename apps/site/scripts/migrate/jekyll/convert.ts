@@ -111,8 +111,10 @@ export const rewriteImages = (
     const Url = (Path.startsWith('/') && rootUrl?.(Path)) || Path
     const External = /^https?:\/\//i.test(Url)
     const Key = External ? Url : decode(Path.replace(/^\/+/, '').replace(/^(?:\.\.?\/)+/, '').split(/[?#]/)[0])
-    const Last = (External ? Url.split(/[?#]/)[0] : Key).split('/').pop() ?? 'image'
-    Refs.push({ start, end: start + raw.length, raw, external: External, key: Key, name: cleanName(External ? decode(Last) : Last) })
+    const Last = (External ? Url.split(/[?#]/)[0].replace(/\/+$/, '') : Key).split('/').pop() ?? 'image'
+    // 확장자 없는 외부 주소 (upload.acmicpc.net/<id>/-/preview/) 는 .png 를 붙인다 : Astro 가 확장자로 그림을 처리한다
+    const Name = cleanName(External ? decode(Last) || 'image' : Last)
+    Refs.push({ start, end: start + raw.length, raw, external: External, key: Key, name: External && !/\.[a-z0-9]{2,5}$/i.test(Name) ? `${Name}.png` : Name })
   }
   for (const M of Masked.matchAll(MdImage)) {
     const Off = M[0].indexOf(M[1], M[0].indexOf(']('))

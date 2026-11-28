@@ -69,6 +69,11 @@ describe('rewriteImages', () => {
     expect(R.body).toBe('![](../../_assets/jekyll/s/img_1.png)')
   })
 
+  it('extensionless external urls get .png', () => {
+    const R = rewriteImages('<img src="https://upload.acmicpc.net/560de878/-/preview/">', 's', () => false)
+    expect(R.external[0].name).toBe('preview.png')
+  })
+
   it('root paths can map to the original site', () => {
     const R = rewriteImages('<img src="/upload/201004/pn.PNG">', 's', () => false, (p) => `https://www.acmicpc.net${p}`)
     expect(R.external).toEqual([{ url: 'https://www.acmicpc.net/upload/201004/pn.PNG', name: 'pn.png', fetched: false }])

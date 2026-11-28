@@ -51,6 +51,11 @@ describe('convertPage', () => {
     const C = conv('![a](x/image.png)\n\n![b](y/image.png)')
     expect(C.images.map((i) => i.name)).toEqual(['image.png', 'image-2.png'])
   })
+  it('image folder with parentheses', () => {
+    const C = conv('![image.png](%EB%A9%80%ED%8B%B0%20(%EA%B3%A0%EA%B8%89)/image.png)')
+    expect(C.images).toEqual([{ src: '멀티 (고급)/image.png', name: 'image.png' }])
+    expect(C.body).toBe('![image.png](../../_assets/notion/2026-07-07-스프링-부트-4-시작하기/image.png)')
+  })
   it('does not touch image syntax inside code blocks', () => {
     const C = conv('```md\n![a](x/image.png)\n```')
     expect(C.body).toBe('```md\n![a](x/image.png)\n```')

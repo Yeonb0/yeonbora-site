@@ -58,7 +58,8 @@ const isFence = (line: string) => /^\s*(```|~~~)/.test(line)
 // 아이콘 한 글자 (이모지) 줄
 const isIcon = (line: string) => line.trim() !== '' && line.trim().length <= 4 && !/[\p{L}\p{N}]/u.test(line)
 
-const ImageRe = /!\[([^\]]*)\]\(([^)\s]+)\)/g
+// 주소 안 괄호 한 겹 허용 : 폴더 이름 '멀티프로세스 스케줄링 (고급)'
+const ImageRe = /!\[([^\]]*)\]\(((?:[^()\s]|\([^()\s]*\))+)\)/g
 const PageLinkRe = /(?<!!)\[([^\]]*)\]\((https:\/\/(?:app|www)\.notion\.(?:com|so)[^)\s]*|[^)\s]*\.md)\)/g
 
 export const convertPage = (md: string, Meta: PageMeta): Converted => {

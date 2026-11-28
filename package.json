@@ -14,6 +14,7 @@
     "drafts:bundle": "pnpm --filter site drafts:bundle",
     "drafts:apply": "pnpm --filter site drafts:apply",
     "migrate:obsidian": "pnpm --filter site migrate:obsidian",
+    "migrate:jekyll": "pnpm --filter site migrate:jekyll",
     "demo:sync": "node scripts/demo-sync.mjs"
   }
 }

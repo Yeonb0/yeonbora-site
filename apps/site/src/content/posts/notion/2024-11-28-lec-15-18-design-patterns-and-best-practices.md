@@ -40,10 +40,10 @@ step: 15
     - Avoid duplicating logic
     
 - Poor Design
-    - Tight Coupling
+    - Tight [[결합도|Coupling]]
     - Hard-coded Dependencies
     - Multi-Responsibility
-    - No Abstraction
+    - No [[추상화|Abstraction]]
 
 ## 2. Creational Patterns
 
@@ -58,15 +58,15 @@ step: 15
 - Definition
     - It ensures a class has only one instance throughout the application’s lifecycle and provides a global access point to that instance
 - Key Characteristics
-    - Single Instance : Only one instance of the class is created
+    - Single [[인스턴스|Instance]] : Only one instance of the class is created
     - Global Access : accessible globally through a static method `getInstace()`
-    - Controlled Instantiation : ensure no other can create a new instance
+    - Controlled [[인스턴스화|Instantiation]] : ensure no other can create a new instance
 - When to use
     - Shared Resource
     - Global State Management
 - Advantage
     - Controlled Access
-    - Reduces Memory Overhead
+    - Reduces [[메모리|Memory]] Overhead
     - Consistency
 - Disadventage
     - Global State Isuues
@@ -88,7 +88,7 @@ step: 15
         
         Disadv : Not thread-safe.
         
-    3. Thread-Safe Singleton
+    3. Thread-Safe [[Singleton]]
         - add `synchronized` keyword to ensure thread safety
         
         Adv : Thread-safe
@@ -103,10 +103,10 @@ step: 15
 ### 2) Factory Method
 
 - Definition
-    - It provides an interface for creating objects but allows subclasses to alter the type of objects that will be created
+    - It provides an [[인터페이스|interface]] for creating objects but allows subclasses to alter the type of objects that will be created
     - instead use `new` keyword, use method to create
 - Key Characteristics
-    - Encapsulation of Object Creation
+    - [[캡슐화|Encapsulation]] of [[객체|Object]] Creation
     - Global Access
     - Controlled Instatiation
 - When to Use
@@ -123,7 +123,7 @@ step: 15
     - Scalability
     - Encapsulation
 - Disadvantage
-    - Complexity
+    - [[복잡도|Complexity]]
     - Overhead for Small Application
 - Cases
     - Notification System
@@ -147,7 +147,7 @@ step: 15
     - Concrete Builder : Class, implement Builder
     - Director(optional)
 - Advantage
-    - Readability
+    - [[Readability]]
     - Flexibility
     - Immutability
     - Scalability
@@ -162,9 +162,9 @@ step: 15
 - Definition
     - Design patterns that deal with the composition of classes and objects to form larger structures.
 - Key Characteristic
-    - Composition Over Inheritance
+    - Composition Over [[상속|Inheritance]]
     - Enhance Relationships
-    - Improve Modularity
+    - Improve [[모듈화|Modularity]]
     - Adaptability
 - When to Use
     - Adapt the interface of one class to another
@@ -196,7 +196,7 @@ step: 15
     - Target Interface : interface
     - Adaptee
     - Adapter : implement `Target Interface`
-    - Client
+    - [[클라이언트|Client]]
 - Advantage
     - Reusability
     - Flexibility
@@ -207,7 +207,7 @@ step: 15
 - Cases
     - Media Player
     - Legacy Code Integration
-    - Java IO Streams
+    - [[Java]] IO Streams
     - Payment Systems
 
 ### 2) Decorator
@@ -226,7 +226,7 @@ step: 15
 - Structure
     - Component : interface
     - Concrete Component
-    - Decorator : implements `Component`
+    - [[Decorator]] : implements `Component`
     - Concrete Decorators : exten `Decorator`
 - Advantage
     - Flexibility
@@ -245,7 +245,7 @@ step: 15
     - It allows you to compose objects into tree-like structures to represent part-whole hierarchies
     - It enables clients to treat individual objects and compositions of objects uniformly
 - Key Characteristics
-    - Tree Structure
+    - [[트리|Tree]] Structure
     - Uniformity
     - Recursive Composition
     - Transparency
@@ -256,7 +256,7 @@ step: 15
 - Structure
     - Component : interface
     - Leaf : implement `Component`
-    - Composite : group of `Component` , implement `Component`
+    - [[Composite]] : group of `Component` , implement `Component`
     - Client
 - Advantage
     - Uniformity
@@ -341,7 +341,7 @@ step: 15
     - Want to decouple subject and observers to promote loose coupling
 - Structure
     - Subject : maintain list of obserber, notify to them
-    - Observer : interface, define update method
+    - [[Observer]] : interface, define update method
     - Concrete Subject : implement `subject`
     - Concrete Observer : implement `observer`
 - Advantage
@@ -365,17 +365,17 @@ step: 15
 - Key Characteristics
     - Algorithm Skeleton
     - Abstract and Concrete Steps
-    - Inversion of Control
-    - Code Reuse
-    - Hook Method(Optional)
+    - [[IoC|Inversion of Control]]
+    - Code [[재사용(Reuse)|Reuse]]
+    - [[React Hook|Hook]] [[메소드|Method]](Optional)
 - When to Use
     - Fixed Algorithm + some customized steps
     - Enforce a consistent workflow
     - promote code reus by placing common logic in a base class
 - Structure
-    - Abstract Class(Template Class) : define skeleton of algorithm
+    - [[추상 클래스|Abstract Class]](Template Class) : define skeleton of algorithm
     - Template Mehtod
-    - Abstract Method
+    - [[추상 메소드|Abstract Method]]
     - Concrete Method
     - Concrete Subclasses
 - Advantage

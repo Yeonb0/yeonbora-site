@@ -20,12 +20,12 @@ step: 13
 
 ### ◆ Creating Tables in SQL
 
-- CREATE TABLE
-    - DB에 지정된 열과 데이터 유형으로 새 테이블 정의
+- [[CREATE TABLE]]
+    - [[데이터베이스|DB]]에 지정된 열과 데이터 유형으로 새 테이블 정의
     - 각 열에는 **이름**, **데이터 유형**, 그리고 선택적으로 **제약 조건** 포함.
 - 테이블 구조
-    - Columns(열) : 데이터 필드 정의
-    - Constraints(제약 조건) : 데이터 무결성을 보장하기 위한 규칙 설정
+    - Columns(열) : 데이터 [[필드]] 정의
+    - Constraints(제약 조건) : 데이터 [[무결성]]을 보장하기 위한 규칙 설정
         
         ex) PRIMARY KEY, UNIQUE
         
@@ -152,8 +152,8 @@ private static void runQuery(String query) throws SQLException {
 }
 ```
 
-- **`runQuery`:** 쿼리를 실행하고 결과를 가져오는 함수.
-- **`Statement` 및 `ResultSet`:** SQL 문 실행 및 결과를 저장하는 클래스.
+- **`runQuery`:** 쿼리를 실행하고 결과를 가져오는 [[함수]].
+- **`Statement` 및 `ResultSet`:** [[SQL]] 문 실행 및 결과를 저장하는 [[클래스]].
 
 ## 2. SQL JOIN
 
@@ -190,7 +190,7 @@ ResultSet resultSet = preparedStatement.executeQuery();
 - `customers` 테이블과 `orders` 테이블을 `customer_id`로 연결.
 - 두 테이블에서 매칭되는 행만 결과로 반환.
 - 결과에는 고객 이름(`customers.name`)과 주문 날짜(`orders.order_date`)가 포함됨.
-- INNER JOIN → 교집합
+- [[INNER JOIN]] → 교집합
     
     ```sql
     SELECT employees.emp_id, employees.name, departments.department_name
@@ -221,7 +221,7 @@ ResultSet resultSet = preparedStatement.executeQuery();
 
 - `customers` 테이블의 모든 행과 `orders` 테이블에서 매칭되는 데이터를 결합.
 - `customers` 테이블에 매칭되는 데이터가 없는 경우, `orders` 테이블의 값은 `NULL`로 반환.
-- LEFT JOIN → left 기준 결합
+- LEFT [[JOIN]] → left 기준 결합
     - 한 테이블의 모든 데이터 유지하며 관련 데이터 결합.
     
     ```sql
@@ -258,7 +258,7 @@ ResultSet resultSet = preparedStatement.executeQuery();
 - `employees` 테이블과 `projects` 테이블의 모든 행을 결합.
 - 두 테이블에서 매칭되지 않는 행은 **NULL**로 표시.
 - 양쪽 테이블에 없는 데이터까지 포함하여 결합된 결과를 반환.
-- FULL OUTER JOIN → 합집합
+- FULL [[OUTER JOIN]] → 합집합
     
     ```sql
     SELECT employees.emp_id, employees.name, departments.department_name

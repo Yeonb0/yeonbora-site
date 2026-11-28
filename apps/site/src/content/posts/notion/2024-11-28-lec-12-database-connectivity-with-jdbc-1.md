@@ -21,9 +21,9 @@ step: 12
 ### ◆ Definition of a Database
 
 - 개요
-    - Database : 데이터를 효율적으로 저장, 검색, 관리 할 수 있도록 구성된 데이터의 집합
-    - 관계형 데이터 베이스(SQL) → 테이블 형식
-    - NoSQL 데이터베이스(MongoDB) → 문서 형식
+    - [[데이터베이스|Database]] : 데이터를 효율적으로 저장, 검색, 관리 할 수 있도록 구성된 데이터의 집합
+    - 관계형 데이터 베이스([[SQL]]) → 테이블 형식
+    - [[비관계형 데이터베이스|NoSQL]] 데이터베이스([[MongoDB]]) → 문서 형식
         
         → 다양한 형식 존재
         
@@ -34,12 +34,12 @@ step: 12
     - Centralized Data Management (중앙 집중화 된 데이터 관리)
         - 여러 사용자 & 시스템이 데이터를 일관되게 저장 & 업데이트 & 검색할 수 있도록 지원
         - 온라인 소매, 소셜 미디어, 기업 시스템처럼 협업 또는 대규모 데이터를 처리하는 애플리케이션에 매우 중요
-    - Data Integrity (데이터 무결성)
-        - 고유 ID, 데이터 타입 등의 규칙 & 제약 조건 강제 → 데이터의 정확성 & 일관성 보장
+    - Data [[무결성|Integrity]] (데이터 무결성)
+        - 고유 ID, [[데이터 타입]] 등의 규칙 & 제약 조건 강제 → 데이터의 정확성 & 일관성 보장
         - 데이터 중복 방지, 유효한 데이터 입력 보장. 데이터 테이블 간의 관계 유지.
     - Scalability (확장성)
         - 비즈니스나 애플리케이션이 확장됨에 따라 증가하는 데이터 볼륨을 처리하도록 설계.
-        - 여러 서버에 데이터를 분산시켜 대규모 사용자 기반 지원 가능
+        - 여러 [[서버]]에 데이터를 분산시켜 대규모 사용자 기반 지원 가능
     - Efficient Data Retrieval (효율적인 데이터 검색)
         - 복잡한 쿼리 지원을 통해 특정 데이터를 빠르고 효과적으로 검색 가능.
         - 정렬, 필터링, 그룹화 가능 → 분석 & 데이터 기반 의사결정에 필수적.
@@ -47,11 +47,11 @@ step: 12
 ### ◆ Defining JDBC
 
 - 정의
-    - JDBC(Java Database Connectivity) : 관계형 DB에 연결 & 상호작용 하기 위해 Java에서 제공하는 API
+    - [[JDBC]]([[Java]] Database Connectivity) : 관계형 DB에 연결 & 상호작용 하기 위해 Java에서 제공하는 [[API]]
     - SQL 쿼리 실행, 데이터 검색, DB 업데이트 가능하게 함.
 - 주요 기능
     - DB 연결 : Java 어플과 DB 간의 연결 설정.
-    - SQL 명령 실행 : SELECT, INSERT, UPDATE, DELETE 와 같은 SQL 작업 지원.
+    - SQL 명령 실행 : [[SELECT]], [[INSERT]], UPDATE, DELETE 와 같은 SQL 작업 지원.
     - 데이터 검색 & 업데이트 : Java 코드에서 직접 데이터 읽기 & 수정 가능
 
 ## 2. JDBC Architecture and Components
@@ -62,10 +62,10 @@ step: 12
     - DB 드라이버를 관리 & 연결 설정
     - 적절한 DB 드라이버로 연결 요청을 전달하는 중앙 구성 요소.
 - JDBC Driver
-    - JDBC 호출을 대상 DB에서 이해할 수 있는 형식으로 변환하는 소프트웨어 구성 요소
-    - MySQL, PostgreSQL, Oracle 과 같은 DB에 대해 다양한 드라이버 존재.
+    - JDBC 호출을 대상 DB에서 이해할 수 있는 형식으로 변환하는 [[소프트웨어]] 구성 요소
+    - [[MySQL]], [[PostgreSQL]], Oracle 과 같은 DB에 대해 다양한 드라이버 존재.
 - JDBC API
-    - DB 연결, SQL 명령 실행, 쿼리 결과 관리를 위한 표준 인터페이스 & 클래스 제공.
+    - DB 연결, SQL 명령 실행, 쿼리 결과 관리를 위한 표준 [[인터페이스]] & [[클래스]] 제공.
 
 ### ◆ How JDBC Components Work Together
 
@@ -75,7 +75,7 @@ step: 12
 
 ### ◆ Types of JDBC Drivers
 
-1. JDBC-ODBC Bridge Driver
+1. JDBC-[[ODBC]] Bridge Driver
     - 설명
         - JDBC 호출을 ODBC 호출로 변환.
         - Java 어플과 ODBC 호환 DB 간의 다리 역할
@@ -89,7 +89,7 @@ step: 12
 2. Native-API/Partially Java Driver
     - 설명
         - DB의 API에 특화된 네이티브 코드 라이브러리를 호출하기 위해 Java wrapper 사용.
-        - 클라이언트의 기계에 DB 제공 업체의 클라이언트 라이브러리가 필요함.
+        - [[클라이언트]]의 기계에 DB 제공 업체의 클라이언트 라이브러리가 필요함.
     - 사용 시점
         - 클라이언트 머신에 네이티브 라이브러리가 있는 경우
         
@@ -97,9 +97,9 @@ step: 12
         
     - 주의 사항
         - 플랫폼에 종속적인 라이브러리에 의존 → 클라이언트가 서버가 호환되는 운영 체제에서 실행되어야 함.
-3. Network Protocol/All-Java Driver
+3. Network [[프로토콜|Protocol]]/All-Java Driver
     - 설명
-        - 네트워크 기반 드라이버, 미들웨어 서버와 통신하며 DB와 상호작용.
+        - 네트워크 기반 드라이버, [[미들웨어]] 서버와 통신하며 DB와 상호작용.
         - 여러 DB를 지원해야 하는 클라이언트-서버 아키텍처에서 유리함.
     - 사용 시점
         - 여러 DB에 연결해야 할 때
@@ -113,7 +113,7 @@ step: 12
 4. Thin Driver/Pure Java Driver
     - 설명
         - 순수 Java로 작성된 드라이버. JDBC 호출을 DB에 특화된 프로토콜 호출로 직접 변환
-        - 네이티브 라이브러리나 ODBC 브릿지를 필요로 하지 않아 가장 널리 사용되는 드라이버 유형.
+        - 네이티브 라이브러리나 ODBC [[Bridge|브릿지]]를 필요로 하지 않아 가장 널리 사용되는 드라이버 유형.
     - 사용 시점
         - Java로 현대적 DB에 직접 연결할 때 사용. 대부분 DB가 Type 4 드라이버 제공.
         
@@ -130,7 +130,7 @@ step: 12
 ### ◆ Prerequisites for Establishing a JDBC Connection
 
 - DB Server
-    - DB 서버가 설치되고 실행 중이어야 함(ex. MySQL, PostgreSQL, Oracle)
+    - [[데이터베이스 서버|DB 서버]]가 설치되고 실행 중이어야 함(ex. MySQL, PostgreSQL, Oracle)
     - DB 설정에는 DB 생성, 테이블 생성, 사용자 접근 설정 등이 포함될 수 있음.
 - DB Driver
     - Driver Requirement(드라이버 요구 사항)
@@ -149,19 +149,19 @@ step: 12
 2. 사용 중인 특정 DB에 맞는 JDBC Driver 다운로드
 3. 드라이버를 프로젝트 의존성에 추가
     
-    ex) Java 어플인 경우 `lib` 폴더에 추가, Maven/Gradle 사용해 의존성 관리.
+    ex) Java 어플인 경우 `lib` 폴더에 추가, [[Maven]]/[[Gradle]] 사용해 의존성 관리.
     
 
 ## 4. Establishing a Database Connection
 
 ### ◆ Connection String and Database Credentials
 
-- Connection String
+- Connection [[String]]
     - 형식 : `jdbc:<database-type>://<host>:<port>/<database-name>`
     - 구성 요소
         - `jdbc:` : JDBC 프로토콜을 나타냄
         - `<database-type>` : DB 유형 (ex. mysql, postgresql)
-        - `<host>` : DB 서버의 호스트 이름 또는 IP 주소
+        - `<host>` : DB 서버의 호스트 이름 또는 [[IP 주소]]
         - `<port>` : DB 접근을 위한 포트 번호 (ex. MySQL의 기본 값은 3306)
         - `<database-name>` : 연결할 DB의 이름
     - 예시

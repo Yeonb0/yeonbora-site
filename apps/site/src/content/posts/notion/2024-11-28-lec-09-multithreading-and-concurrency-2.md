@@ -24,7 +24,7 @@ step: 9
     - 두 개 이상의 thread가 동시에 공유 데이터를 접근하고 수정하려 할 때 발생
     - 최종 결과가 thread 실행 타이밍에 따라 달라질 수 있어 예측 불가능 & 일관성 없는 결과
         
-        ex) 두 thread가 동시에 공유된 카운터 변수를 증가시키려고 하면, 연산이 겹쳐서 최종 값이 잘못될 수 있음.
+        ex) 두 thread가 동시에 공유된 카운터 [[변수]]를 증가시키려고 하면, 연산이 겹쳐서 최종 값이 잘못될 수 있음.
         
 - Data Inconsistency(데이터 불일치)
     - 동시 실행 환경에서 공유 자원에 대한 동기화되지 않은 접근은 데이터의 불일치나 손상 초래 가능
@@ -33,7 +33,7 @@ step: 9
         
 - Ensuring Thread Safety(안정성 보장)
     - 동기화는 여러 thread가 동시에 중요한 코드를 실행하지 못하도록 막아줌 → 데이터 안정적 보호
-    - 동기화된 블록이나 메소드는 한 번에 하나의 thread만 접근 허용 → 데이터 불일치 방지
+    - 동기화된 블록이나 [[메소드]]는 한 번에 하나의 thread만 접근 허용 → 데이터 불일치 방지
 
 ### ◆ Synchronized Methods and Blocks
 
@@ -116,10 +116,10 @@ public static void main(String[] args) {
 ### ◆ Using Lock Objects - ReentrantLock
 
 - `ReentrantLock`
-    - `java.util.concurrent.locks` 패키지에 포함된 클래스, `synchronized` 키워드 보다 더 유연한 잠금 메커니즘 제공
+    - `java.util.concurrent.locks` [[패키지]]에 포함된 [[클래스]], `synchronized` 키워드 보다 더 유연한 잠금 메커니즘 제공
     - 잠금(Lock)과 잠금 해제(Unlock)를 수동으로 제어 가능
 - `ReentrantLock` 의 장점
-    1. Explicit Locking(명시적 잠금)
+    1. Explicit [[로킹|Locking]](명시적 잠금)
         - `lock()` 과 `unlock()` 메소드를 사용하여 명시적으로 잠금 설정 & 해제 가능
     2. Try Locking(잠금 시도)
         - `tryLock()` 메소드를 사용하여 잠금 가능 여부 판단 가능.
@@ -145,7 +145,7 @@ public void safeIncrement(){
 - Volatile 키워드
     - 목적
         - `volatile` 은 변수 변경 사항이 모든 thread에서 즉시 확인 가능하도록 보장.
-        - 변수 값이 로컬 캐시가 아닌 메인 메모리에서 직접 읽히거나 쓰여지도록 함.
+        - 변수 값이 로컬 캐시가 아닌 메인 [[메모리]]에서 직접 읽히거나 쓰여지도록 함.
         - `volatile` 로 선언된 변수는 모든 읽기와 쓰기 연산이 메인 메모리에 접근하도록 강제됨
     - 사용 예
         - 여러 thread에서 읽고 쓰는 변수에 대해 atomicity를 요구하지 않는 경우
@@ -244,8 +244,8 @@ public class Store {
     - 동기화를 내부적으로 처리해 코드 단순화
     - 수동으로 잠금 설정 & 조건 확인 X → 오류 및 복잡성 감소
 - 사용법
-    - `BlockingQueue` (ex. `LinkedBlockingQueue`) 를 생산자와 소비자 간의 공유 버퍼로 사용
-    - Queue의 용량이 버퍼 제한으로 작용.
+    - `BlockingQueue` (ex. `LinkedBlockingQueue`) 를 생산자와 소비자 간의 공유 [[버퍼]]로 사용
+    - [[queue|Queue]]의 용량이 버퍼 제한으로 작용.
         - 가득 차면 생산자 자동 대기
         - 비어 있으면 소비자 자동 대기
 
@@ -283,12 +283,12 @@ BlockingQueue<Integer> queue = new LinkedBlockingQueue<>(5);
 ### ◆ Introduction to the Executor Framework
 
 - 정의
-    - `java.util.concurrent` 패키지의 일부, 작업을 thread를 통해 관리하고 실행할 수 있는 고수준의 API 제공
+    - `java.util.concurrent` 패키지의 일부, 작업을 thread를 통해 관리하고 실행할 수 있는 고수준의 [[API]] 제공
     - thread 관리를 추상화하여 개발자가 작업을 제출, thread의 직접적 관리는 필요 X
 - 장점
-    - thread 관리 단순화 → 코드 가독성 향상
-    - 재사용 가능한 thread pool → 시스템 리소스의 효율적 사용 가능
-    - thread 생명 주기 자동 관리 → 리소스 누수 위험 감소
+    - thread 관리 단순화 → 코드 [[Readability|가독성]] 향상
+    - [[재사용(Reuse)|재사용]] 가능한 thread pool → 시스템 리소스의 효율적 사용 가능
+    - thread [[생명 주기]] 자동 관리 → 리소스 누수 위험 감소
 - 핵심 요소
     - `Executor` : `execute(Runnable command` 메소드를 정의해 작업 실행을 관리
     - `ExecutorService` : extends `Executor` , 작업 제출과 종료라는 생명 주기 관리 메소드를 추가 제공.
@@ -360,7 +360,7 @@ BlockingQueue<Integer> queue = new LinkedBlockingQueue<>(5);
 
 - 목적
     - `ForkJoin` FrameWork는 작업을 재귀적으로 작은 단위로 나누어 병렬로 처리 → 결과를 결합
-    - 분할 정복 알고리즘(Divide-and-Conquer), 재귀 정렬 알고리즘, 대규모 데이터의 병렬 처리 등에 유용.
+    - 분할 정복 [[알고리즘]](Divide-and-Conquer), 재귀 정렬 알고리즘, 대규모 데이터의 병렬 처리 등에 유용.
 - `ForkJoinPool`
     - `java.util.concurrent`  패키지에 포함된 특수한 thread pool. `ForkJoinTask` 와 함께 작동.
     - 작은 작업을 병렬 실행 → CPU 사용량 최적화

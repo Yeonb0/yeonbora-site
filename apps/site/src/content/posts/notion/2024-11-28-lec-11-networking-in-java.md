@@ -20,12 +20,12 @@ step: 11
 
 ### ◆ Overview of Java Networking Capabilities
 
-- Java Networking
+- [[Java]] Networking
     - 데이터 교환을 위해 서로 다른 장치나 애플리케이션 간의 연결을 만드는 것.
-    - Java의 네트워킹 기능은 애플리케이션이 로컬 네트워크(LAN) & 인터넷 모두에서 통신할 수 있도록 지원.
-- Java의 Networking API
-    - `java.net` 패키지에서 기본 네트워킹 API 제공. 이를 통해 네트워크 어플 구축 가능.
-    - 클라이언트-서버 통신(ex. 웹 서버)  & peer-to-peer 데이터 교환(ex. 채팅 어플) 모두 지원
+    - Java의 네트워킹 기능은 애플리케이션이 로컬 네트워크([[LAN]]) & 인터넷 모두에서 통신할 수 있도록 지원.
+- Java의 Networking [[API]]
+    - `java.net` [[패키지]]에서 기본 네트워킹 API 제공. 이를 통해 네트워크 어플 구축 가능.
+    - [[클라이언트]]-[[서버]] 통신(ex. [[웹 서버]])  & peer-to-peer 데이터 교환(ex. 채팅 어플) 모두 지원
 - 네트워킹의 역할 : 분산 애플리케이션 구축
     - 여러 어플이 네트워크를 통해 자원을 공유하고 통신
         
@@ -38,7 +38,7 @@ step: 11
 ### ◆ Overview of Key Classes and Interfaces
 
 - `Socket`
-    - 두 기계 간의 통신을 위한 endpoint. TCP 연결을 통해 직접 데이터 전송 가능.
+    - 두 기계 간의 통신을 위한 endpoint. [[TCP]] 연결을 통해 직접 데이터 전송 가능.
     - 신뢰할 수 있는 데이터 전송이 필요한 클라이언트-서버 설정에서 사용.
 - `ServerSocket`
     - 서버 측 class, 클라이언트의 연결 요청 수신
@@ -47,16 +47,16 @@ step: 11
     - 인터넷 리소스를 접근할 수 있는 주소를 나타내는 Uniform Resource Locator(통합 자원 위치 지정자) 표현
     - 파일 다운로드, API 콘텐츠 가져오기 등 웹 리소스 가져오는 데 사용.
 - `HttpURLConnection`
-    - `URLConnection` 의 하위 클래스. HTTP 요청(GET, POST 등) 처리 기능
-    - 웹 서비스와 연결 & 요청 전송, HTTP 응답 처리. REST API와의 상호작용.
+    - `URLConnection` 의 하위 [[클래스]]. [[HTTP 요청]](GET, POST 등) 처리 기능
+    - 웹 서비스와 연결 & 요청 전송, [[HTTP 응답]] 처리. REST API와의 상호작용.
 
 ### ◆ High-Level vs. Low-Level Networking
 
-- Socket 기반 네트워킹
+- [[Socket]] 기반 네트워킹
     - `Socket` 과 `ServerSocket` 사용. 커스터마이징 가능한 저수준 통신 제공
     - 데이터 흐름에 대한 세부 제어 가능. 실시간 통신 & 채팅 어플에 적합
 - URL 기반 네트워킹
-    - 인터넷 상의 리소스에 고수준으로 접근 가능, 소켓 관리 복잡성 추상화
+    - 인터넷 상의 리소스에 고수준으로 접근 가능, 소켓 관리 복잡성 [[추상화]]
     - 파일 다운로드, API와의 상호작용 등 웹 리소스 접근에 적합
 
 ### ◆ Why is Networking Important?
@@ -74,7 +74,7 @@ step: 11
     4. 분산 시스템 
         - 여러 어플이 리소스 공유 & 분산 컴퓨팅 수행
             
-            → 부하 분산 & 클라우드 컴퓨팅 애플리케이션.
+            → [[부하 분산]] & [[클라우드]] 컴퓨팅 애플리케이션.
             
 - Java Networking 장점
     1. 플랫폼 독립성
@@ -103,7 +103,7 @@ step: 11
     - 설명 : 신뢰할 수 있는 연결 지향형 통신 제공
     - 특징 : 데이터 전달 보장, 데이터 순서 유지, 오류 검증 제공
     - 사용 사례 : 웹 서버, 파일 전송, 채팅 어플
-- UDP Socket
+- [[UDP]] Socket
     - 설명 : 비연결형, 빠른 통신 제공, but 데이터 전달 보장 X
     - 특징 : 오류 검증 X, 데이터 순서 유지 X, 데이터 유실 가능성 존재
     - 사용 사례 : 실시간 스트리밍, 온라인 게임, 실시간 센서 데이터
@@ -113,7 +113,7 @@ step: 11
 - 목적
     - `Socket` 클래스는 클라이언트가 서버에 연결하고 양방향 통신을 할 수 있도록 함.
     - 클라이언트 socket은 서버에 연결을 시작, 데이터 송수신 가능하게 함.
-- 메소드
+- [[메소드]]
     - `connect()`
         - socket을 서버의 주소와 포트에 연결.
     - `getInputStream()`
@@ -150,7 +150,7 @@ step: 11
     - `accept()`
         - 클라이언트 연결 요청 대기, 연결 되면 통신 설정
     - `bind()`
-        - `ServerSocket` 을 특정 포트 및 로컬 IP 주소에 바인딩
+        - `ServerSocket` 을 특정 포트 및 로컬 [[IP 주소]]에 바인딩
     - `close()`
         - 서버 소켓을 닫아 더 이상 연결 요청 수신 X
 - Code
@@ -200,7 +200,7 @@ step: 11
         ```
         
 - Client code
-    - 서버에 `Socket` 연결 설정, 메세지 전송, 응답 받고 연결 닫기.
+    - 서버에 `Socket` 연결 설정, [[메세지]] 전송, 응답 받고 연결 닫기.
     - Code
         
         ```java
@@ -228,11 +228,11 @@ step: 11
 
 - 정의
     - URL(Uniform Resource Locator) : 웹 주소, Java 어플이 인터넷 리소스에 접근할 수 있도록 함.
-    - Java의 `URL` 클래스는 리소스에 대한 정보(프로토콜, 호스트, 포트, 파일 경로)를 캡슐화.
+    - Java의 `URL` 클래스는 리소스에 대한 정보([[프로토콜]], 호스트, 포트, 파일 경로)를 [[캡슐화]].
 - 구조
-    - Protocol(프로토콜) : 통신에 사용되는 프로토콜(HTTP, HTTPS, FTP)
-    - Host(호스트) : 리소스를 호스팅하는 서버 이름 / IP 주소
-    - Port(포트) : 서버가 수신 대기 중인 네트워크 포트(선택 사항, 기본값은 80)
+    - Protocol(프로토콜) : 통신에 사용되는 프로토콜(HTTP, HTTPS, [[FTP]])
+    - Host(호스트) : 리소스를 호스팅하는 서버 이름 / [[IP]] 주소
+    - [[Port|Port(포트)]] : 서버가 수신 대기 중인 네트워크 포트(선택 사항, 기본값은 80)
     - File(파일) : 서버의 특정 리소스 경로
 - 메소드
     - `getProtocol()`
@@ -433,7 +433,7 @@ step: 11
     Server: "Echo: Hello, server!"
     ```
     
-- 예외 처리 : `IOExeception` 처리 위해 `try-catch` 블록 사용
+- [[Exception Handling|예외 처리]] : `IOExeception` 처리 위해 `try-catch` 블록 사용
 - 리소스 관리 : 소켓과 스트림은 사용 후 반드시 close.
 
 ## 5. Handling Network Exceptions
@@ -460,7 +460,7 @@ step: 11
 
 - `try-catch` 블록 사용
     - 특정 예외 처리 위해 사용해, 목표에 맞는 응답 & 로깅 구현
-- Graceful Error Handling
+- Graceful [[에러처리|Error Handling]]
     - 사용자에게 친화적인 오류 메세지를 제공 / 대체 동작 수행
 - 리소스 관리
     - 소켓과 스트림을 항상 `finally` 블록에서 닫거나, `try-with-resources` 사용해 오류 발생 여부와 관계없이 리소스 해제.
@@ -470,25 +470,25 @@ step: 11
 ### ◆ Basic Security Measures
 
 - Data Encryption (데이터 암호화)
-    - SSL/TLS 와 같은 암호화 사용해 데이터 전송 보호 & 가로채기, 무단 엑세스 방지
+    - [[TLS|SSL/TLS]] 와 같은 암호화 사용해 데이터 전송 보호 & 가로채기, 무단 엑세스 방지
     - Java는 `SSLSocket` 제공해 안전한 통신 채널 지원
-- Authentication (인증)
+- [[인증|Authentication]] (인증)
     - API 키, 토큰, SSL 인증서 등을 사용해 인증 구현, 허가된 클라이언트와 서버만 연결 허용
-- Access Control (접근 제어)
-    - 특정 IP를 제한하거나 방화벽 사용 → 무단 사용자 연결 방지
+- [[접근 통제|Access Control]] (접근 제어)
+    - 특정 IP를 제한하거나 [[방화벽]] 사용 → 무단 사용자 연결 방지
 - Validation (검사)
     - 공격 및 악의적 입력 방지 위해 들어오는 데이터 항상 검증.
 
 ### ◆ Techniques for Efficient Data Transmission
 
-- Using Buffers (버퍼 사용)
+- Using Buffers ([[버퍼]] 사용)
     - 네트워크로의 직접적 읽기/쓰기 작업 수 감소 → 성능 향상
     - `BufferedInputStream`과 `BufferedOutputStream`을 사용하여 데이터 처리 최적화.
-- Managing Data Packet Sizes (데이터 패킷 크기 관리)
+- Managing Data Packet Sizes (데이터 [[Packet|패킷]] 크기 관리)
     - 데이터가 적절한 크기의 패킷으로 전송되도록 제어 → 네트워크 혼잡 & 지연 감소
-    - 작은 패킷을 배치에 오버헤드 최소화 고려.
-- Minimizing Latency (지연 시간 최소화)
-    - 지연을 줄이기 위해 서버를 사용자 근처에 배치(엣지 서버, CDN)
+    - 작은 패킷을 [[배치 처리|배치]]에 오버헤드 최소화 고려.
+- Minimizing [[Delay|Latency]] (지연 시간 최소화)
+    - 지연을 줄이기 위해 서버를 사용자 근처에 배치(엣지 서버, [[CDN]])
     - 데이터 처리 최적화 → 불필요한 전송 및 처리 지연 방지.
 - Code
     

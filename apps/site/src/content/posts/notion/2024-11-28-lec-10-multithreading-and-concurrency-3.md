@@ -21,7 +21,7 @@ step: 10
 ### ◆ Concurrent Collections
 
 - 목적
-    - 전통적인 Java 컬렉션의 외부 동기화 없이 동시 수정을 처리 할 수 있는 Thread-safe version.
+    - 전통적인 [[Java]] 컬렉션의 외부 동기화 없이 동시 수정을 처리 할 수 있는 Thread-safe version.
     - 다중 thread 환경에서 여러 thread가 동시에 컬렉션을 읽거나 쓸 수 있어야 하는 경우 유용.
 - 종류
     - `ConcurrentHashMap`
@@ -31,7 +31,7 @@ step: 10
             ex) 실시간 어플에서 공유 데이터를 저장 & 업데이트
             
     - `CopyOnWriteArrayList`
-        - ArrayList의 thread-safe 버전, 업데이트 시 배열의 새 복사본 생성. 수정 중에도 안전한 반복 가능.
+        - ArrayList의 thread-safe 버전, 업데이트 시 [[배열]]의 새 복사본 생성. 수정 중에도 안전한 반복 가능.
             
             ex) 읽기 작업이 쓰기 작업보다 훨씬 많은 경우. event listener 목록 유지.
             
@@ -153,7 +153,7 @@ step: 10
 
 - `CountDownLatch`
     - 하나 이상의 thread가 다른 thread에서 특정 작업이 완료될 때까지 기다릴 수 있도록 도와주는 동기화 도구.
-    - 초기화 시 설정된 카운트를 `countDown()`  메소드를 통해 감소, 카운트가 0이 되면 thread 진행 가능
+    - 초기화 시 설정된 카운트를 `countDown()`  [[메소드]]를 통해 감소, 카운트가 0이 되면 thread 진행 가능
     - 사용 예시 : 메인 thread가 여러 작업을 병렬 처리 후, 모든 작업 완료 기다려야할 때 사용
     - Code
         - Main
@@ -231,7 +231,7 @@ step: 10
             
 - `CyclicBarrier`
     - 여러 thread가 공통의 베리어 지점(barrier point)에 도달할 때까지 서로 기다리도록 도와주는 동기화 도구.
-    - 모든 thread가 barrier 도달 시, 함께 진행. barrier 재사용 불가.
+    - 모든 thread가 barrier 도달 시, 함께 진행. barrier [[재사용(Reuse)|재사용]] 불가.
     - 사용 예시 : 데이터 처리 단계 별로 모든 thread가 작업을 완료한 뒤 다음 단계로 진행해야 하는 경우.
     - Code
         - Main
@@ -320,7 +320,7 @@ step: 10
 - 정의
     - 고정된 개수의 thread만 특정 공유 자원에 접근할 수 있도록 제어하는 도구
     - 사용 가능한 permit의 개수 유지. thread는 permit을 얻어 진행, 작업 완료 후 permit을 release 해 다른 thread가 접근할 수 있도록 함.
-- 사례 : 제한된 리소스에 대한 접근 제어. DB 연결, 프린터 등.
+- 사례 : 제한된 리소스에 대한 접근 제어. [[데이터베이스|DB]] 연결, 프린터 등.
 - Code
     - Main
         
@@ -397,10 +397,10 @@ step: 10
 
 1. 공유 데이터 사용 최소화
     - 동기화 문제를 줄이기 위해 공유 데이터 줄이는 것이 중요.
-    - 지역 변수와 불변 객체(immutable objects)를 사용하여 스레드 간 간섭 방지.
-2. 고수준 Concurrenct API 활용
+    - [[지역 변수]]와 불변 객체(immutable objects)를 사용하여 스레드 간 간섭 방지.
+2. 고수준 Concurrenct [[API]] 활용
     - 직접적 thread 관리 대신, `ExecutorService`, `BlockingQueue`, `Concurrent Collections` 와 같은 Java의 고수준 동시성 유틸리티를 사용.
-    - 코드 작성 단순화 & 데드락(deadlock)이나 경쟁 조건(race condition) 같은 일반적인 동시성 문제 줄일 수 있음.
+    - 코드 작성 단순화 & [[교착상태|데드락]](deadlock)이나 경쟁 조건(race condition) 같은 일반적인 동시성 문제 줄일 수 있음.
 3. 확장성과 유지보수성 고려 설계
     - 향후 확장을 염두에 두고 thread 관리 계획.
     - 장시간 잠금(long-running locks)는 병목 현상 유발할 수 있으니 피하기.
@@ -416,7 +416,7 @@ step: 10
 
 - 목적
     - 작업 분할 + 병렬 실행으로 효율적인 정렬
-    - 분할 정복 알고리즘(divide-and-conquer), 배열을 나누고 각 부분을 정렬한 뒤 병합
+    - 분할 정복 [[알고리즘]](divide-and-conquer), 배열을 나누고 각 부분을 정렬한 뒤 병합
 - 작동 방식
     1. 배열 절반 나누기. 절반을 다른 thread로 병렬로 정렬
     2. 정렬된 결과를 병합해 최종 정렬 배열 생성
@@ -514,9 +514,9 @@ step: 10
 ### ◆ Building a Simple Server with Thread Pool
 
 - 목적
-    - Fixed thread pool 사용해 여러 클라이언트 요청 동시 처리.
+    - Fixed thread pool 사용해 여러 [[클라이언트]] 요청 동시 처리.
     - 리소스 사용 제한 → 응답 시간 개선
-    - 서버가 다수의 클라이언트 요청 처리 시, 각 요청을 사용할 수 있는 thread 에 분배해 처리.
+    - [[서버]]가 다수의 클라이언트 요청 처리 시, 각 요청을 사용할 수 있는 thread 에 분배해 처리.
 - 작동 방식
     1. 서버는 들어오는 클라이언트 요청 수신.
     2. 각 요청은 fixed thread pool에 작업으로 제출, 병렬로 처리

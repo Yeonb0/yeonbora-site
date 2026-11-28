@@ -21,8 +21,8 @@ step: 14
 ### ◆ Introduction to PreparedStatement
 
 - 정의
-    - `PreparedStatement` : 미리 컴파일 된 SQL 문, 파라미터화 된 쿼리 지원
-    - SQL 쿼리는 한 번 컴파일 된 후 여러 번 재사용 가능 → 성능 & 보안 모두 개선
+    - `PreparedStatement` : 미리 [[컴파일]] 된 [[SQL]] 문, 파라미터화 된 쿼리 지원
+    - SQL 쿼리는 한 번 컴파일 된 후 여러 번 [[재사용(Reuse)|재사용]] 가능 → 성능 & 보안 모두 개선
 - 장점
     - Performance(성능) : 한 번 컴파일 & 여러 번 재사용 → 반복적 쿼리 실행 시 더 빠르게 실행
     - Security(보안) : SQL 구조 & 데이터 분리 → SQL injection 공격으로부터 보호.
@@ -62,19 +62,19 @@ step: 14
 
 - 파라미터화된 쿼리
     - SQL 명령과 데이터 입력 분리
-    - PlaceHolder `?` 가 파라미터로 사용. 특정 메소드(`setInt` , `setString` ) 통해 값 설정
+    - PlaceHolder `?` 가 파라미터로 사용. 특정 [[메소드]](`setInt` , `setString` ) 통해 값 설정
 - SQL injection 방지 이유
-    - SQL 구조는 DB에 의해 미리 정의 & 컴파일 → 입력값 통한 쿼리 조작 불가능
+    - SQL 구조는 [[데이터베이스|DB]]에 의해 미리 정의 & 컴파일 → 입력값 통한 쿼리 조작 불가능
     - 입력값은 데이터로만 처리, 실행 가능한 SQL 해석 X
 
 ### ◆ Understanding SQL Injection
 
 - 정의
-    - 공격자가 어플 입력 필드(로그인 폼, 검색 필드 등.) 조작해 악의적 SQL 코드 쿼리에 삽입 → 보안 취약점
+    - 공격자가 어플 입력 [[필드]](로그인 폼, 검색 필드 등.) 조작해 악의적 SQL 코드 쿼리에 삽입 → 보안 취약점
     - 공격 성공 시 DB 조작, 민감한 데이터를 노출, 수정, 삭제
 - 작동 원리
     - 공격자는 특수하게 작성된 SQL 코드를 입력 필드에 삽입, 애플리케이션이 쿼리에 이를 추가하도록 유도.
-    - 쿼리가 부적절하게 구성된 경우(예: 문자열 연결 사용), 삽입된 SQL이 쿼리 동작을 변경하여 보안 검사를 우회하거나 예기치 않은 동작 초래 가능.
+    - 쿼리가 부적절하게 구성된 경우(예: [[String|문자열]] 연결 사용), 삽입된 SQL이 쿼리 동작을 변경하여 보안 검사를 우회하거나 예기치 않은 동작 초래 가능.
 - 예시
     
     ```java
@@ -91,10 +91,10 @@ step: 14
         - 공격자는 민감한 정보(사용자 데이터, 신용카드 정보, 회사 기록 등) 탈취 가능
     - Data Manipulation and Corruption (데이터 조작 및 손상)
         - 공격자가 데이터 변경 & 삭제 가능 → 레코드 손상 & 무단 변경
-    - Authentiaction Bypass (인증 우회)
+    - Authentiaction Bypass ([[인증]] 우회)
         - 공격자가 로그인 화면 우회해 유효한 자격 증명 없이 시스템 접근.
     - System Takeover (시스템 장악)
-        - DB 서버에서 추가 명령 실행 → 시스템 장악 가능
+        - [[데이터베이스 서버|DB 서버]]에서 추가 명령 실행 → 시스템 장악 가능
 
 ### ◆ SQL Injection Prevention
 
@@ -108,14 +108,14 @@ step: 14
         ex) 데이터 수정 필요 없는 쿼리는 읽기 전용 계정 사용.
         
 - ORM Tool
-    - ORM(Object-Relational Mapping) 도구 (Hibernate 등)는 파라미터화된 쿼리를 기본적으로 사용 → 더 높은 수준의 추상화 & 보안 제공
+    - ORM([[객체|Object]]-Relational Mapping) 도구 (Hibernate 등)는 파라미터화된 쿼리를 기본적으로 사용 → 더 높은 수준의 [[추상화]] & 보안 제공
 
 ## 2. ResultSet
 
 ### ◆ Introduction to ResultSet
 
 - 정의
-    - DB 쿼리에서 검색된 데이터 저장 JDBC 객체.
+    - DB 쿼리에서 검색된 데이터 저장 [[JDBC]] 객체.
     - 데이터를 행 단위로 탐색 & 추출 가능
 - ResultSet 탐색 방법
     - `next()`: 커서를 다음 행으로 이동.
@@ -139,7 +139,7 @@ step: 14
 ### ◆ Closing ResultSet and Best Practices
 
 - Closing 의 중요성
-    - `ResultSet` 객체는 DB 리소스 사용 → 닫지 않으면 메모리 누수 & 성능 문제 발생
+    - `ResultSet` 객체는 DB 리소스 사용 → 닫지 않으면 [[메모리]] 누수 & 성능 문제 발생
     - 다른 작업에 사용할 수 있도록 리소스 해체
 - 모범 사례
     - 항상 Close Resources: `ResultSet` , `PreparedStatement` , `Connection` 객체는 사용 후 반드시 닫기.
@@ -167,7 +167,7 @@ step: 14
 
 - 정의
     - DB에서 실행되는 일련의 작업. 단일하고 불가분의 작업 단위로 처리.
-    - transaction에 포함된 모든 작업이 성공 or 모두 실패 → 데이터 무결성 보장
+    - transaction에 포함된 모든 작업이 성공 or 모두 실패 → 데이터 [[무결성]] 보장
 - 목적
     - 데이터의 논리적 무결성 관리 + 강화
     
@@ -183,7 +183,7 @@ step: 14
     - DB 규칙과 제약 조건이 transaction이 commit 되기 전에 충족되어야 함.
 - Isolation (격리성)
     - Concurrent Transactions(동시 transactions) : 상호 간섭 없이 독립적으로 실행
-    - Transaction 완료 전 중간 상태는 다른 transaction에서 보이지 않음.
+    - [[트랜잭션|Transaction]] 완료 전 중간 상태는 다른 transaction에서 보이지 않음.
 - Durability (지속성)
     - Persistence(영속성) : 한 번 commit 된 transaction의 결과는 시스템 장애가 발생해도 영구적으로 유지.
 
@@ -194,7 +194,7 @@ step: 14
     - SQL 명령 실행 마다 DB에 자동 커밋
 - 작동 방식
     - 자동 커밋 모드에서는 각`INSERT`, `UPDATE`, `DELETE`, 또는 `SELECT` 문이 실행된 후 즉시 DB에 커밋.
-    - 한 번 커밋된 문장은 롤백 불가.
+    - 한 번 커밋된 문장은 [[ROLLBACK|롤백]] 불가.
 - 사례 : 단순 삽입 or 업데이트과 같이 데이터 일관성이 여러 단계에 의존하지 않는 어플에서 편리.
 
 ### ◆ Manual Transaction Management in JDBC
@@ -291,6 +291,6 @@ step: 14
         
     - **자동 커밋 비활성화**: 여러 명령을 하나의 트랜잭션으로 묶기 위해 `setAutoCommit(false)`를 설정한다.
     - **트랜잭션 처리**: 트랜잭션 내에서 SQL 명령을 실행하고 성공 시 `commit()`, 실패 시 `rollback()`을 호출한다.
-    - **예외 처리**: `try-catch` 블록을 사용해 예외 발생 시에도 리소스를 관리한다.
+    - **[[Exception Handling|예외 처리]]**: `try-catch` 블록을 사용해 예외 발생 시에도 리소스를 관리한다.
     - **자원 해제**: `finally` 블록에서 자동 커밋을 다시 활성화하고 데이터베이스 연결을 닫는다.
-    - **가독성 및 안정성**: `try-with-resources`를 활용하여 `Statement`와 같은 자원을 자동으로 닫는다.
+    - **[[Readability|가독성]] 및 안정성**: `try-with-resources`를 활용하여 `Statement`와 같은 자원을 자동으로 닫는다.

@@ -23,7 +23,7 @@ step: 8
 - Thread
     - 프로그램 실행의 한 시퀀스
     - operating system이 스케쥴할 수 있는 가장 작은 단위
-    - 각각의 자바 application은 최소 1개(main thread)의 thread를 가짐. 그렇지만 동시에 여러 일을 하도록 추가 thread 생성 가능
+    - 각각의 [[Java|자바]] application은 최소 1개(main thread)의 thread를 가짐. 그렇지만 동시에 여러 일을 하도록 추가 thread 생성 가능
 - Multithreading
     - 여러 thread의 동작을 한 번에 하도록 하는 것
     - CPU의 코어를 최대한 활용하는 것
@@ -48,7 +48,7 @@ step: 8
     
     ex) 주식 시장 : 독립적인 여러 주식을 동시에 업데이트
     
-- 웹 서버
+- [[웹 서버]]
     - 여러 사이트를 동시에 켤 수 있음
 - GUI : 보이는 화면 + 안에서 내부적으로 동작하는 코드들
 
@@ -69,7 +69,7 @@ step: 8
 - 각 작업은 각 코어에서 실행. **진짜** 동시 실행
 - 진짜 병렬 처리는 멀티 코어 or 프로세서 하드웨어 요구됨
     
-    ex) 서버 어플에서 다수의 클라이언트 요청이 병렬 처리됨. 각 요청이 다른 코어에서 다른 thread로 처리
+    ex) [[서버]] 어플에서 다수의 [[클라이언트]] 요청이 병렬 처리됨. 각 요청이 다른 코어에서 다른 thread로 처리
     
 - 차이점
     - concurrency : 단일 코어 프로세서에서 여러 작업을 처리하고 실행을 관리하는 것.
@@ -79,8 +79,8 @@ step: 8
 
 ### ◆ Extending Thread Class
 
-- Thread 클래스 상속 + `run()` 메소드 오버라이드 → thread 만듬
-- 직접 어디 thread를 사용할지 정하지는 않음 → OS의 영역
+- Thread [[클래스]] [[상속]] + `run()` [[메소드]] 오버라이드 → thread 만듬
+- 직접 어디 thread를 사용할지 정하지는 않음 → [[운영체제|OS]]의 영역
     
     → extend 는 오직 한 class 만 가능 : not flexible
     
@@ -104,8 +104,8 @@ public class Main {
 
 ### ◆ Implementing Runnable Class
 
-- Thread 클래스 상속과 같은 기능, but interface 로 구현하는 거라 좀 더 flexible
-- Thread 클래스와 마찬가지로 `run()` 메소드를 반드시 오버라이딩 해야함.
+- Thread 클래스 상속과 같은 기능, but [[인터페이스|interface]] 로 구현하는 거라 좀 더 flexible
+- Thread 클래스와 마찬가지로 `run()` 메소드를 반드시 [[오버라이딩]] 해야함.
     - 독립적인 class에만 `Runnable` 을 implement (종속적 X)
 - class 안에 thread를 넣을 수 있음 → 종속성 없애기.
 - 코드가 더 reusable 하고 여러 thread가 같은 일을 하도록 할 수 있다.
@@ -125,7 +125,7 @@ public class Main {
 }
 ```
 
-- Runnable은 함수형 인터페이스 (함수 하나로만 구성된 인터페이스) 기에 람다 표현 사용 가능.
+- Runnable은 함수형 인터페이스 ([[함수]] 하나로만 구성된 인터페이스) 기에 람다 표현 사용 가능.
     - 잡다한 코드 쓰는 걸 줄여줌. 더 간단하고 이해 쉬움!
     
     ```java

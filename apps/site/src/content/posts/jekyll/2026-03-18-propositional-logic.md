@@ -1,0 +1,149 @@
+---
+title: "[DM] Propositional Logic"
+field: computer
+context: course
+course: 이산구조
+topic: discrete-math
+source: jekyll
+originalUrl: https://yeonb0.github.io/discrete-math/dm/
+date: 2026-03-18T11:18:00.000+09:00
+tags:
+  - 이산 구조
+  - 논리 연산자
+  - Discrete-Math
+toc: true
+---
+
+# Module #1: Foundation of Logic
+
+
+## 서론
+
+
+## 1. Basic Definition
+
+
+의문문, 명령문, 감탄문 등은 참/거짓 판정이 불가하기에 명제가 아니다.
+x + 1 = 2 와 같은 명제는 값이 배정되지 않은 변수(x)가 존재하므로 명제가 아니다.
+
+### 논리 연산자
+
+
+**부정**
+
+: p가 명제가 하면 p의 부정(negation)은
+
+```text
+~p
+```
+
+로 표기된다.
+
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-cb192989.png)
+
+**논리곱**
+
+: p, q가 명제면 p와 q의 논리곱(conjunction)은
+
+```text
+p ∧ q
+```
+
+로 표기된다. 이는 'p and q'를 의미한다.
+
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-8aa4acd9.png)
+
+**논리합**
+
+: p, q가 명제면 논리합(disjuction)은
+
+```text
+p ∨ q
+```
+
+로 표기된다. 이는 'p or q'를 의미한다.
+
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-8c9e223c.png)
+
+영어에서 or은 포괄적 논리합 / 베타적 논리합의 의미로 사용될 수 있다. 논리합 ∨은 포괄적 논리합에 대응한다.
+
+### 여러 연산자가 같이 사용될 때
+
+
+부정(~) 기호가 가장 높은 우선순위를 지닌다.
+∧과 ∨이 동시에 사영될을 때는 ∧이 더 높은 우선순위를 지닌다.
+그렇지만 괄호를 잘 사용해 헷갈릴 일이 없도록 하자.
+
+
+**베타적 논리합**
+
+: 베타적 논리합 : p, q가 명제면 p와 q의 베타적 논리합(disjunction)은
+
+```text
+p ⊕ q
+```
+
+로 표기된다. 이는 ‘p exclusive-or q’를 의미한다.
+
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-ca742c1d.png)
+
+**조건문(함축)**
+
+: p, q가 명제면 p와 q의 조건문(implication)은
+
+```text
+p → q
+```
+
+로 표기된다. 이는 ‘if p, then  q’를 의미한다. 이때 p를 가정, q를 결론이라고 한다.
+
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-0147f863.png)
+
+- p→q 의 영어 표현들
+  - if p, q / q if p / if p, then q
+  - p only if q / q provided that p
+  - p is sufficient for q / q is necessary for p
+  - p implies q / q is implied by p
+  - when p, q / q when p / whenever p, q
+- 조건문 p → q에 대해
+  - **역(converse)** : q → p
+  - **이(inverse)** : ~p → ~q
+  - **대우(contrapositive)** : ~q → ~p
+
+
+**상호 조건문**
+
+: p, q가 명제면 p와 q의 상호 조건문(biconditional statement)은
+
+```text
+p ↔ q
+```
+
+로 표기된다. 이는 ‘p if and only if(iff) q’를 의미한다.
+
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-c25cf3e9.png)
+
+### 비트(bit)와 비트 연산자
+
+
+**비트(bit)** : binary digit. 0 또는 1로 구성된 이진수
+
+- 0은 `거짓`, 1은 `참`을 의미한다.
+- \+은 'or'을 의미하고, · 은 'and'를 의미한다
+![](../../_assets/jekyll/2026-03-18-propositional-logic/image-7402137b.png)
+
+**비트 문자열** : 0개 이상의 비트를 갖는 비트열
+
+## 2. Propositional Equivalence
+
+
+- **동치(equivalent)** : 두 개의 복합명제가 `항상 같은 진리값`을 가질 경우 
+- **항진명제(tautology)** : 복합명제를 구성하고 있는 명제 변수가 어떠한 진리값을 갖는다 하여도 전체 복합 명제의 값이 `항상 참`일 때 
+- **모순(contradiction)** : 복합명제를 구성하고 있는 명제 변수가 어떠한 진리값을 갖는다 하여도 전체 복합 명제의 값이 `항상 거짓`일 때
+
+### Equivalence Laws 동치 규칙들
+
+
+**T**는 `항진` 명제, **F**는 `모순` 명제
+
+### 동치로 논리 연산자 정의하기

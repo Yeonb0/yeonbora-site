@@ -1,5 +1,5 @@
 ---
-import { getCollection } from 'astro:content'
+import { getPosts } from '@/lib/content/posts'
 import { getImage } from 'astro:assets'
 import Layout from '@/sections/posts/Layout.astro'
 // 확장자를 붙인다 : 윈도우는 대소문자를 구분하지 않는다
@@ -28,7 +28,7 @@ const thumbOf = async (body: string, filePath?: string): Promise<string | undefi
 
 // 기술 블로그에는 컴퓨터 글만 놓는다 : 인문 글은 /humanities/ 도서관이 맡는다
 const Posts: DeskPost[] = await Promise.all(
-  (await getCollection('posts', (p) => p.data.field === 'computer')).map(async (p) => ({
+  (await getPosts((p) => p.data.field === 'computer')).map(async (p) => ({
     id: p.id,
     title: p.data.title,
     date: formatDate(p.data.date),

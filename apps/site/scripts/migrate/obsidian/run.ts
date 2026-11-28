@@ -51,7 +51,7 @@ const bodyOf = (text: string): string => {
 }
 
 // 비교용 : 코드 펜스 밖의 %% 주석만 있는 줄과 viz 펜스 (뒤 빈 줄 하나까지) 를 빼고 끝 줄바꿈을 정리한다
-const comparable = (body: string): string => {
+export const comparable = (body: string): string => {
   const Out: string[] = []
   let Fence: { mark: string; viz: boolean } | null = null
   let SkipBlank = false

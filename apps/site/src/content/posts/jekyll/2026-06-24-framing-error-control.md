@@ -16,8 +16,6 @@ step: 5
 toc: true
 ---
 
-%% check : Stop-and-Wait · ACK · Timeout · Sequence Number 부분이 위키 노트와 같은 내용 (Notion 원본에서 둘 다 나옴) — 중복 정리 여부 확인 %%
-
 ## ✦ Framing
 
 

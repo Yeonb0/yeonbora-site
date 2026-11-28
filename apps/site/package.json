@@ -10,7 +10,8 @@
     "test": "vitest run",
     "drafts:bundle": "tsx scripts/drafts/bundle.ts",
     "drafts:apply": "tsx scripts/drafts/apply-cli.ts",
-    "migrate:obsidian": "tsx scripts/migrate/obsidian/cli.ts"
+    "migrate:obsidian": "tsx scripts/migrate/obsidian/cli.ts",
+    "migrate:jekyll": "tsx scripts/migrate/jekyll/cli.ts"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.10",

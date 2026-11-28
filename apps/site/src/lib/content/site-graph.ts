@@ -5,18 +5,18 @@ import { toNodes } from './graph-from-collections'
 import { buildWikiGraphData, type WikiGraphData } from './wiki-graph'
 import { buildCourseOutlines, type CourseOutline } from './wiki-courses'
 import { normalizeTopic } from './wiki-topics'
+import { getPosts } from './posts'
 
 let Cached: Promise<Graph> | undefined
 
 export const getSiteGraph = (): Promise<Graph> =>
-  (Cached ??= Promise.all([getCollection('wiki'), getCollection('posts')]).then(([W, P]) => {
+  (Cached ??= Promise.all([getCollection('wiki'), getPosts()]).then(([W, P]) => {
     const G = buildGraph(toNodes(W, P))
     if (G.duplicates.length > 0) throw new Error(`제목 · 파일명 중복 : ${G.duplicates.join(', ')}`)
     return G
   }))
 
-// 원래 작성일 : 한국 시간 기준 YYYY-MM-DD
-export const formatDate = (d: Date): string => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(d)
+export { formatDate } from './format-date'
 
 // 위키 그래프 화면 데이터 + 왼쪽 트리 : 두 위키 페이지가 같은 값을 쓴다
 export interface WikiTreeData {
@@ -27,7 +27,7 @@ export interface WikiTreeData {
 let WikiCached: Promise<WikiTreeData> | undefined
 
 export const getWikiGraph = () =>
-  (WikiCached ??= Promise.all([getCollection('wiki'), getCollection('posts'), getSiteGraph()]).then(([W, P, G]) => {
+  (WikiCached ??= Promise.all([getCollection('wiki'), getPosts(), getSiteGraph()]).then(([W, P, G]) => {
     const WikiBy = new Map(W.map((w) => [w.id, w]))
     const PostBy = new Map(P.map((p) => [p.id, p]))
     const Nodes = toNodes(W, P).map((n) =>

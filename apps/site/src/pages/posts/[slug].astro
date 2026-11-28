@@ -1,4 +1,5 @@
 ---
+import { getPosts } from '@/lib/content/posts'
 import { getCollection, render } from 'astro:content'
 import Layout from '@/sections/posts/Layout.astro'
 // 확장자를 붙인다 : 윈도우는 대소문자를 구분하지 않는다
@@ -11,7 +12,7 @@ import VizMount from '@/components/content/VizMount.astro'
 import { formatDate, getSiteGraph } from '@/lib/content/site-graph'
 
 export async function getStaticPaths() {
-  return (await getCollection('posts')).map((entry) => ({ params: { slug: entry.id }, props: { entry } }))
+  return (await getPosts()).map((entry) => ({ params: { slug: entry.id }, props: { entry } }))
 }
 
 const { entry } = Astro.props
@@ -22,7 +23,7 @@ const Meta = [{ text: formatDate(entry.data.date) }, { text: entry.data.source, 
 
 // 컴퓨터 글은 기술 블로그 바탕화면 창 안에서 읽는다 : 폴더 목록 · 글 수는 목록 화면과 같은 기준
 const OnDesk = entry.data.field === 'computer'
-const Computer = OnDesk ? await getCollection('posts', (p) => p.data.field === 'computer') : []
+const Computer = OnDesk ? await getPosts((p) => p.data.field === 'computer') : []
 const DeskPosts: DeskPost[] = Computer.map((p) => ({ id: p.id, title: p.data.title, date: formatDate(p.data.date), topic: p.data.topic, tags: [], summary: '' }))
 
 // 깃블로그 글 화면의 시리즈 목록 · 이전 / 다음 : 같은 시리즈 글을 step (없으면 날짜) 순서로

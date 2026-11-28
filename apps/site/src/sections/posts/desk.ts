@@ -131,7 +131,11 @@ export const folderView = (all: DeskPost[], folder: string, book: string | null)
 }
 
 // 목록에서는 제목 앞 [카테고리] 머리말을 뗀다 : 폴더 · 경로가 이미 알려 준다
-export const cleanTitle = (title: string): string => title.replace(/^\[[^\]]*\]\s*(?=\S)/, '')
+// 깃블로그 제목의 편 번호 (01_) 를 뗀다 : 순서는 step 과 목록의 / n 으로 보여 준다. 말머리 ([C]) 는 남긴다
+export const stripStep = (title: string): string => title.replace(/^(\[[^\]]*\]\s*)?\d{1,3}_\s*(?=\S)/, '$1')
+
+// 목록 · 창 제목 : 말머리와 편 번호를 모두 뗀다
+export const cleanTitle = (title: string): string => stripStep(title).replace(/^\[[^\]]*\]\s*(?=\S)/, '')
 
 export const bookTitle = (book: string | null): string | null => (book === Loose ? LooseTitle : book)
 

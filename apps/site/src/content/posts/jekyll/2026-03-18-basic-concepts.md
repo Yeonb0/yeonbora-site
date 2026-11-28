@@ -4,6 +4,8 @@ field: computer
 context: course
 course: 자료구조
 topic: data-structure
+series: 자료구조
+step: 1
 source: jekyll
 originalUrl: https://yeonb0.github.io/data-structure/ds-basic-concepts/
 date: 2026-03-18T11:22:00.000+09:00

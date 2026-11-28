@@ -3,6 +3,8 @@ title: "[C++] Unordered Map"
 field: computer
 context: self
 topic: c-cpp
+series: C++ STL
+step: 11
 source: jekyll
 originalUrl: https://yeonb0.github.io/c-cpp/c++-unordered-map/
 date: 2026-01-23

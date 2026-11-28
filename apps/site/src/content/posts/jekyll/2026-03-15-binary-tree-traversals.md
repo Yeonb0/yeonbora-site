@@ -4,6 +4,8 @@ field: computer
 context: course
 course: 자료구조
 topic: data-structure
+series: 자료구조
+step: 17
 source: jekyll
 originalUrl: https://yeonb0.github.io/data-structure/ds-binary-tree-traversals/
 date: 2026-03-15T23:14:00.000+09:00

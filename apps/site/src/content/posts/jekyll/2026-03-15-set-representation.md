@@ -4,6 +4,8 @@ field: computer
 context: course
 course: 자료구조
 topic: data-structure
+series: 자료구조
+step: 22
 source: jekyll
 originalUrl: https://yeonb0.github.io/data-structure/ds-set-representation/
 date: 2026-03-15T23:28:00.000+09:00

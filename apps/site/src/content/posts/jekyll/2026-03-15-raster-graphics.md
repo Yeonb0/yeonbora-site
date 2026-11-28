@@ -4,6 +4,8 @@ field: computer
 context: course
 course: 기초컴퓨터그래픽스
 topic: computer-graphics
+series: 기초컴퓨터그래픽스
+step: 1
 source: jekyll
 originalUrl: https://yeonb0.github.io/computer-graphics/cg-raster-graphics/
 date: 2026-03-15T20:02:00.000+09:00

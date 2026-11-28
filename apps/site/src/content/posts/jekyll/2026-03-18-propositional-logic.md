@@ -4,6 +4,8 @@ field: computer
 context: course
 course: 이산구조
 topic: discrete-math
+series: 이산구조
+step: 1
 source: jekyll
 originalUrl: https://yeonb0.github.io/discrete-math/dm/
 date: 2026-03-18T11:18:00.000+09:00

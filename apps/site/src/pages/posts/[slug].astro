@@ -4,7 +4,7 @@ import { getCollection, render } from 'astro:content'
 import Layout from '@/sections/posts/Layout.astro'
 // 확장자를 붙인다 : 윈도우는 대소문자를 구분하지 않는다
 import ArticleDesk from '@/sections/posts/ArticleDesk.tsx'
-import { folderOf, type DeskPost } from '@/sections/posts/desk'
+import { folderOf, stripStep, type DeskPost } from '@/sections/posts/desk'
 import Article from '@/components/content/Article.astro'
 import PostArticle from '@/sections/posts/PostArticle.astro'
 import LinkList from '@/components/content/LinkList.astro'
@@ -31,7 +31,7 @@ const SeriesName = entry.data.series
 const SeriesPosts = SeriesName
   ? Computer.filter((p) => p.data.series === SeriesName).sort((a, b) => (a.data.step ?? 0) - (b.data.step ?? 0) || a.data.date.getTime() - b.data.date.getTime())
   : []
-const Series = SeriesName ? { name: SeriesName, items: SeriesPosts.map((p) => ({ title: p.data.title, href: p.id === entry.id ? undefined : `/posts/${p.id}/` })) } : undefined
+const Series = SeriesName ? { name: SeriesName, items: SeriesPosts.map((p) => ({ title: stripStep(p.data.title), href: p.id === entry.id ? undefined : `/posts/${p.id}/` })) } : undefined
 
 // 이전 / 다음 글 : 같은 책 (시리즈) 순서, 책이 없으면 같은 폴더의 날짜 순서
 const MyFolder = folderOf(entry.data.topic)
@@ -39,7 +39,7 @@ const Siblings = SeriesName
   ? SeriesPosts
   : Computer.filter((p) => !p.data.series && folderOf(p.data.topic) === MyFolder).sort((a, b) => a.data.date.getTime() - b.data.date.getTime())
 const Here = Siblings.findIndex((p) => p.id === entry.id)
-const toLink = (p: (typeof Siblings)[number] | undefined) => (p ? { href: `/posts/${p.id}/`, title: p.data.title } : undefined)
+const toLink = (p: (typeof Siblings)[number] | undefined) => (p ? { href: `/posts/${p.id}/`, title: stripStep(p.data.title) } : undefined)
 const Prev = Here > 0 ? toLink(Siblings[Here - 1]) : undefined
 const Next = Here >= 0 ? toLink(Siblings[Here + 1]) : undefined
 ---
@@ -49,7 +49,7 @@ const Next = Here >= 0 ? toLink(Siblings[Here + 1]) : undefined
     OnDesk ? (
       <ArticleDesk posts={DeskPosts} title={entry.data.title} topic={entry.data.topic} series={entry.data.series} prev={Prev} next={Next}>
         <PostArticle
-          title={entry.data.title}
+          title={stripStep(entry.data.title)}
           date={formatDate(entry.data.date)}
           tags={entry.data.tags}
           source={entry.data.source}

@@ -4,6 +4,7 @@ import { plainText, type SearchItem } from '@/lib/search/search'
 import { normalizeTopic, topicName } from '@/lib/content/wiki-topics'
 import { formatDate } from '@/lib/content/site-graph'
 import { getPosts } from '@/lib/content/posts'
+import { stripStep } from '@/sections/posts/desk'
 
 const TextMax = 400
 
@@ -13,7 +14,7 @@ export async function GET() {
     const Tech = p.data.field === 'computer'
     return {
       kind: 'blog',
-      title: p.data.title,
+      title: stripStep(p.data.title),
       href: `/posts/${p.id}`,
       text: p.data.description ?? plainText(p.body ?? '', TextMax),
       aliases: [],

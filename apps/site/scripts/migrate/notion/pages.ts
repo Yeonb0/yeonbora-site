@@ -16,6 +16,7 @@ export const Groups: Record<string, GroupRule> = {
   spring: { batch: 'spring', topic: 'java', context: 'study', series: 'Spring', tags: ['Spring', 'Java'] },
   typescript: { batch: 'typescript', topic: 'web', context: 'study', series: '타입스크립트', tags: ['TypeScript'] },
   dl3: { batch: 'deep-learning', topic: 'ml', context: 'study', series: '밑바닥부터 시작하는 딥러닝 3', tags: ['Deep Learning', 'Python'] },
+  os: { batch: 'os', topic: 'os', context: 'study', series: '운영체제 : 아주 쉬운 세 가지 이야기', tags: ['OS', 'OSTEP'] },
   dl2: { batch: 'deep-learning', topic: 'ml', context: 'study', series: '밑바닥부터 시작하는 딥러닝 2', tags: ['Deep Learning', 'Python'] },
 }
 
@@ -51,12 +52,35 @@ export const Pages: Record<string, { group: keyof typeof Groups; date: string }>
   '3ba3a7483f978037b0f8c5a8b5ca3a87': { group: 'dl3', date: '2026-08-12' }, // 변수를 낳는 함수
   '3ba3a7483f9780d1b785db5de63e29d9': { group: 'dl3', date: '2026-08-12' }, // 상자로서의 변수
   '3c63a7483f9780eb8918dcdff1a997e0': { group: 'dl2', date: '2026-08-24' }, // 게이트가 추가된 RNN
+  '3d83a7483f978067a20de4c0b714d499': { group: 'os', date: '2026-09-11' }, // 이 책에 관한 대화
+  '3d83a7483f9780548275c9f0880fb877': { group: 'os', date: '2026-09-11' }, // 운영체제 개요
+  '3d83a7483f9780be9556ec70efabc943': { group: 'os', date: '2026-09-11' }, // 가상화에 관한 대화
+  '3d83a7483f97806b91e9c355eb98438b': { group: 'os', date: '2026-09-11' }, // 프로세스의 개념
+  '3da3a7483f97809cb1d4d65bc5f38af3': { group: 'os', date: '2026-09-13' }, // 막간: 프로세스 API
+  '3da3a7483f9780a3bb13faa46c04bd8c': { group: 'os', date: '2026-09-13' }, // 제한적 직접 실행 원리
+  '3dd3a7483f978006b0dfff2c717bcb12': { group: 'os', date: '2026-09-16' }, // 스케줄링: 개요
+  '3e13a7483f978077ab82ec8a5c82f7ee': { group: 'os', date: '2026-09-20' }, // 스케줄링: 멀티 레벨 피드백 큐
+  '3e13a7483f978017b10fe2469b770af9': { group: 'os', date: '2026-09-20' }, // 스케줄링: 비례 배분
+  '3e23a7483f9780b88e88f0dcabbbe0df': { group: 'os', date: '2026-09-21' }, // 멀티프로세스 스케줄링 (고급)
+  '3eb3a7483f97800eb367c62f2e2021b0': { group: 'os', date: '2026-09-30' }, // CPU 가상화에 관한 마무리 대화
+  '3eb3a7483f9780e2ac8cef247da49b02': { group: 'os', date: '2026-09-30' }, // 메모리 가상화에 관한 대화
+  '3eb3a7483f9780d8a97dff6bcd575de6': { group: 'os', date: '2026-09-30' }, // 주소 공간의 개념
+  '3eb3a7483f978083a22fc3f5604bdd28': { group: 'os', date: '2026-09-30' }, // 막간: 메모리 관리 API
+  '3eb3a7483f97808d9246cbf30cdaa2bc': { group: 'os', date: '2026-09-30' }, // 주소 변환의 원리
+  '3f73a7483f9780cb97e2ef8f5a0e7ea9': { group: 'os', date: '2026-10-12' }, // 빈 공간 관리
+  '3f83a7483f9780b09af6c748525a21f0': { group: 'os', date: '2026-10-13' }, // 세그멘테이션
+  '40d3a7483f9780a4b875d3ed5c69632f': { group: 'os', date: '2026-11-03' }, // 페이징: 개요
+  '40d3a7483f97803cbc06e139f657bf21': { group: 'os', date: '2026-11-03' }, // 페이징: 더 빠른 변환 (TLB)
+  '4143a7483f9780469d8cf876d6f03b3d': { group: 'os', date: '2026-11-10' }, // 페이징: 더 작은 테이블
 }
 
 // 내보내기에 있지만 옮기지 않는 페이지 : id → 이유
 export const Excluded: Record<string, string> = {
   '2ea3a7483f9780bc8b6fdce0b8beda16': 'Java 기말고사 공부 : 하위 페이지 목록만 있는 페이지',
   '3ba3a7483f9780b6ac2cc109f68190d1': '딥러닝 3 Index : 목차 페이지',
+  '3d33a7483f978075a77df5e8195461c3': '운영체제 중간고사 강의 정리 : 교재가 아님 (관리자 범위 결정)',
+  '3dc3a7483f97803a9b64ef81221ca262': '운영체제 중간고사 강의 정리 : 교재가 아님 (관리자 범위 결정)',
+  '3dd3a7483f97806996a0d636c61cdd96': '운영체제 중간고사 강의 정리 : 교재가 아님 (관리자 범위 결정)',
 }
 
 export const BatchNames = [...new Set(Object.values(Groups).map((g) => g.batch))]

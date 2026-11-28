@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cleanTitle, folderOf, folderView, parseHash, rankInSeries, recent, summarize, toHash, visibleFolders, type DeskPost } from '../desk'
+import { cleanTitle, stripStep, folderOf, folderView, parseHash, rankInSeries, recent, summarize, toHash, visibleFolders, type DeskPost } from '../desk'
 
 const P = (o: Partial<DeskPost> & { id: string }): DeskPost => ({ title: o.id, date: '2026-06-24', tags: [], summary: '', ...o })
 
@@ -121,6 +121,10 @@ describe('summarize', () => {
 describe('cleanTitle', () => {
   it('제목 앞 [카테고리] 머리말을 뗀다', () => {
     expect(cleanTitle('[Network] Framing / Error Control')).toBe('Framing / Error Control')
+    expect(cleanTitle('[CSS] 01_CSS 기초')).toBe('CSS 기초')
+    expect(stripStep('[C] 10_1차원 배열')).toBe('[C] 1차원 배열')
+    expect(stripStep('12_다차원 배열')).toBe('다차원 배열')
+    expect(stripStep('[OS] CPU 스케줄링')).toBe('[OS] CPU 스케줄링')
     expect(cleanTitle('[공장 게임] Phase 0 : 뼈대')).toBe('Phase 0 : 뼈대')
     expect(cleanTitle('[Network]')).toBe('[Network]')
     expect(cleanTitle('Hash Tables')).toBe('Hash Tables')

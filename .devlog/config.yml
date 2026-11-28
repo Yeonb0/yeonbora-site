@@ -8,7 +8,7 @@ blog:
   tags: [Astro, TypeScript]
 current_phase: 1
 # 글 옮기기 프로젝트 (docs/migration/project-instructions.md) 의 현재 Phase
-current_migration_phase: M4
+current_migration_phase: M5
 phases:
   - id: 1
     title: 허브 화면
@@ -131,10 +131,11 @@ migration_phases:
       - 위키 링크 연결
       - devlog 게시 경로를 Astro로 변경
   - id: M5
-    title: velog · Tistory · Notion 이전
+    title: Tistory · Notion 이전
     goal: 흩어진 블로그 글이 모인다
+    # velog 는 계정이 404 라 원문을 찾으면 나중에 추가 (2026-11-28)
     done:
-      - 세 출처 글 전부 이전
+      - 두 출처 글 전부 이전
       - 출처별 변환 리포트
       - 중복 글 정리
   - id: M6

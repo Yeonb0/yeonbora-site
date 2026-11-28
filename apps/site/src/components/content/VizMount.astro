@@ -5,6 +5,7 @@
 
 <script>
   import { observeViz, siteLoader } from '@/viz/mount'
+  import { HtmlDemoMessage } from '@/lib/remark/html-demo'
   let stop: (() => void) | undefined
   document.addEventListener('astro:page-load', () => {
     stop?.()
@@ -13,5 +14,13 @@
   document.addEventListener('astro:before-swap', () => {
     stop?.()
     stop = undefined
+  })
+  // html demo iframe (티스토리 HTML 삽입) 이 알려 준 높이로 맞춘다 : 보낸 iframe 만 찾는다
+  addEventListener('message', (e) => {
+    const D = e.data as { type?: string; height?: unknown } | null
+    if (!D || D.type !== HtmlDemoMessage || typeof D.height !== 'number') return
+    for (const F of document.querySelectorAll<HTMLIFrameElement>('figure.html-demo iframe')) {
+      if (F.contentWindow === e.source) F.style.height = `${Math.min(Math.max(D.height, 40), 2000)}px`
+    }
   })
 </script>

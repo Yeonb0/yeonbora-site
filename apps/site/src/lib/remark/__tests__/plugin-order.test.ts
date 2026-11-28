@@ -12,7 +12,7 @@ describe('remark plugin order', () => {
     const Bench = read('../../../../scripts/drafts/render-post.ts')
     const Chain = Bench.slice(Bench.indexOf('unified()\n      .use(remarkParse)'), Bench.indexOf('.use(remarkRehype'))
     const BenchOrder = [...Chain.matchAll(/\.use\((remark[A-Z]\w*)/g)].map((m) => m[1]).filter((n) => !['remarkParse', 'remarkGfm'].includes(n))
-    expect(SiteOrder).toEqual(['remarkStripComments', 'remarkViz', 'remarkCallout', 'remarkHighlight', 'remarkHtmlImage', 'remarkMath', 'remarkWikilink'])
+    expect(SiteOrder).toEqual(['remarkStripComments', 'remarkViz', 'remarkHtmlDemo', 'remarkCallout', 'remarkHighlight', 'remarkHtmlImage', 'remarkMath', 'remarkWikilink'])
     expect(BenchOrder).toEqual(SiteOrder)
   })
 })

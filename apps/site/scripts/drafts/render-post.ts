@@ -20,6 +20,7 @@ import { getAssets, getGraph, isBacklog, setBacklogPath } from '../../src/lib/co
 import { remarkStripComments } from '../../src/lib/remark/comments'
 import { remarkCallout } from '../../src/lib/remark/callout'
 import { remarkHighlight } from '../../src/lib/remark/highlight'
+import { remarkHtmlDemo } from '../../src/lib/remark/html-demo'
 import { remarkHtmlImage } from '../../src/lib/remark/html-image'
 import { remarkViz } from '../../src/lib/remark/viz'
 import { remarkWikilink } from '../../src/lib/remark/wikilink'
@@ -103,6 +104,7 @@ export function renderPost(file: string, contentDir: string): DraftPost {
       .use(remarkGfm)
       .use(remarkStripComments, { onWarn: warn })
       .use(remarkViz, { onWarn: warn })
+      .use(remarkHtmlDemo)
       .use(remarkCallout)
       .use(remarkHighlight)
       .use(remarkHtmlImage)
